@@ -4,13 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
-import { ArrowLeft, Globe, MapPin, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Users } from "lucide-react";
 
 import { companiesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { getCurrentUser } from "@/lib/current-user";
 import { dataCurta } from "@/lib/date/format";
-import { safeHttpUrl } from "@/lib/safe-url";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +17,7 @@ import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 import { CompanyEditDialog } from "@/components/company-edit-dialog";
+import { CompanyWebsiteLink } from "@/components/company-website-link";
 import { RichText } from "@/components/post/rich-text";
 
 export const Route = createFileRoute("/empresa/$slug")({
@@ -173,7 +173,11 @@ function Empresa() {
             )}
           </div>
 
-          <div className="px-4 pb-5 sm:px-6">
+          {/* A capa é position:relative. Sem z-index, um posicionado pinta por cima do
+              fluxo normal — a logo, puxada para cima com -mt-10, ficava por baixo dela.
+              O mesmo bloco relativo do avatar no perfil. Fonte:
+              https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_without_z-index */}
+          <div className="relative px-4 pb-5 sm:px-6">
             <div className="-mt-10 flex items-end gap-4">
               {company.logo ? (
                 <img
@@ -225,17 +229,7 @@ function Empresa() {
                   {company.location}
                 </span>
               )}
-              {company.website && safeHttpUrl(company.website) && (
-                <a
-                  href={safeHttpUrl(company.website) ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  {company.website.replace(/^https?:\/\//, "")}
-                </a>
-              )}
+              <CompanyWebsiteLink website={company.website} />
             </div>
 
             {company.description && (

@@ -25,6 +25,7 @@ import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
@@ -211,9 +212,11 @@ function FreelanceCard({ item, authenticated }: { item: FreelanceView; authentic
   const navigate = useNavigate();
   const { toast } = useToast();
   const [applyOpen, setApplyOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   const close = useMutation({
     mutationFn: () => freelancesApi.close(item.id),
     onSuccess: () => {
+      setCloseOpen(false);
       toast(texts.jobs.freelancePage.closed, "success");
       void queryClient.invalidateQueries({ queryKey: ["freelances"] });
     },
@@ -234,7 +237,7 @@ function FreelanceCard({ item, authenticated }: { item: FreelanceView; authentic
             size="sm"
             className="w-auto rounded-full"
             disabled={close.isPending}
-            onClick={() => close.mutate()}
+            onClick={() => setCloseOpen(true)}
           >
             {texts.jobs.freelancePage.close}
           </Button>
@@ -286,6 +289,19 @@ function FreelanceCard({ item, authenticated }: { item: FreelanceView; authentic
           <ApplyFreelanceDialog freelance={item} open={applyOpen} onOpenChange={setApplyOpen} />
         </>
       )}
+
+      {/* Encerrar tira o título e o escopo da lista. O primeiro clique só abre a confirmação,
+          o mesmo diálogo das comunidades, para um toque acidental não apagar o combinado. */}
+      <ConfirmDialog
+        open={closeOpen}
+        onOpenChange={setCloseOpen}
+        title={texts.jobs.freelancePage.closeTitle}
+        description={texts.jobs.freelancePage.closeDescription}
+        confirmLabel={texts.jobs.freelancePage.close}
+        destructive
+        pending={close.isPending}
+        onConfirm={() => close.mutate()}
+      />
     </li>
   );
 }
