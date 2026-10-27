@@ -1,11 +1,16 @@
 import * as React from "react";
 
+import type { InputProps } from "@/types/components/ui/input-props";
+
 import { cn } from "@/lib/utils";
 
 import { CharCounter } from "./char-counter";
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, maxLength, value, defaultValue, onChange, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    { className, type, maxLength, value, defaultValue, onChange, showCounter = true, ...props },
+    ref,
+  ) => {
     // Campos nao controlados (formularios que leem FormData) nao tem `value`: o comprimento e
     // rastreado aqui, senao o contador ficaria parado no total.
     const [length, setLength] = React.useState(String(value ?? defaultValue ?? "").length);
@@ -30,7 +35,9 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           ref={ref}
           {...props}
         />
-        {typeof maxLength === "number" && <CharCounter length={length} max={maxLength} />}
+        {showCounter && typeof maxLength === "number" && (
+          <CharCounter length={length} max={maxLength} />
+        )}
       </div>
     );
   },
