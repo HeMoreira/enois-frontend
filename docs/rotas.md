@@ -288,3 +288,8 @@ seguintes; aqui é o mapa completo.
 | `/vagas/:jobId`                  | `vagas.$jobId.tsx`                               | Detalhe da vaga (candidatar, salvar).                                         |
 | `/vagas/:jobId/candidaturas`     | `vagas.$jobId.candidaturas.tsx`                  | Candidaturas da vaga (painel do contratante).                                 |
 | `/vagas/minhas`                  | `vagas.minhas.tsx`                               | Minhas vagas (publicadas e candidaturas).                                     |
+
+Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatamente seis dígitos,
+preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
+automático usa `one-time-code`. Esse campo não exibe contador de caracteres: completar seis dígitos
+habilita a confirmação, sem aviso de limite atingido.
