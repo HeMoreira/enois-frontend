@@ -6,4 +6,6 @@ export type ReportInput = {
   targetType: ReportTargetType;
   reason: ReportReason;
   description?: string;
+  /** Chave da conversa E2E (plain, em base64). O moderador usa pra decifrar as mensagens denunciadas. */
+  e2eConversationKey?: string;
 };

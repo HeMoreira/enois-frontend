@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { texts } from "@/texts";
+import type { Notification } from "@/types/application/notification/notification";
 import type { NotificationTab } from "@/types/components/notification/notification-tab";
 import { Bell, Check, CheckCheck, Loader2, X } from "lucide-react";
 
-import { networkApi, notificationsApi, profileApi } from "@/lib/api";
+import { messagesApi, networkApi, notificationsApi, profileApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { getCurrentUserId } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
+import { decryptReceived } from "@/lib/e2e/conversation";
+import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { isNotificationHidden } from "@/lib/notification-module";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useDisabledModules } from "@/lib/use-personalization";
@@ -143,6 +146,10 @@ export function NotificationsPopover() {
       queryClient.invalidateQueries({ queryKey: ["network"] });
     },
   });
+
+  const chatPreviewOverrides = useDecryptedChatPreviews(
+    notificationTab === "chat" ? chatNotifications : [],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -298,7 +305,11 @@ export function NotificationsPopover() {
             displayedNotifications.map((notification) => (
               <NotificationItem
                 key={notification.id}
-                notification={notification}
+                notification={
+                  chatPreviewOverrides.has(notification.id)
+                    ? { ...notification, body: chatPreviewOverrides.get(notification.id)! }
+                    : notification
+                }
                 onMarkAsRead={(id) => markAsRead.mutate(id)}
                 onAcceptConnection={(actorId) => acceptConnection.mutate(actorId)}
                 stillPendingActorIds={pendingActorIds}
@@ -400,4 +411,60 @@ function ConnectionRequestItem({
       </span>
     </div>
   );
+}
+
+/**
+ * Para notificacoes de chat com "Mensagem cifrada", busca as conversas e decifra o preview.
+ * Retorna um mapa notificationId → texto decifrado.
+ */
+function useDecryptedChatPreviews(chatNotifications: Notification[]): Map<string, string> {
+  const [previews, setPreviews] = useState<Map<string, string>>(new Map());
+
+  const needsDecrypt = chatNotifications.filter((n) => n.body === "Mensagem cifrada");
+
+  const { data: conversations } = useQuery({
+    queryKey: ["conversations", "e2e-preview"],
+    queryFn: () => messagesApi.listConversations(null, 20),
+    enabled: needsDecrypt.length > 0,
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    if (!conversations || needsDecrypt.length === 0) return;
+    let cancelled = false;
+
+    async function decrypt() {
+      const has = await hasLocalKeys();
+      if (!has || cancelled) return;
+
+      const convMap = new Map(conversations!.items.map((c) => [c.id, c]));
+      const result = new Map<string, string>();
+
+      for (const notif of needsDecrypt) {
+        const convId = notif.href.replace(/.*\/conversations\//, "").split(/[/?#]/)[0];
+        const conv = convMap.get(convId);
+        if (!conv?.lastMessageE2e || !conv.lastMessage || !conv.lastMessageIv) continue;
+        try {
+          const plain = await decryptReceived({
+            e2e: true,
+            text: conv.lastMessage,
+            iv: conv.lastMessageIv,
+            conversationId: convId,
+          } as Parameters<typeof decryptReceived>[0]);
+          result.set(notif.id, plain);
+        } catch {
+          /* decifrar falhou, mantém o body original */
+        }
+      }
+
+      if (!cancelled) setPreviews(result);
+    }
+
+    decrypt();
+    return () => {
+      cancelled = true;
+    };
+  }, [conversations, needsDecrypt.length]);
+
+  return previews;
 }

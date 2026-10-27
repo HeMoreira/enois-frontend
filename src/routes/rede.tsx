@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 
 import { AppContainer } from "@/components/app-container";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/rede")({
@@ -165,7 +166,7 @@ function Rede() {
                     params={{ username: u.username }}
                     className="mt-3 block break-words font-semibold hover:underline"
                   >
-                    {u.name}
+                    <StyledName name={u.name} style={u.nameStyle} />
                   </Link>
 
                   <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-xs text-muted-foreground">

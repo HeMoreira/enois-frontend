@@ -4,22 +4,29 @@ import { Link } from "@tanstack/react-router";
 
 import { usePostCardStore } from "@/stores/post-card.store";
 import { texts } from "@/texts";
+import type { ReactionSummary } from "@/types/application/reaction/reaction-summary";
 import type { ReactionType } from "@/types/application/reaction/reaction-type";
 import type { CommentItemProps } from "@/types/components/post/comment-item-props";
 import { Flag, Heart, MessageCircle, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 
 import { REACTION_EMOJIS, commentsApi, profileApi, reactionsApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
+import { applyReactionToSummary, removeReactionFromSummary } from "@/lib/reactions/summary";
 import { hideExternalPageUrls } from "@/lib/shared-links";
+import { useAuth } from "@/lib/use-auth";
 
 import { Button } from "@/components/ui/button";
 import { ReadMore } from "@/components/ui/read-more";
 import { useToast } from "@/components/ui/toast";
 
+import { ContributorTag } from "@/components/contributor-tag";
 import { MentionTextarea } from "@/components/mention-textarea";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 import { UserBadges } from "@/components/user-badge";
 
+import { CommentReactionsDialog } from "./comment-reactions-dialog";
+import { CommentReactionsSummary } from "./comment-reactions-summary";
 import { formatTime } from "./format-time";
 import { LinkPreviews } from "./link-previews";
 import { MediaGrid } from "./media-grid";
@@ -36,6 +43,7 @@ export function CommentItem({
   onDeleted,
 }: CommentItemProps) {
   const { toast } = useToast();
+  const { requireAuth } = useAuth();
   // Inscrito na query do /me: sem isso, o comentario da propria pessoa so aparecia como tal
   // depois que alguma outra consulta redesenhava a tela (o cache do /me chega em outra hora).
   const { data: currentUser } = useCurrentUser();
@@ -54,6 +62,12 @@ export function CommentItem({
   const [commentReaction, setCommentReaction] = useState<ReactionType | null>(
     comment.currentUserReaction ?? null,
   );
+  // Contagem por tipo (pílulas iguais às do post). O resumo do servidor é a base; cada clique
+  // atualiza de forma otimista e volta ao valor anterior se a API recusar.
+  const [reactionSummary, setReactionSummary] = useState<ReactionSummary>(
+    comment.reactionSummary ?? {},
+  );
+  const [reactionsOpen, setReactionsOpen] = useState(false);
 
   // Edicao e local ao item: o texto novo e o selo aparecem na hora. Ao remontar (refetch),
   // vale o que veio do servidor, que ja traz o editedAt.
@@ -68,7 +82,8 @@ export function CommentItem({
   // A reação do leitor vem do servidor: sem isto o like "sumia" ao recarregar.
   useEffect(() => {
     setCommentReaction(comment.currentUserReaction ?? null);
-  }, [comment.currentUserReaction, comment.id]);
+    setReactionSummary(comment.reactionSummary ?? {});
+  }, [comment.currentUserReaction, comment.reactionSummary, comment.id]);
 
   const saveEdit = async () => {
     const next = editDraft.trim();
@@ -120,18 +135,37 @@ export function CommentItem({
   };
 
   const handleCommentReaction = async (type: ReactionType) => {
+    // Post compartilhado abre para quem não tem sessão: reagir manda para o login em vez de falhar
+    // em silêncio (mesma regra da reação do post).
+    if (!requireAuth()) return;
+    const previousReaction = commentReaction;
+    const previousSummary = reactionSummary;
+    const next = previousReaction === type ? null : type;
+    // Otimismo: tira a reação anterior (se houver troca/remoção) e soma a nova. Assim a pílula
+    // responde no toque, como no post, e volta ao estado do servidor se a chamada falhar.
+    let nextSummary = previousSummary;
+    if (previousReaction && previousReaction !== next) {
+      nextSummary = removeReactionFromSummary(nextSummary, previousReaction);
+    }
+    if (next) nextSummary = applyReactionToSummary(nextSummary, next);
+    setCommentReaction(next);
+    setReactionSummary(nextSummary);
     try {
-      if (commentReaction === type) {
+      if (next === null) {
         await reactionsApi.removeCommentReaction(comment.postId, comment.id);
-        setCommentReaction(null);
       } else {
         await reactionsApi.reactComment(comment.postId, comment.id, type);
-        setCommentReaction(type);
       }
     } catch {
-      /* ignore */
+      setCommentReaction(previousReaction);
+      setReactionSummary(previousSummary);
     }
   };
+
+  const reactionTotal =
+    comment.reactionSummary == null
+      ? (comment.reactionCount ?? 0)
+      : Object.values(reactionSummary).reduce((total, count) => total + count, 0);
 
   // Nome e foto levam ao perfil de quem comentou (quando o perfil existe).
   const profileLink = comment.authorUsername ? (
@@ -140,10 +174,12 @@ export function CommentItem({
       params={{ username: comment.authorUsername }}
       className="text-xs font-medium text-text-strong hover:underline"
     >
-      {comment.authorName}
+      <StyledName name={comment.authorName} style={comment.authorStyle} />
     </Link>
   ) : (
-    <span className="text-xs font-medium text-text-strong">{comment.authorName}</span>
+    <span className="text-xs font-medium text-text-strong">
+      <StyledName name={comment.authorName} style={comment.authorStyle} />
+    </span>
   );
 
   const avatar = (
@@ -174,6 +210,10 @@ export function CommentItem({
         <div className="rounded-xl bg-surface-1 px-3 py-2">
           <div className="flex flex-wrap items-center gap-2">
             {profileLink}
+
+            {comment.authorContributor && (
+              <ContributorTag color={comment.authorContributor.color} />
+            )}
 
             <UserBadges badges={comment.authorBadges} badge={comment.authorBadge} />
             {replyingTo && (
@@ -263,6 +303,12 @@ export function CommentItem({
           )}
         </div>
 
+        <CommentReactionsSummary
+          summary={reactionSummary}
+          mine={commentReaction}
+          onToggle={handleCommentReaction}
+        />
+
         <div className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 px-3 text-text-subtle">
           <ReactionPicker
             activeType={commentReaction}
@@ -277,10 +323,20 @@ export function CommentItem({
             ) : (
               <Heart className="h-3.5 w-3.5" />
             )}
-            {(comment.reactionCount ?? 0) > 0 && (
-              <span className="text-xs tabular-nums">{comment.reactionCount}</span>
-            )}
           </ReactionPicker>
+
+          {reactionTotal > 0 && (
+            <button
+              type="button"
+              onClick={() => setReactionsOpen(true)}
+              title={texts.posts.reactions.seeWho(reactionTotal)}
+              aria-label={texts.posts.reactions.seeWho(reactionTotal)}
+              aria-haspopup="dialog"
+              className="flex h-7 items-center rounded-full px-1 text-xs tabular-nums transition-colors hover:bg-surface-2 hover:text-primary hover:underline hover:decoration-dotted hover:underline-offset-4"
+            >
+              {reactionTotal}
+            </button>
+          )}
 
           <button
             onClick={handleReply}
@@ -366,6 +422,12 @@ export function CommentItem({
         targetType="COMMENT"
         open={reportOpen}
         onOpenChange={setReportOpen}
+      />
+      <CommentReactionsDialog
+        postId={comment.postId}
+        commentId={comment.id}
+        open={reactionsOpen}
+        onOpenChange={setReactionsOpen}
       />
     </div>
   );

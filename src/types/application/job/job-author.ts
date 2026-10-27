@@ -1,3 +1,5 @@
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
+
 export type JobAuthor = {
   id: string;
   username: string | null;
@@ -6,4 +8,6 @@ export type JobAuthor = {
   headline: string | null;
   reputation: number;
   identityVerified: boolean;
+  /** Personalização do nome (tema/fonte/cor). */
+  nameStyle?: AuthorNameStyle | null;
 };

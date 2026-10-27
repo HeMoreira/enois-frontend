@@ -40,6 +40,7 @@ import { ApplyByEmailButton } from "@/components/apply-by-email-button";
 import { ApplyJobDialog } from "@/components/apply-job-dialog";
 import { JobEditDialog } from "@/components/job-edit-dialog";
 import { RichText } from "@/components/post/rich-text";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/vagas/$jobId")({
@@ -230,10 +231,12 @@ function JobDetail() {
                       params={{ username: job.author.username }}
                       className="truncate text-sm font-medium text-text-strong hover:underline"
                     >
-                      {job.author.name}
+                      <StyledName name={job.author.name} style={job.author.nameStyle} />
                     </Link>
                   ) : (
-                    <span className="truncate text-sm font-medium">{job.author.name}</span>
+                    <span className="truncate text-sm font-medium">
+                      <StyledName name={job.author.name} style={job.author.nameStyle} />
+                    </span>
                   )}
 
                   <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">

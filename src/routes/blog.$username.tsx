@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/toast";
 import { AppContainer } from "@/components/app-container";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 import { UserBadges } from "@/components/user-badge";
 
@@ -132,8 +133,7 @@ function BlogPage() {
 
               <div>
                 <p className="flex items-center gap-1 text-sm font-semibold text-text-strong">
-                  <>{blog.authorName}</>
-
+                  <StyledName name={blog.authorName} style={blog.authorStyle} />
                   <UserBadges badges={blog.authorBadges} badge={blog.authorBadge} />
                 </p>
 

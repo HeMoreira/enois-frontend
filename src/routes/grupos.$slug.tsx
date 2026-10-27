@@ -50,6 +50,7 @@ import { ReactionPicker } from "@/components/post/reaction-picker";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 import { UserBadges } from "@/components/user-badge";
 
@@ -566,7 +567,9 @@ function GroupPostItem({
           className="h-8 w-8 shrink-0"
         />
 
-        <span className="text-sm font-medium text-text-strong">{post.authorName ?? ""}</span>
+        <span className="text-sm font-medium text-text-strong">
+          <StyledName name={post.authorName ?? ""} style={post.authorStyle} />
+        </span>
 
         <UserBadges badges={post.authorBadges} />
 
@@ -676,8 +679,7 @@ function GroupPostItem({
 
                   <div className="min-w-0">
                     <p className="flex items-center gap-1 text-xs font-medium text-text-strong">
-                      <>{item.authorName ?? ""}</>
-
+                      <StyledName name={item.authorName ?? ""} style={item.authorStyle} />
                       <UserBadges badges={item.authorBadges} />
                     </p>
 
@@ -1113,7 +1115,7 @@ function AdminPanel({ group }: { group: GroupView }) {
                 />
 
                 <span className="min-w-0 flex-1 truncate text-sm text-text-strong">
-                  {nameOf(request)}
+                  <StyledName name={nameOf(request)} style={request.nameStyle} />
                 </span>
 
                 <Button
@@ -1171,7 +1173,7 @@ function AdminPanel({ group }: { group: GroupView }) {
                 />
 
                 <span className="min-w-0 flex-1 truncate text-sm text-text-strong">
-                  {nameOf(member)}
+                  <StyledName name={nameOf(member)} style={member.nameStyle} />
                 </span>
 
                 <span className="text-xs text-text-subtle">{roleLabel(member.role)}</span>

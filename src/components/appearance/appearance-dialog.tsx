@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,7 @@ import type { AppearanceDialogProps } from "@/types/components/appearance/appear
 import type { ThemeAccent } from "@/types/preferences/theme-accent";
 import type { ThemeBackground } from "@/types/preferences/theme-background";
 import type { ThemePresetId } from "@/types/preferences/theme-preset-id";
-import { Download, Moon, RotateCcw, Store, Sun, Upload } from "lucide-react";
+import { ChevronDown, Download, Moon, RotateCcw, Store, Sun, Upload } from "lucide-react";
 
 import { cosmeticsApi } from "@/lib/api";
 import { resolveThemeCollection } from "@/lib/theme/build-collection-css";
@@ -36,11 +36,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { BackgroundStylePicker } from "./background-style-picker";
 import { CollectionGrid } from "./collection-grid";
 import { ContrastNotice } from "./contrast-notice";
 import { PresetRow } from "./preset-row";
+import { PurchasedThemes } from "./purchased-themes";
 import { RangeField } from "./range-field";
 import { ThemePreview } from "./theme-preview";
 import { ThemeSellDialog } from "./theme-sell-dialog";
@@ -69,6 +71,8 @@ export function AppearanceDialog({
   profileNameFont,
   profileNameColor,
   profileNameTheme: profileNameThemeId,
+  contributor = false,
+  contributorTagColor = null,
 }: AppearanceDialogProps) {
   const theme = usePreferencesStore((state) => state.theme);
   const setTheme = usePreferencesStore((state) => state.setTheme);
@@ -93,6 +97,12 @@ export function AppearanceDialog({
     null,
   );
   const [sellOpen, setSellOpen] = useState(false);
+  const [themesOpen, setThemesOpen] = useState(true);
+  const [tagColor, setTagColor] = useState<string | null>(contributorTagColor);
+
+  useEffect(() => {
+    setTagColor(contributorTagColor);
+  }, [contributorTagColor]);
 
   const selectedNameTheme = displayNameTheme ?? profileNameThemeId ?? "DEFAULT";
   const selectedNameThemeDefinition = profileNameTheme(selectedNameTheme);
@@ -105,6 +115,19 @@ export function AppearanceDialog({
       void queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
+
+  const contributorTagMutation = useMutation({
+    mutationFn: cosmeticsApi.setContributorTagColor,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["profile"] });
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+
+  const updateContributorTag = (color: string | null) => {
+    setTagColor(color);
+    contributorTagMutation.mutate({ color });
+  };
 
   const report = useMemo(() => reportThemeContrast(settings, theme), [settings, theme]);
 
@@ -199,403 +222,521 @@ export function AppearanceDialog({
           <DialogDescription>{texts.appearance.description}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 pt-2">
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-text-strong">
-              {texts.appearance.collectionsTitle}
-            </h3>
+        <Tabs defaultValue="global" className="pt-2">
+          <TabsList className="w-full justify-start rounded-xl border border-border-soft bg-surface-1 p-1">
+            <TabsTrigger value="global">{texts.appearance.tabGlobal}</TabsTrigger>
 
-            <p className="text-xs font-normal text-text-subtle">
-              {texts.appearance.collectionsHint}
-            </p>
+            <TabsTrigger value="identity">{texts.appearance.tabIdentity}</TabsTrigger>
+          </TabsList>
 
-            <CollectionGrid activeId={themeCollection} onSelect={handleCollectionSelect} />
+          <TabsContent value="global" className="space-y-5">
+            <section className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setThemesOpen((value) => !value)}
+                aria-expanded={themesOpen}
+                className="flex w-full items-center justify-between gap-2 text-left"
+              >
+                <h3 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.collectionsTitle}
+                </h3>
 
-            {activeCollection && (
-              <p className="text-xs font-normal text-text-subtle">
-                {texts.appearance.colorsNote(activeCollection.name)}
-              </p>
-            )}
-          </section>
+                <span className="inline-flex items-center gap-1 text-[11px] font-normal text-text-subtle">
+                  {themesOpen ? texts.appearance.themesCollapse : texts.appearance.themesExpand}
 
-          <section className="space-y-3 border-t border-border-soft pt-4">
-            <div className="space-y-0.5">
+                  <ChevronDown
+                    className={cn("h-3.5 w-3.5 transition-transform", themesOpen && "rotate-180")}
+                    aria-hidden
+                  />
+                </span>
+              </button>
+
+              {themesOpen && (
+                <>
+                  <p className="text-xs font-normal text-text-subtle">
+                    {texts.appearance.collectionsHint}
+                  </p>
+
+                  <CollectionGrid activeId={themeCollection} onSelect={handleCollectionSelect} />
+
+                  {activeCollection && (
+                    <p className="text-xs font-normal text-text-subtle">
+                      {texts.appearance.colorsNote(activeCollection.name)}
+                    </p>
+                  )}
+                </>
+              )}
+            </section>
+
+            <PurchasedThemes />
+
+            <section className="space-y-2">
+              <h3 className="text-xs font-medium text-text-strong">{texts.appearance.mode}</h3>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  aria-pressed={theme === "light"}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-normal transition",
+                    theme === "light"
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border-soft bg-surface-1 text-text-subtle hover:text-text-strong",
+                  )}
+                >
+                  <Sun className="h-3.5 w-3.5" />
+
+                  <>{texts.theme.light}</>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  aria-pressed={theme === "dark"}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-normal transition",
+                    theme === "dark"
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border-soft bg-surface-1 text-text-subtle hover:text-text-strong",
+                  )}
+                >
+                  <Moon className="h-3.5 w-3.5" />
+
+                  <>{texts.theme.dark}</>
+                </button>
+              </div>
+            </section>
+
+            {/* As cores livres valem SEMPRE: sem tema, são o tema; com tema, são
+              camada por cima (destaque e fundo — superfícies ficam do tema). */}
+            <section className="space-y-2">
+              <h3 className="text-xs font-medium text-text-strong">{texts.appearance.presets}</h3>
+
+              <PresetRow activeId={activePresetId} onSelect={setThemeSettings} />
+            </section>
+
+            <section className="space-y-3">
+              <div className="space-y-0.5">
+                <h3 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.accentSection}
+                </h3>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.accentHint}
+                </p>
+              </div>
+
+              <RangeField
+                label={texts.appearance.hue}
+                value={settings.accent.hue}
+                min={THEME_LIMITS.hue.min}
+                max={THEME_LIMITS.hue.max}
+                step={1}
+                valueLabel={texts.appearance.hueValue(Math.round(settings.accent.hue))}
+                onChange={(hue) => updateAccent({ hue })}
+                hueTrack
+              />
+              <RangeField
+                label={texts.appearance.saturation}
+                value={settings.accent.chroma}
+                min={THEME_LIMITS.accentChroma.min}
+                max={THEME_LIMITS.accentChroma.max}
+                step={0.005}
+                valueLabel={percent(settings.accent.chroma, CHROMA_MAX.accent)}
+                onChange={(chroma) => updateAccent({ chroma })}
+              />
+              <RangeField
+                label={texts.appearance.brightness}
+                value={settings.accent.lightness}
+                min={THEME_LIMITS.accentLightness.min}
+                max={THEME_LIMITS.accentLightness.max}
+                step={0.005}
+                valueLabel={percent(
+                  settings.accent.lightness - THEME_LIMITS.accentLightness.min,
+                  THEME_LIMITS.accentLightness.max - THEME_LIMITS.accentLightness.min,
+                )}
+                onChange={(lightness) => updateAccent({ lightness })}
+                hint={texts.appearance.brightnessHint}
+              />
+            </section>
+
+            <section className="space-y-3">
+              <div className="space-y-0.5">
+                <h3 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.backgroundSection}
+                </h3>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.backgroundHint}
+                </p>
+              </div>
+
+              {/* Plano de fundo: automático, cor sólida ou gradiente. Com fundo
+                    escolhido, o tingimento fino não faz sentido e fica fora. */}
+              {/* Cor de widget (o interno dos cartões/painéis) e plano de fundo (a
+                página atrás de tudo) — cada um com cor sólida ou gradiente. */}
+              <div className="space-y-2 border-t border-border-soft pt-3">
+                <p className="text-xs font-medium text-text-strong">
+                  {texts.appearance.bgStyleTitle}
+                </p>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.bgStyleHint}
+                </p>
+
+                <BackgroundStylePicker value={widgetBackground} onChange={setWidgetBackground} />
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-text-strong">
+                  {texts.appearance.pageBgTitle}
+                </p>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.pageBgHint}
+                </p>
+
+                <BackgroundStylePicker value={pageBackground} onChange={setPageBackground} />
+              </div>
+
+              {!activeCollection && !pageBackground && (
+                <>
+                  <RangeField
+                    label={texts.appearance.hue}
+                    value={settings.background.hue}
+                    min={THEME_LIMITS.hue.min}
+                    max={THEME_LIMITS.hue.max}
+                    step={1}
+                    valueLabel={texts.appearance.hueValue(Math.round(settings.background.hue))}
+                    onChange={(hue) => updateBackground({ hue })}
+                    hueTrack
+                  />
+                  <RangeField
+                    label={texts.appearance.backgroundIntensity}
+                    value={settings.background.chroma}
+                    min={THEME_LIMITS.backgroundChroma.min}
+                    max={THEME_LIMITS.backgroundChroma.max}
+                    step={0.001}
+                    valueLabel={percent(settings.background.chroma, CHROMA_MAX.background)}
+                    onChange={(chroma) => updateBackground({ chroma })}
+                  />
+                </>
+              )}
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="text-xs font-medium text-text-strong">{texts.appearance.preview}</h3>
+
+              <ThemePreview />
+              {!activeCollection && <ContrastNotice report={report} />}
+            </section>
+
+            <section className="space-y-2 border-t border-border-soft pt-3">
               <h3 className="text-xs font-medium text-text-strong">
-                {texts.appearance.nameStyleTitle}
+                {texts.appearance.fileSection}
               </h3>
 
-              <p className="text-xs font-normal text-text-subtle">
-                {texts.appearance.nameStyleHint}
-              </p>
-            </div>
+              <p className="text-xs font-normal text-text-subtle">{texts.appearance.fileHint}</p>
 
-            <div className="space-y-2">
-              <h4 className="text-xs font-medium text-text-strong">
-                {texts.appearance.nameStyleThemesTitle}
-              </h4>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto rounded-full gap-2 text-xs"
+                  onClick={handleExport}
+                >
+                  <Download className="h-3.5 w-3.5" />
 
-              <p className="text-xs font-normal text-text-subtle">
-                {texts.appearance.nameStyleThemesHint}
-              </p>
+                  <>{texts.exportTheme}</>
+                </Button>
 
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {Object.entries(PROFILE_NAME_THEMES).map(([theme, definition]) => {
-                  const themeId = theme as typeof selectedNameTheme;
-                  const themeColors = profileNameThemePaint(themeId);
-                  const gradient = definition.colors.length > 1;
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto rounded-full gap-2 text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-3.5 w-3.5" />
+
+                  <>{texts.importTheme}</>
+                </Button>
+
+                {/* Qualquer aparência (coleção + cores livres + fundos) pode virar tema e ser
+                  vendida: o marketplace deixa de ser só "tema de coleção". */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-auto rounded-full gap-2 text-xs"
+                  onClick={() => setSellOpen(true)}
+                >
+                  <Store className="h-3.5 w-3.5" />
+
+                  <>{texts.sellTheme}</>
+                </Button>
+              </div>
+
+              {/* O input fica escondido: quem abre é o botão de importar. */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".enois-theme,application/json"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void handleImport(file);
+                }}
+              />
+
+              {fileMessage && (
+                <p
+                  className={cn(
+                    "text-xs",
+                    fileMessage.kind === "ok" ? "text-growth" : "text-destructive",
+                  )}
+                >
+                  {fileMessage.text}
+                </p>
+              )}
+            </section>
+          </TabsContent>
+
+          <TabsContent value="identity" className="space-y-5">
+            <section className="space-y-3">
+              <div className="space-y-0.5">
+                <h3 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.nameStyleTitle}
+                </h3>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.nameStyleHint}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-text-strong">
+                  {texts.appearance.nameStyleThemesTitle}
+                </h4>
+
+                <p className="text-xs font-normal text-text-subtle">
+                  {texts.appearance.nameStyleThemesHint}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {Object.entries(PROFILE_NAME_THEMES).map(([theme, definition]) => {
+                    const themeId = theme as typeof selectedNameTheme;
+                    const themeColors = profileNameThemePaint(themeId);
+                    const gradient = definition.colors.length > 1;
+                    return (
+                      <button
+                        key={theme}
+                        type="button"
+                        onClick={() => updateNameStyle({ theme: themeId })}
+                        aria-pressed={selectedNameTheme === themeId}
+                        className={cn(
+                          "rounded-xl border px-2 py-3 text-center text-sm transition",
+                          selectedNameTheme === themeId
+                            ? "border-primary bg-primary-soft text-primary"
+                            : "border-border-soft bg-surface-1 text-text-subtle hover:border-primary/60 hover:text-text-strong",
+                          definition.className,
+                        )}
+                        style={{
+                          fontFamily: profileNameFontFamily(definition.font),
+                          ...(gradient
+                            ? {
+                                backgroundImage: themeColors,
+                                WebkitBackgroundClip: "text",
+                                backgroundClip: "text",
+                                color: "transparent",
+                              }
+                            : { color: definition.colors[0] }),
+                        }}
+                      >
+                        {texts.appearance.nameStyleThemes[themeId]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {Object.entries(PROFILE_NAME_FONTS).map(([font, family]) => {
+                  const fontId = font as typeof selectedNameFont;
                   return (
                     <button
-                      key={theme}
+                      key={font}
                       type="button"
-                      onClick={() => updateNameStyle({ theme: themeId })}
-                      aria-pressed={selectedNameTheme === themeId}
+                      onClick={() => updateNameStyle({ font: fontId })}
+                      aria-pressed={selectedNameFont === fontId}
                       className={cn(
-                        "rounded-xl border px-2 py-3 text-center text-sm transition",
-                        selectedNameTheme === themeId
+                        "rounded-xl border px-2 py-3 text-center text-xs transition",
+                        selectedNameFont === fontId
                           ? "border-primary bg-primary-soft text-primary"
                           : "border-border-soft bg-surface-1 text-text-subtle hover:border-primary/60 hover:text-text-strong",
-                        definition.className,
                       )}
-                      style={{
-                        fontFamily: profileNameFontFamily(definition.font),
-                        ...(gradient
-                          ? {
-                              backgroundImage: themeColors,
-                              WebkitBackgroundClip: "text",
-                              backgroundClip: "text",
-                              color: "transparent",
-                            }
-                          : { color: definition.colors[0] }),
-                      }}
+                      style={{ fontFamily: family }}
                     >
-                      {texts.appearance.nameStyleThemes[themeId]}
+                      {texts.appearance.nameStyleFonts[fontId]}
                     </button>
                   );
                 })}
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-              {Object.entries(PROFILE_NAME_FONTS).map(([font, family]) => {
-                const fontId = font as typeof selectedNameFont;
-                return (
+              <div className="flex flex-wrap items-center gap-2">
+                {PROFILE_NAME_COLORS.map((color) => (
                   <button
-                    key={font}
+                    key={color}
                     type="button"
-                    onClick={() => updateNameStyle({ font: fontId })}
-                    aria-pressed={selectedNameFont === fontId}
+                    aria-label={texts.appearance.nameStyleUseColor(color)}
+                    aria-pressed={selectedNameColor === color}
+                    onClick={() => updateNameStyle({ color })}
                     className={cn(
-                      "rounded-xl border px-2 py-3 text-center text-xs transition",
-                      selectedNameFont === fontId
+                      "h-8 w-8 rounded-full border-2 transition",
+                      selectedNameColor === color
+                        ? "border-text-strong ring-2 ring-primary ring-offset-2 ring-offset-surface-card"
+                        : "border-transparent",
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                <label className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-surface-1 px-3 py-1.5 text-xs text-text-subtle">
+                  {texts.appearance.nameStyleOtherColor}
+                  <input
+                    type="color"
+                    value={selectedNameColor}
+                    onChange={(event) => updateNameStyle({ color: event.target.value })}
+                    className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  />
+                </label>
+              </div>
+
+              <div className="rounded-xl border border-border-soft bg-surface-1 px-4 py-3">
+                <p className="text-xs text-text-subtle">{texts.appearance.nameStylePreview}</p>
+
+                <p
+                  className={cn(
+                    "mt-1 text-xl font-semibold",
+                    selectedNameThemeDefinition.className,
+                  )}
+                  style={{
+                    fontFamily: profileNameFontFamily(selectedNameFont),
+                    ...(selectedNameThemeDefinition.colors.length > 1
+                      ? {
+                          backgroundImage: profileNameThemePaint(
+                            selectedNameTheme,
+                            selectedNameColor,
+                          ),
+                          WebkitBackgroundClip: "text",
+                          backgroundClip: "text",
+                          color: "transparent",
+                        }
+                      : { color: selectedNameColor }),
+                  }}
+                >
+                  {profileName ?? texts.appearance.nameStylePreviewName}
+                </p>
+              </div>
+            </section>
+
+            {contributor && (
+              <section className="space-y-3 border-t border-border-soft pt-4">
+                <div className="space-y-0.5">
+                  <h3 className="text-xs font-medium text-text-strong">
+                    {texts.appearance.contributorTagTitle}
+                  </h3>
+
+                  <p className="text-xs font-normal text-text-subtle">
+                    {texts.appearance.contributorTagHint}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateContributorTag(null)}
+                    aria-pressed={tagColor === null}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs transition",
+                      tagColor === null
                         ? "border-primary bg-primary-soft text-primary"
                         : "border-border-soft bg-surface-1 text-text-subtle hover:border-primary/60 hover:text-text-strong",
                     )}
-                    style={{ fontFamily: family }}
                   >
-                    {texts.appearance.nameStyleFonts[fontId]}
+                    {texts.appearance.contributorTagDefault}
                   </button>
-                );
-              })}
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {PROFILE_NAME_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  aria-label={texts.appearance.nameStyleUseColor(color)}
-                  aria-pressed={selectedNameColor === color}
-                  onClick={() => updateNameStyle({ color })}
-                  className={cn(
-                    "h-8 w-8 rounded-full border-2 transition",
-                    selectedNameColor === color
-                      ? "border-text-strong ring-2 ring-primary ring-offset-2 ring-offset-surface-card"
-                      : "border-transparent",
-                  )}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-              <label className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-surface-1 px-3 py-1.5 text-xs text-text-subtle">
-                {texts.appearance.nameStyleOtherColor}
-                <input
-                  type="color"
-                  value={selectedNameColor}
-                  onChange={(event) => updateNameStyle({ color: event.target.value })}
-                  className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
-                />
-              </label>
-            </div>
+                  {PROFILE_NAME_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      aria-label={texts.appearance.nameStyleUseColor(color)}
+                      aria-pressed={tagColor === color}
+                      onClick={() => updateContributorTag(color)}
+                      className={cn(
+                        "h-8 w-8 rounded-full border-2 transition",
+                        tagColor === color
+                          ? "border-text-strong ring-2 ring-primary ring-offset-2 ring-offset-surface-card"
+                          : "border-transparent",
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
 
-            <div className="rounded-xl border border-border-soft bg-surface-1 px-4 py-3">
-              <p className="text-xs text-text-subtle">{texts.appearance.nameStylePreview}</p>
+                  <label className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-surface-1 px-3 py-1.5 text-xs text-text-subtle">
+                    {texts.appearance.nameStyleOtherColor}
+                    <input
+                      type="color"
+                      value={tagColor ?? "#ff7a18"}
+                      onChange={(event) => updateContributorTag(event.target.value)}
+                      className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                    />
+                  </label>
+                </div>
 
-              <p
-                className={cn("mt-1 text-xl font-semibold", selectedNameThemeDefinition.className)}
-                style={{
-                  fontFamily: profileNameFontFamily(selectedNameFont),
-                  ...(selectedNameThemeDefinition.colors.length > 1
-                    ? {
-                        backgroundImage: profileNameThemePaint(
-                          selectedNameTheme,
-                          selectedNameColor,
-                        ),
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        color: "transparent",
-                      }
-                    : { color: selectedNameColor }),
-                }}
-              >
-                {profileName ?? texts.appearance.nameStylePreviewName}
-              </p>
-            </div>
-          </section>
+                <div className="rounded-xl border border-border-soft bg-surface-1 px-4 py-3">
+                  <p className="text-xs text-text-subtle">
+                    {texts.appearance.contributorTagPreview}
+                  </p>
 
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-text-strong">{texts.appearance.mode}</h3>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setTheme("light")}
-                aria-pressed={theme === "light"}
-                className={cn(
-                  "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-normal transition",
-                  theme === "light"
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border-soft bg-surface-1 text-text-subtle hover:text-text-strong",
-                )}
-              >
-                <Sun className="h-3.5 w-3.5" />
-
-                <>{texts.theme.light}</>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTheme("dark")}
-                aria-pressed={theme === "dark"}
-                className={cn(
-                  "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-normal transition",
-                  theme === "dark"
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border-soft bg-surface-1 text-text-subtle hover:text-text-strong",
-                )}
-              >
-                <Moon className="h-3.5 w-3.5" />
-
-                <>{texts.theme.dark}</>
-              </button>
-            </div>
-          </section>
-
-          {/* As cores livres valem SEMPRE: sem tema, são o tema; com tema, são
-              camada por cima (destaque e fundo — superfícies ficam do tema). */}
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-text-strong">{texts.appearance.presets}</h3>
-
-            <PresetRow activeId={activePresetId} onSelect={setThemeSettings} />
-          </section>
-
-          <section className="space-y-3">
-            <div className="space-y-0.5">
-              <h3 className="text-xs font-medium text-text-strong">
-                {texts.appearance.accentSection}
-              </h3>
-
-              <p className="text-xs font-normal text-text-subtle">{texts.appearance.accentHint}</p>
-            </div>
-
-            <RangeField
-              label={texts.appearance.hue}
-              value={settings.accent.hue}
-              min={THEME_LIMITS.hue.min}
-              max={THEME_LIMITS.hue.max}
-              step={1}
-              valueLabel={texts.appearance.hueValue(Math.round(settings.accent.hue))}
-              onChange={(hue) => updateAccent({ hue })}
-              hueTrack
-            />
-            <RangeField
-              label={texts.appearance.saturation}
-              value={settings.accent.chroma}
-              min={THEME_LIMITS.accentChroma.min}
-              max={THEME_LIMITS.accentChroma.max}
-              step={0.005}
-              valueLabel={percent(settings.accent.chroma, CHROMA_MAX.accent)}
-              onChange={(chroma) => updateAccent({ chroma })}
-            />
-            <RangeField
-              label={texts.appearance.brightness}
-              value={settings.accent.lightness}
-              min={THEME_LIMITS.accentLightness.min}
-              max={THEME_LIMITS.accentLightness.max}
-              step={0.005}
-              valueLabel={percent(
-                settings.accent.lightness - THEME_LIMITS.accentLightness.min,
-                THEME_LIMITS.accentLightness.max - THEME_LIMITS.accentLightness.min,
-              )}
-              onChange={(lightness) => updateAccent({ lightness })}
-              hint={texts.appearance.brightnessHint}
-            />
-          </section>
-
-          <section className="space-y-3">
-            <div className="space-y-0.5">
-              <h3 className="text-xs font-medium text-text-strong">
-                {texts.appearance.backgroundSection}
-              </h3>
-
-              <p className="text-xs font-normal text-text-subtle">
-                {texts.appearance.backgroundHint}
-              </p>
-            </div>
-
-            {/* Plano de fundo: automático, cor sólida ou gradiente. Com fundo
-                    escolhido, o tingimento fino não faz sentido e fica fora. */}
-            {/* Cor de widget (o interno dos cartões/painéis) e plano de fundo (a
-                página atrás de tudo) — cada um com cor sólida ou gradiente. */}
-            <div className="space-y-2 border-t border-border-soft pt-3">
-              <p className="text-xs font-medium text-text-strong">
-                {texts.appearance.bgStyleTitle}
-              </p>
-
-              <p className="text-xs font-normal text-text-subtle">{texts.appearance.bgStyleHint}</p>
-
-              <BackgroundStylePicker value={widgetBackground} onChange={setWidgetBackground} />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-text-strong">{texts.appearance.pageBgTitle}</p>
-
-              <p className="text-xs font-normal text-text-subtle">{texts.appearance.pageBgHint}</p>
-
-              <BackgroundStylePicker value={pageBackground} onChange={setPageBackground} />
-            </div>
-
-            {!activeCollection && !pageBackground && (
-              <>
-                <RangeField
-                  label={texts.appearance.hue}
-                  value={settings.background.hue}
-                  min={THEME_LIMITS.hue.min}
-                  max={THEME_LIMITS.hue.max}
-                  step={1}
-                  valueLabel={texts.appearance.hueValue(Math.round(settings.background.hue))}
-                  onChange={(hue) => updateBackground({ hue })}
-                  hueTrack
-                />
-                <RangeField
-                  label={texts.appearance.backgroundIntensity}
-                  value={settings.background.chroma}
-                  min={THEME_LIMITS.backgroundChroma.min}
-                  max={THEME_LIMITS.backgroundChroma.max}
-                  step={0.001}
-                  valueLabel={percent(settings.background.chroma, CHROMA_MAX.background)}
-                  onChange={(chroma) => updateBackground({ chroma })}
-                />
-              </>
+                  <span
+                    className="mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
+                    style={{
+                      color: tagColor ?? "var(--primary)",
+                      borderColor: tagColor ?? "var(--primary)",
+                    }}
+                  >
+                    {texts.profile.contributorTag}
+                  </span>
+                </div>
+              </section>
             )}
-          </section>
+          </TabsContent>
+        </Tabs>
 
-          <section className="space-y-2">
-            <h3 className="text-xs font-medium text-text-strong">{texts.appearance.preview}</h3>
+        <div className="flex flex-wrap justify-between gap-2 border-t border-border-soft pt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-auto rounded-full gap-2 text-sm"
+            onClick={() => {
+              resetThemeSettings();
+              queryClient.setQueryData(["me", "theme"], { theme: null });
+              void syncThemeCollection(null);
+            }}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
 
-            <ThemePreview />
-            {!activeCollection && <ContrastNotice report={report} />}
-          </section>
+            <>{texts.appearance.reset}</>
+          </Button>
 
-          <section className="space-y-2 border-t border-border-soft pt-3">
-            <h3 className="text-xs font-medium text-text-strong">{texts.appearance.fileSection}</h3>
-
-            <p className="text-xs font-normal text-text-subtle">{texts.appearance.fileHint}</p>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-auto rounded-full gap-2 text-xs"
-                onClick={handleExport}
-              >
-                <Download className="h-3.5 w-3.5" />
-
-                <>{texts.exportTheme}</>
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-auto rounded-full gap-2 text-xs"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="h-3.5 w-3.5" />
-
-                <>{texts.importTheme}</>
-              </Button>
-
-              {/* Qualquer aparência (coleção + cores livres + fundos) pode virar tema e ser
-                  vendida: o marketplace deixa de ser só "tema de coleção". */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-auto rounded-full gap-2 text-xs"
-                onClick={() => setSellOpen(true)}
-              >
-                <Store className="h-3.5 w-3.5" />
-
-                <>{texts.sellTheme}</>
-              </Button>
-            </div>
-
-            {/* O input fica escondido: quem abre é o botão de importar. */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".enois-theme,application/json"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (file) void handleImport(file);
-              }}
-            />
-
-            {fileMessage && (
-              <p
-                className={cn(
-                  "text-xs",
-                  fileMessage.kind === "ok" ? "text-growth" : "text-destructive",
-                )}
-              >
-                {fileMessage.text}
-              </p>
-            )}
-          </section>
-
-          <div className="flex flex-wrap justify-between gap-2 border-t border-border-soft pt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-auto rounded-full gap-2 text-sm"
-              onClick={() => {
-                resetThemeSettings();
-                queryClient.setQueryData(["me", "theme"], { theme: null });
-                void syncThemeCollection(null);
-              }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-
-              <>{texts.appearance.reset}</>
-            </Button>
-
-            <Button
-              type="button"
-              className="w-auto rounded-full px-6 text-sm"
-              onClick={() => onOpenChange(false)}
-            >
-              {texts.appearance.done}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            className="w-auto rounded-full px-6 text-sm"
+            onClick={() => onOpenChange(false)}
+          >
+            {texts.appearance.done}
+          </Button>
         </div>
       </DialogContent>
 

@@ -7,7 +7,9 @@ import { ArrowLeft } from "lucide-react";
 
 import { profileApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
+import { authorNameStyle } from "@/lib/profile-name-style";
 
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 import { UserBadges } from "@/components/user-badge";
 
@@ -23,6 +25,7 @@ export function ConversationHeader({ conversation, onBack, action }: Conversatio
   });
 
   const title = conversation.title ?? otherUser?.name ?? texts.messages.conversationFallback;
+  const otherNameStyle = authorNameStyle(otherUser);
 
   return (
     <header className="flex items-center gap-3 border-b border-border p-4">
@@ -43,7 +46,9 @@ export function ConversationHeader({ conversation, onBack, action }: Conversatio
 
         <div className="min-w-0">
           <span className="flex items-center gap-1.5">
-            <span className="truncate font-semibold">{title}</span>
+            <span className="truncate font-semibold">
+              {conversation.title ?? <StyledName name={title} style={otherNameStyle} />}
+            </span>
 
             <UserBadges badges={otherUser?.badges} badge={otherUser?.badge} />
           </span>

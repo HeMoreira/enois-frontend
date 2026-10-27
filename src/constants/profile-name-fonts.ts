@@ -10,6 +10,10 @@ export const PROFILE_NAME_FONTS: Record<ProfileNameFont, string> = {
   DISPLAY: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
   PIXEL: '"Press Start 2P", "Courier New", monospace',
   GOTHIC: '"UnifrakturCook", "Old English Text MT", Georgia, serif',
+  CURSIVE: '"Brush Script MT", "Segoe Script", "Apple Chancery", cursive',
+  CONDENSED: '"Arial Narrow", "Liberation Sans Narrow", "Helvetica Neue", sans-serif',
+  COMIC: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive',
+  SLAB: 'Rockwell, "Roboto Slab", "Courier New", Georgia, serif',
 };
 
 export const PROFILE_NAME_COLORS = ["#ff7a18", "#ff4fa3", "#8b5cf6", "#22c55e", "#0ea5e9"];
@@ -35,6 +39,36 @@ export const PROFILE_NAME_THEMES: Record<
     font: "ROUNDED",
     colors: ["#ff7ab6", "#ffc6ff", "#ffd166"],
     className: "profile-name-theme-candy",
+  },
+  RETRO: {
+    font: "ROUNDED",
+    colors: ["#f59e0b", "#ef4444"],
+    className: "profile-name-theme-retro",
+  },
+  OCEAN: {
+    font: "SERIF",
+    colors: ["#0ea5e9", "#22d3ee"],
+    className: "profile-name-theme-ocean",
+  },
+  SUNSET: {
+    font: "DISPLAY",
+    colors: ["#fb7185", "#f59e0b"],
+    className: "profile-name-theme-sunset",
+  },
+  MATRIX: {
+    font: "MONO",
+    colors: ["#22c55e", "#86efac"],
+    className: "profile-name-theme-matrix",
+  },
+  GOLD: {
+    font: "DISPLAY",
+    colors: ["#facc15", "#b45309"],
+    className: "profile-name-theme-gold",
+  },
+  ICE: {
+    font: "SERIF",
+    colors: ["#7dd3fc", "#e0f2fe"],
+    className: "profile-name-theme-ice",
   },
 };
 

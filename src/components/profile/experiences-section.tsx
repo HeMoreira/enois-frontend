@@ -93,7 +93,14 @@ export function ProfileExperiencesSection({ username }: { username: string }) {
     queryFn: () => profileApi.experiences.byUser(username),
   });
 
-  if (experiences.length === 0) return null;
+  const sorted = [...experiences].sort((a, b) => {
+    if (a.currentlyHere !== b.currentlyHere) return a.currentlyHere ? -1 : 1;
+    const da = a.startDate ?? "";
+    const db = b.startDate ?? "";
+    return da > db ? -1 : da < db ? 1 : 0;
+  });
+
+  if (sorted.length === 0) return null;
 
   return (
     <section className="border border-border-soft bg-surface-card">
@@ -104,7 +111,7 @@ export function ProfileExperiencesSection({ username }: { username: string }) {
       </div>
 
       <ul className="space-y-4 px-4 pb-5 sm:px-6">
-        {experiences.map((item) => (
+        {sorted.map((item) => (
           <ExperienceItem key={item.id} item={item} />
         ))}
       </ul>

@@ -186,6 +186,16 @@ export const texts = {
     title: "Aparência",
     description:
       "Escolha o tema e as cores do app. O tema acompanha a sua conta entre dispositivos; as cores finas valem neste.",
+    tabGlobal: "Tema global",
+    tabIdentity: "Identidade",
+    themesCollapse: "Recolher temas",
+    themesExpand: "Mostrar temas",
+    purchasedThemesTitle: "Temas adquiridos",
+    purchasedThemesHint: "Temas que você comprou na loja e pode aplicar de novo.",
+    purchasedThemesEmpty: "Você ainda não comprou temas na loja.",
+    purchasedThemeApply: "Aplicar tema",
+    purchasedThemeApplied: "Tema aplicado.",
+    purchasedThemeError: "Não foi possível aplicar o tema agora.",
     mode: "Modo",
     accentSection: "Cor de destaque",
     accentHint: "Botões, links, selos e o gradiente da marca.",
@@ -266,6 +276,10 @@ export const texts = {
       DISPLAY: "Display",
       PIXEL: "8-bit",
       GOTHIC: "Gótica",
+      CURSIVE: "Cursiva",
+      CONDENSED: "Condensada",
+      COMIC: "Comic",
+      SLAB: "Slab",
     },
     nameStyleThemesTitle: "Temas do nome",
     nameStyleThemesHint: "Misture fonte, cores e movimento com presets seguros.",
@@ -276,11 +290,22 @@ export const texts = {
       NEON: "Neon",
       GLITCH: "Glitch",
       CANDY: "Candy",
+      RETRO: "Retrô",
+      OCEAN: "Oceano",
+      SUNSET: "Pôr do sol",
+      MATRIX: "Matrix",
+      GOLD: "Dourado",
+      ICE: "Gelo",
     },
     nameStyleOtherColor: "Outra cor",
     nameStylePreview: "Prévia",
     nameStylePreviewName: "Seu nome",
     nameStyleUseColor: (color: string) => `Usar cor ${color}`,
+    contributorTagTitle: "Tag de contribuinte",
+    contributorTagHint:
+      "Escolha a cor da tag que aparece abaixo do seu nome. Só quem tem contribuição verificada pelo GitHub vê esta opção.",
+    contributorTagDefault: "Cor padrão",
+    contributorTagPreview: "Prévia da tag",
     preview: "Como vai ficar",
     previewPost: "Esse detalhe do cache mudou minha semana.",
     previewBadge: "Projeto",
@@ -383,6 +408,44 @@ export const texts = {
   },
 
   auth: {
+    githubLink: {
+      title: "GitHub para selos de contribuição",
+      description:
+        "Vincule sua conta GitHub para que o Énóis possa verificar PRs integrados nos repositórios oficiais. O vínculo não altera seu login nem sua verificação de identidade.",
+      linkedAs: (login: string) => `Vinculado como @${login}`,
+      lastSync: (date: string) => `Última sincronização: ${date}`,
+      neverSynced:
+        "Ainda não sincronizou. Use “Verificar contribuições” para buscar os dados agora.",
+      syncStale:
+        "Os dados podem estar desatualizados. Use “Verificar contribuições” para atualizar agora.",
+      syncError:
+        "A última sincronização falhou; os números podem estar desatualizados. Tente verificar de novo.",
+      syncNow: "Verificar contribuições",
+      syncing: "Verificando contribuições...",
+      syncEmpty:
+        "Nenhuma contribuição encontrada ainda. Se você já teve PR integrado ou issue qualificada, tente de novo em alguns instantes.",
+      syncFound: (contributions: number, issues: number) => {
+        const parts: string[] = [];
+        if (contributions > 0) {
+          parts.push(contributions === 1 ? "1 pull request" : `${contributions} pull requests`);
+        }
+        if (issues > 0) {
+          parts.push(issues === 1 ? "1 issue" : `${issues} issues`);
+        }
+        return `Verificação concluída: ${parts.join(" e ")}.`;
+      },
+      syncFailed: "Não foi possível verificar agora. Tente de novo em alguns minutos.",
+      link: "Vincular GitHub",
+      unlink: "Desvincular GitHub",
+      linking: "Abrindo GitHub...",
+      unlinkConfirm:
+        "Desvincular o GitHub? Os selos já concedidos permanecem, mas novas contribuições não serão vinculadas.",
+      error: "Não foi possível alterar o vínculo com o GitHub.",
+      unlinkError: "Não foi possível desvincular o GitHub.",
+      criteria: "Ler os critérios dos selos",
+      notConfigured:
+        "O vínculo com GitHub ainda não está configurado neste ambiente. Fale com a administração.",
+    },
     hero: {
       eyebrow: "Networking com propósito",
       // A frase e a TESE do produto (a mesma da landing), nao um depoimento: antes era uma
@@ -826,6 +889,42 @@ export const texts = {
       resumeHint:
         "Sem LinkedIn? Suba o currículo: o app lê o arquivo e mostra a mesma prévia antes de salvar. Vale PDF (até 10 MB e 20 páginas) ou .txt/.md. Se for DOC/DOCX, exporte em PDF no seu editor.",
     },
+    linkedinContacts: {
+      title: "Convidar contatos do LinkedIn",
+      hint: "O LinkedIn não entrega a sua lista de conexões pela API. Baixe o Connections.csv no arquivo de dados e envie aqui: o Énóis encontra quem já tem conta e manda a solicitação de conexão.",
+      import: "Enviar Connections.csv",
+      importHint:
+        "Aceita o CSV (ou o ZIP da exportação), até 5 MB. Só nome e e-mail são usados para encontrar a pessoa; empresa, cargo e URL são descartados.",
+      tooLarge: (mb: number) => `O arquivo passa de ${mb} MB.`,
+      importing: "Lendo seus contatos...",
+      loadError: "Não foi possível carregar os seus contatos do LinkedIn.",
+      retry: "Tentar de novo",
+      autoInvite: "Enviar convites automaticamente",
+      autoInviteHint:
+        "Ligado, cada contato importado que ainda não está conectado recebe uma solicitação sua. Quem tiver mais de um perfil com o mesmo nome fica de fora.",
+      autoOn: "Convite automático ligado: a fila está sendo enviada.",
+      autoOff: "Convite automático desligado. Os contatos já importados ficam na fila.",
+      summary: (contacts: number, invited: number) =>
+        `${contacts} ${contacts === 1 ? "contato importado" : "contatos importados"} · ` +
+        `${invited} ${invited === 1 ? "convite enviado" : "convites enviados"}`,
+      details: (detalhes: string) => `Também: ${detalhes}.`,
+      already: (count: number) => `${count} já ${count === 1 ? "era conexão" : "eram conexões"}`,
+      pending: (count: number) =>
+        `${count} já ${count === 1 ? "tinha pedido" : "tinham pedido"} para conectar`,
+      queued: (count: number) => `${count} na fila`,
+      missing: (count: number) => `${count} sem conta no Énóis`,
+      ambiguous: (count: number) => `${count} com nome ambíguo`,
+      skipped: (count: number) => `${count} não ${count === 1 ? "enviado" : "enviados"}`,
+      imported: (invited: number, queued: number) => {
+        const partes: string[] = [];
+        if (invited > 0)
+          partes.push(`${invited} ${invited === 1 ? "convite enviado" : "convites enviados"}`);
+        if (queued > 0) partes.push(`${queued} na fila`);
+        return partes.length > 0
+          ? `Contatos importados: ${partes.join(" e ")}.`
+          : "Contatos importados do LinkedIn.";
+      },
+    },
     menu: {
       trigger: "Menu da conta",
       profile: "Ver perfil",
@@ -941,6 +1040,18 @@ export const texts = {
       action: "Excluir minha conta",
       deleting: "Excluindo...",
       error: "Não foi possível excluir a conta. Confira a senha.",
+    },
+    passwordExpired: {
+      title: "Atualize sua senha",
+      description:
+        "De acordo com a nossa nova política de segurança, selecione uma nova senha para continuar.",
+      newPassword: "Nova senha",
+      confirm: "Confirmar nova senha",
+      action: "Salvar nova senha",
+      saving: "Salvando...",
+      mismatch: "As senhas não coincidem.",
+      success: "Senha atualizada. Faça login com a nova senha.",
+      error: "Não foi possível atualizar a senha. Tente novamente.",
     },
     resetPassword: {
       title: "Redefinir senha",
@@ -1201,10 +1312,16 @@ export const texts = {
       termsLink: "regras de contribuição e os termos de uso",
       termsSuffix: ".",
       submit: "Enviar candidatura",
+      confirm: "Confirmar meus dados",
       sending: "Enviando...",
       successTitle: "Recebemos sua candidatura",
       successDescription:
         "O registro fica na fila interna do projeto. Se houver uma issue ou um próximo passo para a sua área, a gente fala com você pelo GitHub ou pelo e-mail informado.",
+      verifiedGithubHint:
+        "O GitHub vem do seu vínculo verificado; ele não pode ser alterado por aqui.",
+      verifiedSuccessTitle: "Dados confirmados",
+      verifiedSuccessDescription:
+        "Você já aparece no painel de contribuintes. A verificação é o próprio GitHub, sem aprovação manual.",
       again: "Enviar outra",
       error: "Não foi possível enviar agora. Tente de novo em alguns minutos.",
       validationName: "Informe seu nome (pelo menos 2 caracteres).",
@@ -1241,6 +1358,7 @@ export const texts = {
       terms: "Termos",
       contact: "Contato",
       api: "API pública",
+      seals: "Selos",
       about: "Sobre o énóis",
       home: "Início",
     },
@@ -1356,13 +1474,14 @@ export const texts = {
       all: "Tudo",
       following: "Seguindo",
       discussions: "Discussões",
-      /** O oposto de "Discussoes": aqui entram os posts em que a pessoa ainda nao reagiu nem comentou. */
       unseen: "Ainda não vi",
+      trending: "Em Alta",
       projects: "Projetos",
       corporate: "Corporativo",
-      /** Legenda do seletor de tipo de feed (as abas ficam recolhidas atrás do botao). */
       type: "Tipo de feed",
       openList: "Escolher o tipo de feed",
+      filterByType: "Filtrar por tipo",
+      allTypes: "Todos os tipos",
     },
     sidebar: {
       connections: "Conexões",
@@ -1632,6 +1751,26 @@ export const texts = {
       mediaLimit: "Máximo de 4 mídias por comentário.",
       uploadFailed: "Não foi possível enviar a mídia. Tente de novo.",
     },
+    notes: {
+      title: "Nota da comunidade",
+      verified: "Verificada pela comunidade",
+      add: "Adicionar nota de rodapé",
+      dialogTitle: "Nota de rodapé",
+      dialogDescription:
+        "Corrija ou contextualize este post. A nota vai para a moderação e só aparece depois de aprovada.",
+      warning:
+        "Enviar uma nota falsa reduz sua credibilidade. Uma nota aprovada não altera sua credibilidade.",
+      placeholder: "O que está incorreto ou falta neste post? Inclua o contexto ou a fonte.",
+      send: "Enviar para moderação",
+      sending: "Enviando...",
+      sent: "Nota enviada para moderação.",
+      error: "Não foi possível enviar a nota.",
+      pending: "Sua nota está em análise pela moderação.",
+      discarded: "Outra nota foi aprovada para este post; a sua foi descartada sem penalidade.",
+      denied: (reason: string) => `Sua nota foi negada: ${reason}`,
+      ownPost: "Você não pode adicionar nota ao próprio post.",
+      close: "Fechar",
+    },
     video: {
       playerTitle: "Vídeo do post",
       openLabel: "abrir no site",
@@ -1653,6 +1792,19 @@ export const texts = {
   },
 
   profile: {
+    seals: {
+      title: "Selos de contribuição",
+      grantedAt: "Concedido em",
+      categories: "Categoria",
+      evidence: "Evidências públicas",
+      noEvidence: "Sem evidência pública.",
+      verified: (count: number) =>
+        count === 1 ? "1 contribuição verificada" : `${count} contribuições verificadas`,
+      tierRange: (min: number, max: number | null) => (max === null ? `${min}+` : `${min}–${max}`),
+      loadMore: "Carregar mais",
+      loadingEvidence: "Carregando evidências...",
+      evidenceError: "Não foi possível carregar as evidências.",
+    },
     seoFallbackTitle: "Perfil",
     seoFallbackDescription: "Perfil profissional",
     seoTitle: (name: string) => `${name} · Énóis`,
@@ -1702,6 +1854,7 @@ export const texts = {
       "O bloqueio vale para sempre e os dois lados deixam de se ver. Desbloqueie aqui quando quiser.",
     blockedSince: (date: string | null) => (date ? `Bloqueado em ${dataCurta(date)}` : "Bloqueado"),
     openToWork: "Aberto a oportunidades",
+    contributorTag: "Contribuinte",
     mentorAvailable: "Mentor disponível",
     connections: (count: number) => `${count} ${count === 1 ? "conexão" : "conexões"}`,
     connectionsMeta: (count: number) => `· ${count} ${count === 1 ? "conexão" : "conexões"}`,
@@ -1771,6 +1924,8 @@ export const texts = {
       modeStructured: "Estruturado",
       modeHtml: "HTML próprio",
       titleField: "Título do projeto",
+      descriptionField: "Descrição do projeto",
+      descriptionPlaceholder: "Uma frase sobre o que o projeto faz",
       stackField: "Stack (separe por vírgula)",
       repoField: "Link do repositório (https)",
       statusField: "Status",
@@ -1784,6 +1939,42 @@ export const texts = {
       saved: "Projeto salvo.",
       error: "Não foi possível salvar o projeto.",
       htmlFrame: "Card de projeto em HTML",
+    },
+    githubImport: {
+      action: "Importar do GitHub",
+      title: "Importar do GitHub",
+      description:
+        "Traga seus repositórios públicos como projetos do perfil e use o README do seu perfil como bio. O GitHub precisa estar vinculado à sua conta.",
+      reposTitle: "Seus repositórios",
+      reposHint: "Escolha os que devem virar cards. O link de cada card aponta para o repositório.",
+      loading: "Carregando...",
+      selectAll: "Selecionar todos",
+      clear: "Limpar",
+      fork: "fork",
+      archived: "arquivado",
+      open: "Abrir no GitHub",
+      import: (count: number) =>
+        count === 1 ? "Importar 1 projeto" : `Importar ${count} projetos`,
+      importing: "Importando...",
+      imported: (created: number, skipped: number, invalid: number) => {
+        const parts = [`${created} ${created === 1 ? "projeto importado" : "projetos importados"}`];
+        if (skipped > 0) parts.push(`${skipped} já estava${skipped === 1 ? "" : "m"}`);
+        if (invalid > 0) parts.push(`${invalid} inválido${invalid === 1 ? "" : "s"}`);
+        return parts.join(" · ");
+      },
+      error: "Não foi possível importar agora. Tente de novo.",
+      empty: "Nenhum repositório público encontrado.",
+      notLinked: "Vincule sua conta GitHub para importar seus repositórios e seu README.",
+      goToSecurity: "Vincular GitHub",
+      readmeTitle: "README do perfil",
+      readmeHint:
+        "O README do repositório com o seu nome vira a bio em HTML, com links e imagens apontando para o GitHub.",
+      readmeUse: "Usar como bio",
+      readmeUsing: "Salvando...",
+      readmeSaved: "Bio atualizada com o README.",
+      readmeMissing: "Seu perfil do GitHub ainda não tem um README público para importar.",
+      readmeError: "Não foi possível ler o README agora.",
+      openReadme: "Abrir repositório",
     },
     sections: {
       about: "Sobre",
@@ -3388,6 +3579,9 @@ export const texts = {
       emails: "E-mails",
       monitoring: "Monitorabilidade",
       contributors: "Contribuintes",
+      githubContributions: "Contribuições GitHub",
+      pulls: "Pull requests",
+      notes: "Notas",
       suspicious: "Contas suspeitas",
       suspiciousPosts: "Posts suspeitos",
     },
@@ -3414,6 +3608,72 @@ export const texts = {
       approve: "Aprovar",
       reject: "Recusar",
       done: "Decidida",
+      verifiedByGithub: "Verificado pelo GitHub",
+      landingSource: "Landing",
+      githubOnly: "Aprovado pelo GitHub — sem triagem manual.",
+      formPending: "Aguardando a confirmação dos dados pelo formulário.",
+      seal: (name: string) => `Selo: ${name}`,
+      evidence: (count: number) =>
+        count === 1 ? "1 contribuição verificada" : `${count} contribuições verificadas`,
+    },
+    githubContributions: {
+      title: "Contribuições GitHub",
+      description:
+        "Evidências de PRs integrados e issues dos repositórios oficiais. PR integrado entra validado; issue só conta com label de qualificação ou validação de um mantenedor. Toda decisão é auditada.",
+      filterAll: "Todas",
+      kindAll: "PRs e issues",
+      kind: {
+        PULL_REQUEST: "PRs",
+        ISSUE: "Issues",
+      } as Record<string, string>,
+      kindLabel: {
+        PULL_REQUEST: "PR",
+        ISSUE: "Issue",
+      } as Record<string, string>,
+      status: {
+        PENDING: "Pendente",
+        VALIDATED: "Validada",
+        REJECTED: "Recusada",
+        CONTESTED: "Contestada",
+        REVOKED: "Revogada",
+      } as Record<string, string>,
+      sync: "Sincronizar agora",
+      syncDryRun: "Simular backfill",
+      syncFull: "Backfill completo",
+      syncing: "Sincronizando...",
+      syncDone: (
+        created: number,
+        updated: number,
+        fetched: number,
+        issuesCreated = 0,
+        issuesUpdated = 0,
+        issuesFetched = 0,
+      ) =>
+        `Sincronização concluída: ${fetched} PRs lidos (${created} novos, ${updated} atualizados) e ${issuesFetched} issues lidas (${issuesCreated} novas, ${issuesUpdated} atualizadas).`,
+      syncError: "Não foi possível sincronizar com o GitHub.",
+      rateLimited: "O GitHub limitou as chamadas; tente de novo mais tarde.",
+      empty: "Nenhuma evidência nesta fila.",
+      error: "Não foi possível carregar as evidências.",
+      refresh: "Atualizar evidências",
+      reviewNote: "Justificativa da revisão",
+      reviewNotePlaceholder: "Explique por que esta contribuição é relevante (ou não).",
+      validate: "Validar",
+      reject: "Recusar",
+      contest: "Contestar",
+      revokeEvidence: "Revogar evidência",
+      reviewedBy: "Revisado por",
+      mergedAt: "Integrado em",
+      closedAt: "Fechada em",
+      labels: "Labels",
+      tests: "Testes",
+      reverted: "Revertido",
+      openPr: "Abrir PR",
+      openIssue: "Abrir issue",
+      noUser: "GitHub sem vínculo com uma conta Énóis",
+      saveError: "Não foi possível concluir a revisão.",
+      repositoriesTitle: "Repositórios elegíveis",
+      repositoryOn: "Elegível",
+      repositoryOff: "Desabilitado",
     },
     suspiciousPosts: {
       title: "Posts suspeitos",
@@ -3548,6 +3808,49 @@ export const texts = {
       image: "Abrir print anexado",
       noMessage: "Sem mensagem.",
       githubIssue: "Issue no GitHub",
+      threadTitle: "Conversa",
+      threadHint: "Respostas daqui também são publicadas na issue do GitHub.",
+      threadEmpty: "Nenhuma resposta ainda.",
+      threadGithub: "GitHub",
+      threadEnos: "Énóis",
+      threadError: "Não foi possível carregar a conversa.",
+    },
+    notes: {
+      title: "Notas de rodapé",
+      description:
+        "Correções enviadas pela comunidade. Só uma nota é aprovada por post — aprovar descarta as outras pendentes sem penalidade. Negar mantém oculta e reduz a credibilidade de quem enviou.",
+      empty: "Nenhuma nota pendente.",
+      approve: "Aprovar",
+      reject: "Negar",
+      reasonLabel: "Motivo da negação",
+      reasonPlaceholder: "Explique por que a nota é falsa ou não se aplica...",
+      confirmReject: "Confirmar negação",
+      cancel: "Cancelar",
+      openPost: "Abrir post",
+      approved: "Nota aprovada e publicada.",
+      denied: "Nota negada.",
+      error: "Não foi possível revisar a nota.",
+    },
+    pulls: {
+      title: "Pull requests abertos",
+      description:
+        "PRs abertos nos repositórios oficiais. Aprovar ou pedir mudanças envia a revisão para o GitHub em nome de quem revisa quando o vínculo tem permissão de escrita.",
+      empty: "Nenhum PR aberto agora.",
+      error: "Não foi possível carregar os PRs.",
+      approve: "Aprovar",
+      requestChanges: "Pedir mudanças",
+      cancel: "Cancelar",
+      commentLabel: "O que precisa mudar",
+      commentPlaceholder: "Explique o que precisa mudar antes de pedir alterações...",
+      send: "Enviar revisão",
+      approved: "PR aprovado.",
+      changesRequested: "Mudanças solicitadas.",
+      reviewError: "Não foi possível enviar a revisão. Confira a permissão do seu GitHub.",
+      writeHint:
+        "Para revisar em seu nome — e não como o bot do Énóis — conecte o GitHub com permissão de escrita.",
+      connectWrite: "Conectar GitHub com permissão de escrita",
+      openOnGithub: "Abrir no GitHub",
+      by: (login: string) => `por @${login}`,
     },
     emails: {
       title: "E-mails enviados",
@@ -3876,6 +4179,7 @@ export const texts = {
     title: "Carteira & estilo",
     subtitle: "Suas faíscas, suas escolhas.",
     walletTab: "Carteira",
+    marketplaceTab: "Marketplace",
     storeTab: "Loja",
     ownedTab: "Minhas molduras",
     cosmetics: "Molduras de avatar",
@@ -4277,6 +4581,71 @@ export const texts = {
         ],
       },
     },
+  },
+
+  sealsPage: {
+    seoTitle: "Selos de contribuição · Énóis",
+    seoDescription:
+      "Como o Énóis reconhece contribuições técnicas verificadas nos repositórios oficiais da organização Rede-ENois.",
+    title: "Selos de contribuição",
+    intro:
+      "O Énóis reconhece quem ajuda a construir o projeto. Os selos vêm de contribuições verificadas nos repositórios oficiais: PRs integrados contam para Código e issues qualificadas contam para Issues. O nível sobe com a contagem — não é um produto comercial nem privilégio de moderação.",
+    categoriesTitle: "Categorias e níveis",
+    categoriesEmpty: "Nenhuma categoria disponível neste ambiente.",
+    categories: {
+      CODE: "Pull requests integrados contam automaticamente. PR revertido deixa de contar.",
+      ISSUES: "Só issues qualificadas contam: label de qualificação ou validação de um mantenedor.",
+    },
+    tierRange: (min: number, max: number | null) =>
+      max === null ? `${min}+` : min === max ? `${min}` : `${min}–${max}`,
+    criteriaTitle: "Como o nível é calculado",
+    criteria: [
+      "PR integrado em um dos repositórios oficiais da organização Rede-ENois conta automaticamente.",
+      "Issue conta quando tem label de qualificação ou é validada por um mantenedor.",
+      "Autoria verificável pelo ID imutável da conta GitHub vinculada ao perfil.",
+      "Cada categoria exibe apenas o nível mais alto alcançado.",
+      "PR revertido ou issue invalidada deixam de contar e o nível é recalculado.",
+      "Selo é reconhecimento de trabalho, não privilégio de moderação.",
+    ],
+    reposTitle: "Repositórios elegíveis",
+    reposEmpty: "Nenhum repositório elegível configurado neste ambiente.",
+    linkTitle: "Como vincular seu GitHub",
+    linkSteps: [
+      "Entre na sua conta do Énóis.",
+      "Abra Segurança e toque em “Vincular GitHub”.",
+      "Autorize o acesso de leitura ao perfil público do GitHub.",
+      "A partir daí, PRs integrados e issues qualificadas nos repositórios elegíveis são sincronizados.",
+    ],
+    statesTitle: "Estados da evidência",
+    states: {
+      PENDING: "Pendente: issue coletada, aguardando qualificação por label ou mantenedor.",
+      VALIDATED: "Validada: conta para o nível. PR integrado entra assim automaticamente.",
+      REJECTED: "Recusada: não atende aos critérios; não conta.",
+      CONTESTED: "Contestada: precisa de uma nova revisão.",
+      REVOKED: "Revogada: deixou de contar, com registro de auditoria.",
+    },
+    privacyTitle: "O que fica público",
+    privacy:
+      "No perfil aparecem o nome do nível, a categoria, a data de concessão e os links das evidências validadas. Notas internas, suspeitas, e-mail e detalhes de revisão não são públicos.",
+    verified: {
+      title: "Você tem contribuições verificadas",
+      description:
+        "Confirme seus dados para aparecer no painel de contribuintes. A verificação é o próprio GitHub — não há aprovação manual.",
+      action: "Preencher formulário",
+      close: "Agora não",
+      formTitle: "Confirme seus dados",
+      formHint: "É o mesmo formulário da landing; o GitHub já comprovou a contribuição.",
+      confirmedTitle: "Seus dados de contribuinte já estão confirmados",
+      confirmedDescription:
+        "A contribuição foi verificada pelo GitHub e seus dados já aparecem no painel de contribuintes. Não há mais nada para preencher.",
+    },
+    pendingTitle: "GitHub vinculado, contribuição ainda não verificada",
+    pendingDescription: (login: string) =>
+      `Vinculado como @${login}. Ainda não encontramos nenhum pull request integrado ou issue qualificada nos repositórios elegíveis. Se você acabou de contribuir, verifique de novo.`,
+    pendingError: "A última verificação falhou; tente de novo agora.",
+    pendingNotLinked: "Vincule sua conta do GitHub na tela de Segurança para começar.",
+    cta: "Vincular GitHub",
+    ctaHint: "É preciso ter uma conta no Énóis e entrar antes de vincular.",
   },
 
   root: {

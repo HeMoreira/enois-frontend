@@ -217,7 +217,12 @@ export function AccountMenu({ profile }: AccountMenuProps) {
               <>{texts.account.menu.wallet}</>
             </Link>
 
-            <Link to="/marketplace" onClick={() => setMenuOpen(false)} className={ITEM_CLASS}>
+            <Link
+              to="/carteira"
+              search={{ tab: "marketplace" }}
+              onClick={() => setMenuOpen(false)}
+              className={ITEM_CLASS}
+            >
               <Store className="h-4 w-4" />
 
               <>Marketplace</>

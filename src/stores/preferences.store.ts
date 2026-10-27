@@ -1,3 +1,4 @@
+import { PROFILE_NAME_FONTS, PROFILE_NAME_THEMES } from "@/constants/profile-name-fonts";
 import { DEFAULT_THEME_SETTINGS } from "@/constants/theme-defaults";
 import type { ProfileNameTheme } from "@/types/application/cosmetics/profile-name-theme";
 import type { BackgroundStyle } from "@/types/preferences/background-style";
@@ -48,8 +49,10 @@ function normalizeThemeSettings(value: unknown): ThemeSettings {
 
 const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 const BACKGROUND_DEFAULTS = { color: "#f4f1fb", from: "#f9f8ff", to: "#e6dcf7" } as const;
-const NAME_FONTS = new Set(["SYSTEM", "SERIF", "MONO", "ROUNDED", "DISPLAY", "PIXEL", "GOTHIC"]);
-const NAME_THEMES = new Set(["DEFAULT", "PIXEL", "GOTHIC", "NEON", "GLITCH", "CANDY"]);
+// As listas vêm da fonte única (constants): tema ou fonte nova não pode ser descartada ao
+// recarregar a preferência salva.
+const NAME_FONTS = new Set<string>(Object.keys(PROFILE_NAME_FONTS));
+const NAME_THEMES = new Set<string>(Object.keys(PROFILE_NAME_THEMES));
 
 function normalizeNameFont(value: unknown): PreferencesState["displayNameFont"] {
   return typeof value === "string" && NAME_FONTS.has(value)

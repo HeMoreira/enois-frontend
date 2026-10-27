@@ -7,6 +7,7 @@ import { formatNotificationTime } from "@/utils/notification-time";
 
 import { cn } from "@/lib/utils";
 
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 import { notificationMeta } from "./notification-meta";
@@ -107,10 +108,18 @@ export function NotificationItem({
                     onClick={markAsRead}
                     className="font-medium hover:underline"
                   >
-                    {notification.actorName}{" "}
+                    <StyledName
+                      name={notification.actorName}
+                      style={notification.actorStyle}
+                    />{" "}
                   </Link>
                 ) : (
-                  <span className="font-medium">{notification.actorName} </span>
+                  <span className="font-medium">
+                    <StyledName
+                      name={notification.actorName}
+                      style={notification.actorStyle}
+                    />{" "}
+                  </span>
                 ))}
               <span className="text-text-subtle">{notification.title.toLowerCase()}</span>
             </p>

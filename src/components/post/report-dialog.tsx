@@ -23,6 +23,7 @@ const REPORT_TITLES: Record<ReportTargetType, string> = {
   JOB: texts.jobs.report.title,
   GROUP_POST: texts.groups.reportPost,
   GROUP_COMMENT: texts.groups.reportComment,
+  MESSAGE: "Denunciar mensagem",
 };
 
 /**

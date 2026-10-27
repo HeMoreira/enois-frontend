@@ -22,6 +22,7 @@ import { PostComments } from "@/components/post/post-comments";
 import { ReactionsSummary } from "@/components/post/reactions-summary";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 /**
@@ -189,7 +190,7 @@ function BlogPostPage() {
               />
 
               <span className="text-xs font-normal text-text-subtle">
-                {blog.authorName} ·{" "}
+                <StyledName name={blog.authorName} style={blog.authorStyle} /> ·{" "}
                 {formatarData(post.publishedAt, {
                   day: "2-digit",
                   month: "long",

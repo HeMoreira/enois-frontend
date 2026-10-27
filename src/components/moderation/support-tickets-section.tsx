@@ -229,28 +229,104 @@ export function SupportTicketsSection({
                 )}
               </div>
 
-              {ticket.adminReply && (
-                <div className="rounded-xl border border-primary/30 bg-primary-soft px-3 py-2">
-                  <p className="text-xs font-medium text-primary-text">
-                    {texts.moderator.support.adminReplyLabel}
-                  </p>
-
-                  <p className="mt-1 whitespace-pre-wrap break-words text-sm text-text-strong">
-                    {ticket.adminReply}
-                  </p>
-
-                  {ticket.repliedAt && (
-                    <p className="mt-1 text-xs text-text-subtle">{dataHora(ticket.repliedAt)}</p>
-                  )}
-                </div>
-              )}
-
+              <TicketThread
+                ticketId={ticket.id}
+                mirrored={ticket.githubIssueNumber != null}
+                legacyReply={ticket.adminReply}
+                legacyRepliedAt={ticket.repliedAt}
+              />
               <TicketReply ticketId={ticket.id} />
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function TicketThread({
+  ticketId,
+  mirrored,
+  legacyReply,
+  legacyRepliedAt,
+}: {
+  ticketId: string;
+  mirrored: boolean;
+  legacyReply: string | null;
+  legacyRepliedAt: string | null;
+}) {
+  const { data, isError } = useQuery({
+    queryKey: ["moderator", "support", ticketId, "messages"],
+    queryFn: () => supportApi.adminMessages(ticketId),
+    retry: false,
+  });
+  const messages = data ?? [];
+
+  if (messages.length === 0) {
+    if (!legacyReply) return null;
+
+    return (
+      <div className="rounded-xl border border-primary/30 bg-primary-soft px-3 py-2">
+        <p className="text-xs font-medium text-primary-text">
+          {texts.moderator.support.adminReplyLabel}
+        </p>
+
+        <p className="mt-1 whitespace-pre-wrap break-words text-sm text-text-strong">
+          {legacyReply}
+        </p>
+
+        {legacyRepliedAt && (
+          <p className="mt-1 text-xs text-text-subtle">{dataHora(legacyRepliedAt)}</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 rounded-xl border border-border-soft bg-surface-1 p-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-text-subtle">
+        {texts.moderator.support.threadTitle}
+      </p>
+
+      {mirrored && <p className="text-xs text-text-subtle">{texts.moderator.support.threadHint}</p>}
+
+      <ul className="space-y-2">
+        {messages.map((message) => (
+          <li key={message.id} className="rounded-lg bg-surface-card px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-subtle">
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 font-medium",
+                  message.direction === "GITHUB"
+                    ? "bg-surface-2 text-text-strong"
+                    : "bg-primary-soft text-primary-text",
+                )}
+              >
+                {message.direction === "GITHUB"
+                  ? texts.moderator.support.threadGithub
+                  : texts.moderator.support.threadEnos}
+              </span>
+
+              {(message.authorGithubLogin || message.authorName) && (
+                <span>
+                  {message.authorGithubLogin
+                    ? `@${message.authorGithubLogin}`
+                    : (message.authorName ?? "")}
+                </span>
+              )}
+
+              <span>{dataHora(message.createdAt)}</span>
+            </div>
+
+            <p className="mt-1 whitespace-pre-wrap break-words text-sm text-text-strong">
+              {message.body}
+            </p>
+          </li>
+        ))}
+      </ul>
+
+      {isError && <p className="text-xs text-destructive">{texts.moderator.support.threadError}</p>}
+    </div>
   );
 }
 

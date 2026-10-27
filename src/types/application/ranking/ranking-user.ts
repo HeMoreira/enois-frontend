@@ -4,6 +4,8 @@
  * A lista é por ORDEM DE CHEGADA (mais recentes primeiro), não por reputação — a reputação
  * continua no perfil, mas não ordena nem descreve esta lista.
  */
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
+
 export type RankingUser = {
   id: string;
   username: string;
@@ -12,4 +14,8 @@ export type RankingUser = {
   reputation: number;
   /** Quando a conta chegou na plataforma (ISO); nulo em perfis antigos sem data. */
   joinedAt: string | null;
+  /** Personalização do nome (tema/fonte/cor); ausente = padrão. */
+  nameTheme?: AuthorNameStyle["theme"];
+  nameFont?: AuthorNameStyle["font"];
+  nameColor?: string | null;
 };

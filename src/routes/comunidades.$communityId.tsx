@@ -592,7 +592,7 @@ function CommunityDetail() {
                   </button>
 
                   {typePickerOpen && (
-                    <div className="absolute bottom-full left-0 z-40 mb-1 w-[min(22rem,80vw)] rounded-2xl border border-border-soft bg-popover p-2 shadow-lg">
+                    <div className="absolute bottom-full right-0 z-40 mb-1 max-h-[60vh] w-[min(22rem,80vw)] overflow-y-auto rounded-2xl border border-border-soft bg-popover p-2 shadow-lg sm:left-0 sm:right-auto">
                       <div className="flex flex-wrap gap-1.5">
                         {POST_TYPES.map((option) => (
                           <button

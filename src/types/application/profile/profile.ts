@@ -42,11 +42,13 @@ export type Profile = {
   /** Moldura de avatar equipada (loja de cosméticos). */
   avatarFrame?: string | null;
   /** Fonte segura escolhida para o nome do perfil. */
-  nameFont?: "SYSTEM" | "SERIF" | "MONO" | "ROUNDED" | "DISPLAY" | null;
+  nameFont?: import("@/types/application/cosmetics/profile-name-font").ProfileNameFont | null;
   /** Cor hexadecimal escolhida para o nome do perfil. */
   nameColor?: string | null;
   /** Tema declarativo do nome do perfil, com fonte, paleta e efeito seguros. */
-  nameTheme?: "DEFAULT" | "PIXEL" | "GOTHIC" | "NEON" | "GLITCH" | "CANDY" | null;
+  nameTheme?: import("@/types/application/cosmetics/profile-name-theme").ProfileNameTheme | null;
+  /** Cor da tag "Contribuinte" abaixo do nome; só quem tem contribuição verificada escolhe. */
+  contributorTagColor?: string | null;
   /** Currículo em PDF (endereço no storage) — só o dono recebe estes dois campos. */
   resumeUrl?: string | null;
   resumeName?: string | null;

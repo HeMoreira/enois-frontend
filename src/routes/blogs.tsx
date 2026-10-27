@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { AppContainer } from "@/components/app-container";
 import { BlogEditorDialog } from "@/components/blog/blog-editor-dialog";
 import { RichText } from "@/components/post/rich-text";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/blogs")({
@@ -140,7 +141,8 @@ function Blogs() {
                     </p>
 
                     <p className="truncate text-xs font-normal text-text-subtle">
-                      {blog.authorName} · {texts.blog.postsCount(blog.posts)}
+                      <StyledName name={blog.authorName} style={blog.authorStyle} /> ·{" "}
+                      {texts.blog.postsCount(blog.posts)}
                     </p>
                   </div>
                 </div>

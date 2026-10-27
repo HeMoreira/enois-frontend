@@ -339,6 +339,39 @@
   animation: profile-name-shimmer 3.5s linear infinite;
 }
 
+.profile-name-theme-retro {
+  letter-spacing: 0.04em;
+  text-shadow: 1px 1px 0 rgb(239 68 68 / 0.4);
+}
+
+.profile-name-theme-ocean {
+  background-size: 200% auto;
+  text-shadow: 0 0 12px rgb(34 211 238 / 0.35);
+  animation: profile-name-neon 4.2s ease-in-out infinite;
+}
+
+.profile-name-theme-sunset {
+  background-size: 180% auto;
+  text-shadow: 0 0 12px rgb(251 113 133 / 0.35);
+  animation: profile-name-shimmer 4s linear infinite;
+}
+
+.profile-name-theme-matrix {
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgb(34 197 94 / 0.5);
+}
+
+.profile-name-theme-gold {
+  background-size: 200% auto;
+  text-shadow: 0 0 12px rgb(250 204 21 / 0.35);
+  animation: profile-name-shimmer 4.5s linear infinite;
+}
+
+.profile-name-theme-ice {
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgb(125 211 252 / 0.45);
+}
+
 @keyframes profile-name-neon {
   0%,
   100% {
@@ -381,7 +414,10 @@
 @media (prefers-reduced-motion: reduce) {
   .profile-name-theme-neon,
   .profile-name-theme-glitch,
-  .profile-name-theme-candy {
+  .profile-name-theme-candy,
+  .profile-name-theme-ocean,
+  .profile-name-theme-sunset,
+  .profile-name-theme-gold {
     animation: none;
   }
 }

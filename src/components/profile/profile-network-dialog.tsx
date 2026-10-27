@@ -9,6 +9,7 @@ import { profileApi } from "@/lib/api";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
 
 export function ProfileNetworkDialog({
@@ -74,7 +75,7 @@ export function ProfileNetworkDialog({
 
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-text-strong">
-                    {person.name}
+                    <StyledName name={person.name} style={person.nameStyle} />
                   </span>
 
                   <span className="block truncate text-xs text-text-subtle">

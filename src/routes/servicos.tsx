@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
+import { StyledName } from "@/components/styled-name";
 
 export const Route = createFileRoute("/servicos")({
   head: () => ({ meta: [{ title: "Serviços · Énóis" }] }),
@@ -256,7 +257,9 @@ function OfferCard({ listing }: { listing: ServiceListing }) {
             </span>
           )}
 
-          <span className="truncate">{listing.sellerName}</span>
+          <span className="truncate">
+            <StyledName name={listing.sellerName} style={listing.sellerStyle} />
+          </span>
         </p>
       )}
 

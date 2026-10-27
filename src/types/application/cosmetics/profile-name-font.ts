@@ -1,2 +1,12 @@
 export type ProfileNameFont =
-  "SYSTEM" | "SERIF" | "MONO" | "ROUNDED" | "DISPLAY" | "PIXEL" | "GOTHIC";
+  | "SYSTEM"
+  | "SERIF"
+  | "MONO"
+  | "ROUNDED"
+  | "DISPLAY"
+  | "PIXEL"
+  | "GOTHIC"
+  | "CURSIVE"
+  | "CONDENSED"
+  | "COMIC"
+  | "SLAB";

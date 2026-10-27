@@ -10,8 +10,16 @@ import { type Root, createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@tanstack/react-router", () => ({
-  createFileRoute: () => (options: { component: () => ReactNode }) => ({ options }),
+  createFileRoute: () => (options: { component: () => ReactNode }) => ({
+    options,
+    useSearch: () => ({}),
+    useNavigate: () => () => {},
+  }),
   Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
+}));
+// A vitrine do marketplace tem a própria suíte; aqui só a Carteira importa.
+vi.mock("@/components/marketplace/marketplace-section", () => ({
+  MarketplaceSection: () => null,
 }));
 vi.mock("@/lib/require-auth", () => ({ requireAuth: vi.fn() }));
 vi.mock("@/components/app-container", () => ({

@@ -36,6 +36,7 @@ import {
 
 import {
   ApiError,
+  contributorSealsApi,
   feedApi,
   gamesApi,
   messagesApi,
@@ -67,6 +68,7 @@ import { useToast } from "@/components/ui/toast";
 import { AppContainer } from "@/components/app-container";
 import { AppearanceDialog } from "@/components/appearance/appearance-dialog";
 import { BlockUserDialog } from "@/components/block-user-dialog";
+import { ContributorTag } from "@/components/contributor-tag";
 import { EditProfileDialog } from "@/components/edit-profile-dialog";
 import { ImageCropDialog } from "@/components/image-crop-dialog";
 import { InfiniteScroll } from "@/components/infinite-scroll";
@@ -77,6 +79,7 @@ import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
 import { ProfileBannerDialog } from "@/components/profile-banner-dialog";
 import { ProfileBioDialog } from "@/components/profile-bio-dialog";
 import { ProfileResumeDialog } from "@/components/profile-resume-dialog";
+import { ProfileSeals } from "@/components/profile-seals";
 import { ProfileExperiencesSection } from "@/components/profile/experiences-section";
 import { ProfileCommunityShelf } from "@/components/profile/profile-community-shelf";
 import { ProfileExplorePanel } from "@/components/profile/profile-explore-panel";
@@ -85,7 +88,9 @@ import { ProfileNetworkDialog } from "@/components/profile/profile-network-dialo
 import { ProfileQuickComposer } from "@/components/profile/profile-quick-composer";
 import { ProfileProjectsSection } from "@/components/profile/projects-section";
 import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
+import { StyledName } from "@/components/styled-name";
 import { UserAvatar } from "@/components/user-avatar";
+import { VerifiedContributorPrompt } from "@/components/verified-contributor-prompt";
 
 /** Paginas de "Publicacoes recentes": o mesmo tamanho do feed, para nao sobrecarregar o perfil. */
 const USER_POSTS_PAGE_SIZE = 10;
@@ -182,6 +187,15 @@ function Profile() {
 
   const user = liveProfile ?? loaderUser;
   const isOwnProfile = me?.id === user.id;
+
+  const { data: contributorSeals } = useQuery({
+    queryKey: ["contributor-seals", user.username],
+    queryFn: () => contributorSealsApi.byUsername(user.username),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const isContributor = (contributorSeals?.length ?? 0) > 0;
+
   const localNameFont = usePreferencesStore((state) => state.displayNameFont);
   const localNameColor = usePreferencesStore((state) => state.displayNameColor);
   const localNameTheme = usePreferencesStore((state) => state.displayNameTheme);
@@ -664,6 +678,22 @@ function Profile() {
                 )}
               </div>
 
+              {isContributor && (
+                <div className="mt-1">
+                  <ContributorTag color={user.contributorTagColor} />
+                </div>
+              )}
+
+              <div className="mt-4">
+                <ProfileSeals username={user.username} />
+              </div>
+
+              {isOwnProfile && (
+                <div className="mt-4">
+                  <VerifiedContributorPrompt />
+                </div>
+              )}
+
               <p className="mt-1 break-words text-sm font-normal text-primary">{user.headline}</p>
 
               <p className="mt-3 flex flex-wrap items-center gap-4 text-sm font-normal text-text-subtle">
@@ -961,7 +991,10 @@ function Profile() {
                           params={{ username: u.username }}
                           className="block truncate text-sm font-normal text-text-strong hover:underline"
                         >
-                          {u.name}
+                          <StyledName
+                            name={u.name}
+                            style={{ theme: u.nameTheme, font: u.nameFont, color: u.nameColor }}
+                          />
                         </Link>
                       </div>
 
@@ -1032,6 +1065,8 @@ function Profile() {
         profileNameFont={user.nameFont ?? undefined}
         profileNameColor={user.nameColor}
         profileNameTheme={user.nameTheme ?? undefined}
+        contributor={isOwnProfile && isContributor}
+        contributorTagColor={user.contributorTagColor ?? null}
       />
       <ProfileNetworkDialog
         username={user.username}

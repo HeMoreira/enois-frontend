@@ -99,6 +99,10 @@ export const authApi = {
   oauthLinkStart: (provider: OAuthStartResponse["provider"]) =>
     api.post<OAuthStartResponse>(`/auth/oauth/${provider.toLowerCase()}/link`),
 
+  /** Vínculo com escrita (GitHub `repo`): revisar PRs/responder issues em nome da pessoa. */
+  oauthWriteLinkStart: (provider: OAuthStartResponse["provider"]) =>
+    api.post<OAuthStartResponse>(`/auth/oauth/${provider.toLowerCase()}/write-link`),
+
   oauthUnlink: (provider: string) =>
     api.delete<StatusResponse>(`/auth/oauth/${provider.toLowerCase()}/link`),
 };
