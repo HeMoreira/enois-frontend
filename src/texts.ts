@@ -33,7 +33,7 @@ export const texts = {
 
   coinEconomy: {
     title: "Economia da faísca",
-    hint: "A cotação é recalculada sozinha todos os dias às 03:10 (America/Sao_Paulo). Giro, escassez do cofre e emissão definem se o valor sobe ou desce.",
+    hint: "A cotação é recalculada sozinha todos os dias às 03:10 (America/Sao_Paulo). O valor anda no máximo um passo por dia, na proporção do tempo decorrido desde a última publicação.",
     cofre: "No cofre",
     retorno: "Voltou ao cofre (30d)",
     emissao: "Emissão (30d)",
@@ -41,10 +41,13 @@ export const texts = {
     escassez: "Escassez",
     indice: "Índice",
     cotacao: "Cotação",
+    periodo: "Período decorrido",
+    proxima: "Próxima avaliação",
     recalculate: "Recalcular agora",
     calculating: "Recalculando...",
     published: "Cotação recalculada e publicada.",
-    unchanged: "Cotação recalculada: sem mudança no valor.",
+    unchanged:
+      "Cotação recalculada: o período diário ainda não rendeu passo, então o valor não mudou.",
     error: "Não foi possível recalcular a cotação.",
   },
 

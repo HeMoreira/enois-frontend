@@ -196,6 +196,8 @@ function EconomyCard({
     ],
     [texts.coinEconomy.escassez, `${economy.escassez.toFixed(2)}×`],
     [texts.coinEconomy.indice, economy.indice.toFixed(2)],
+    [texts.coinEconomy.periodo, `${Math.round(economy.periodoDecorrido * 100)}%`],
+    [texts.coinEconomy.proxima, hora(economy.proximaAvaliacaoEm)],
   ];
 
   return (

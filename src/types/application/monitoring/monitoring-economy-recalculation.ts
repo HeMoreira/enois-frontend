@@ -11,4 +11,11 @@ export type MonitoringEconomyRecalculation = {
   emissao: number;
   circulacao: number;
   cofre: number;
+  /**
+   * Fração do período diário já decorrida desde a última publicação (0 a 1). O valor só anda
+   * nessa proporção — clicar de novo no mesmo dia não soma períodos.
+   */
+  periodoDecorrido: number;
+  /** Quando a próxima reavaliação (com passo completo) acontece. */
+  proximaAvaliacaoEm: string;
 };
