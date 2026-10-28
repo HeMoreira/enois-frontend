@@ -4,6 +4,17 @@ import { MAX_OPEN_CHATS } from "@/lib/chat-dock/chat-dock-layout";
 
 import { useChatDockStore } from "./chat-dock.store";
 
+// O store pega o storage UMA vez, na importação. No Node 26 o `localStorage` global existe mas
+// vale undefined sem `--localstorage-file`, e o stub do beforeEach chegava tarde demais.
+vi.hoisted(() => {
+  const valores = new Map<string, string>();
+  vi.stubGlobal("localStorage", {
+    getItem: (key: string) => valores.get(key) ?? null,
+    setItem: (key: string, value: string) => valores.set(key, value),
+    removeItem: (key: string) => valores.delete(key),
+  });
+});
+
 /**
  * Abrir uma conversa que JÁ está aberta tem de trazê-la para a frente.
  *
