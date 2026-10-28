@@ -288,3 +288,11 @@ seguintes; aqui é o mapa completo.
 | `/vagas/:jobId`                  | `vagas.$jobId.tsx`                               | Detalhe da vaga (candidatar, salvar).                                         |
 | `/vagas/:jobId/candidaturas`     | `vagas.$jobId.candidaturas.tsx`                  | Candidaturas da vaga (painel do contratante).                                 |
 | `/vagas/minhas`                  | `vagas.minhas.tsx`                               | Minhas vagas (publicadas e candidaturas).                                     |
+
+Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatamente seis dígitos,
+preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
+automático usa `one-time-code`.
+
+Integração pendente: o campo usa o `Input` de `@rede-enois/design-system/ui` com `maxLength={6}` e
+`showCounter={false}`. Ocultar o contador depende de uma versão do design system que implemente
+`showCounter`; a versão instalada `0.4.0-rc.9` ainda não oferece essa propriedade.
