@@ -275,7 +275,7 @@ function FreelanceCard({ item, authenticated }: { item: FreelanceView; authentic
         <Link
           to="/perfil/$username"
           params={{ username: item.username }}
-          className="max-w-full self-start break-words text-xs text-text-subtle hover:text-text-strong hover:underline"
+          className="-my-1 max-w-full self-start break-words py-1 text-xs text-text-subtle hover:text-text-strong hover:underline"
         >
           @{item.username}
         </Link>

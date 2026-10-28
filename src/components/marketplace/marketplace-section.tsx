@@ -401,7 +401,7 @@ function ListingCard({
             <Link
               to="/perfil/$username"
               params={{ username: listing.sellerUsername }}
-              className="block truncate text-xs text-text-subtle hover:text-text-strong hover:underline"
+              className="-my-1 block truncate py-1 text-xs text-text-subtle hover:text-text-strong hover:underline"
             >
               <StyledName name={listing.sellerName ?? ""} style={listing.sellerStyle} />
               {` · @${listing.sellerUsername}`}
