@@ -15,7 +15,7 @@ import type { PostView } from "@/types/application/feed/post-view";
 import type { CommunityCropPurpose } from "@/types/routes/communities/community-crop-purpose";
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
-import { SpoilerPreview, UserAvatar } from "@rede-enois/design-system/domain";
+import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
 import { ImageCropDialog } from "@rede-enois/design-system/patterns";
 import {
   Badge,
@@ -780,7 +780,7 @@ function CommunityDetail() {
                         name={m.name}
                         className="block min-w-0 truncate text-sm font-medium hover:underline"
                       >
-                        {m.name}
+                        <StyledName name={m.name} style={m.nameStyle} />
                       </ProfilePeek>
                       {m.role === "ADMIN" && (
                         <Badge
