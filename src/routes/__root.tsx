@@ -27,6 +27,7 @@ import { useThemeSync } from "@/lib/theme/use-theme-sync";
 
 import { AgeGate } from "@/components/age-gate";
 import { AppContainer } from "@/components/app-container";
+import { ChatDock } from "@/components/chat-dock/chat-dock";
 import { DesignSystemProvider } from "@/components/design-system-provider";
 import { HealthyUsageGuard } from "@/components/healthy-usage/healthy-usage-guard";
 import { InstallPwaBanner } from "@/components/install-pwa-banner";
@@ -146,7 +147,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&family=Creepster&family=Mountains+of+Christmas:wght@700&family=Pacifico&family=Rye&family=Gochi+Hand&display=swap",
       },
     ],
   }),
@@ -257,6 +258,7 @@ function RootInsideProvider() {
         <Outlet />
       </ModuleDisabledGate>
 
+      <ChatDock />
       <InstallPwaBanner />
       <LiteModeEffects />
       <HealthyUsageGuard />

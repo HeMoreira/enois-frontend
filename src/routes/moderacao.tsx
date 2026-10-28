@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { GamePlayer } from "@rede-enois/design-system/domain";
 import { Button, EmptyState, Input, LoadingState, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft } from "lucide-react";
 import { Ban, Gamepad2, Gavel, ShieldAlert, ShieldOff, Trash2 } from "lucide-react";
@@ -14,7 +15,6 @@ import { formatFaisca } from "@/lib/faisca";
 import { requireAuth } from "@/lib/require-auth";
 
 import { AppContainer } from "@/components/app-container";
-import { GamePlayer } from "@/components/games/game-player";
 import { SuspiciousPostsSection } from "@/components/moderation/suspicious-posts-section";
 
 /**
@@ -536,7 +536,7 @@ function JogosSection() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{g.title}</p>
 
-                  <p className="text-xs text-text-subtle">
+                  <p className="break-words text-xs text-text-subtle">
                     @{g.username ?? g.userId} · {dataCurta(g.submittedAt)}
                     {g.tags ? ` · ${g.tags}` : ""}
                   </p>
