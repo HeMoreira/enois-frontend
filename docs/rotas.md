@@ -239,7 +239,7 @@ seguintes; aqui é o mapa completo.
 | `/carteira`                      | `carteira.tsx`                                   | Carteira em faíscas: saldo, transferências, contestações.                     |
 | `/comunidades`                   | `comunidades.tsx`                                | Catálogo de comunidades.                                                      |
 | `/comunidades/:id`               | `comunidades.$communityId.tsx`                   | Página da comunidade (posts, membros, regras).                                |
-| `/comunidades/:id/canais/:canal` | `comunidades.$communityId.canais.$channelId.tsx` | Canal de uma comunidade.                                                      |
+| `/comunidades/:id/canais/:canal` | `comunidades.$communityId.canais.$channelId.tsx` | Canal privado de uma comunidade; acessível somente a membros.                 |
 | `/contato`                       | `contato.tsx`                                    | Contato com o time (abre ticket de suporte).                                  |
 | `/denuncias`                     | `denuncias.tsx`                                  | Minhas denúncias e seus estados.                                              |
 | `/developers`                    | `developers.tsx`                                 | Portal de desenvolvedores da API pública (catálogo + casos de uso).           |
