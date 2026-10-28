@@ -1886,6 +1886,9 @@ export const texts = {
       write: "Escrever",
       publish: "Publicar",
       published: "Post publicado. Quem segue seu blog foi avisado.",
+      draftSaved: "Rascunho salvo neste navegador.",
+      draftSaveError:
+        "Não foi possível salvar o rascunho neste navegador. Mantenha esta página aberta.",
       notifySubscribers: "Avisar os assinantes por e-mail",
       notifySubscribersHint:
         "Quem assina o seu blog recebe um e-mail com este post (além da notificação no app). Dá para desativar só para este post.",
