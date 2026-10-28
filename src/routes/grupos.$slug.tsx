@@ -592,12 +592,12 @@ function GroupPostItem({
           {`${formatTime(post.createdAt)} · ${createdTime}`}
         </time>
 
-        {topicName && <span className="break-words wrap-anywhere">{`· ${topicName}`}</span>}
+        {topicName && <span className="wrap-anywhere">{`· ${topicName}`}</span>}
       </div>
 
       <RichText
         content={post.content}
-        className="mt-2 whitespace-pre-line break-words wrap-anywhere text-sm text-text-strong"
+        className="mt-2 whitespace-pre-line wrap-anywhere text-sm text-text-strong"
       />
 
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-text-subtle">
@@ -701,7 +701,7 @@ function GroupPostItem({
 
                     <RichText
                       content={item.content}
-                      className="whitespace-pre-line break-words wrap-anywhere text-sm text-text-strong"
+                      className="whitespace-pre-line wrap-anywhere text-sm text-text-strong"
                     />
                   </div>
                 </li>
