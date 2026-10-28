@@ -495,6 +495,14 @@ export const texts = {
       "Crie para publicar no feed corporativo, se candidatar a vagas com a sua identidade de trabalho e ter um @ profissional próprio.",
     username: "@ profissional",
     usernameHint: "3 a 30 caracteres: letras, números, ponto, hífen ou underline.",
+    nametag: "Nametag (@ e fim da URL)",
+    nametagHint:
+      "É o @ do perfil e o endereço público dele. Não precisa ser igual ao do seu perfil social.",
+    nametagChange: "Alterar nametag",
+    nametagChanged: "Nametag alterado.",
+    nametagWarning:
+      "Ao alterar, o endereço antigo deixa de funcionar — quem salvou o link anterior não chega mais.",
+    nametagInvalid: "Use 3 a 30 caracteres, começando e terminando em letra ou número.",
     name: "Nome profissional",
     headline: "Headline",
     bio: "Sobre (profissional)",
@@ -532,6 +540,7 @@ export const texts = {
       bio: "Sobre",
       avatar: "Foto de perfil",
       banner: "Capa",
+      bannerHtml: "Capa em HTML/CSS",
       location: "Localização",
     },
     changeAvatar: "Trocar foto",
