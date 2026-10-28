@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 
 import { MARKETPLACE_KINDS, MARKETPLACE_KIND_LABELS } from "@/constants/marketplace-kinds";
 import { usePreferencesStore } from "@/stores/preferences.store";
@@ -395,10 +396,21 @@ function ListingCard({
             <p className="truncate text-xs text-text-subtle">{theme.data.name}</p>
           )}
 
-          <p className="truncate text-xs text-text-subtle">
-            <StyledName name={listing.sellerName ?? ""} style={listing.sellerStyle} />
-            {listing.sellerUsername ? ` · @${listing.sellerUsername}` : ""}
-          </p>
+          {/* Nome e @ levam ao perfil de quem vende, para conferir a reputação antes de comprar. */}
+          {listing.sellerUsername ? (
+            <Link
+              to="/perfil/$username"
+              params={{ username: listing.sellerUsername }}
+              className="block truncate text-xs text-text-subtle hover:text-text-strong hover:underline"
+            >
+              <StyledName name={listing.sellerName ?? ""} style={listing.sellerStyle} />
+              {` · @${listing.sellerUsername}`}
+            </Link>
+          ) : (
+            <p className="truncate text-xs text-text-subtle">
+              <StyledName name={listing.sellerName ?? ""} style={listing.sellerStyle} />
+            </p>
+          )}
         </div>
 
         <div className="mt-auto space-y-2">
