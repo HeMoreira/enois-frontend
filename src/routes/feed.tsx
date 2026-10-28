@@ -71,6 +71,8 @@ import { useMediaUpload } from "@/lib/use-media-upload";
 import { cn } from "@/lib/utils";
 
 import { AppContainer } from "@/components/app-container";
+import { SaciDuelBanner } from "@/components/events/saci-duel-banner";
+import { SaciSpot } from "@/components/events/saci-spot";
 import { TodayGamesCard } from "@/components/games/today-games-card";
 import { HtmlEditor } from "@/components/html-editor";
 import { LinkedInSyncPrompt } from "@/components/linkedin-sync-prompt";
@@ -529,11 +531,15 @@ function Home() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
+          <SaciDuelBanner />
+
           {/* Composer */}
           <form
             onSubmit={publishPost}
-            className="rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
+            className="relative rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
           >
+            {/* Na borda de cima do compositor, dentro da folga: não cobre o campo nem botões. */}
+            <SaciSpot spot="feed" className="absolute -top-4 right-4" />
             <input
               type="text"
               name="website"
