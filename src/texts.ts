@@ -20,6 +20,23 @@ const common = {
 export const texts = {
   common,
 
+  coinEconomy: {
+    title: "Economia da faísca",
+    hint: "A cotação é recalculada sozinha todos os dias às 03:10 (America/Sao_Paulo). Giro, escassez do cofre e emissão definem se o valor sobe ou desce.",
+    cofre: "No cofre",
+    retorno: "Voltou ao cofre (30d)",
+    emissao: "Emissão (30d)",
+    giro: "Giro (30d)",
+    escassez: "Escassez",
+    indice: "Índice",
+    cotacao: "Cotação",
+    recalculate: "Recalcular agora",
+    calculating: "Recalculando...",
+    published: "Cotação recalculada e publicada.",
+    unchanged: "Cotação recalculada: sem mudança no valor.",
+    error: "Não foi possível recalcular a cotação.",
+  },
+
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
 
