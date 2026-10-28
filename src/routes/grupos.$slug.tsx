@@ -176,8 +176,8 @@ function GrupoPage() {
                 </span>
               )}
 
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-semibold tracking-tight text-text-strong">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h1 className="min-w-0 wrap-anywhere text-xl font-semibold tracking-tight text-text-strong">
                   {group.name}
                 </h1>
 
@@ -196,7 +196,9 @@ function GrupoPage() {
             </p>
 
             {group.description && (
-              <p className="whitespace-pre-line text-sm text-text-subtle">{group.description}</p>
+              <p className="whitespace-pre-line wrap-anywhere text-sm text-text-subtle">
+                {group.description}
+              </p>
             )}
 
             <div className="flex flex-wrap items-center gap-2">
@@ -343,8 +345,8 @@ function GroupFeed({ group }: { group: GroupView }) {
             onClick={() => setTopicId(null)}
             className={
               topicId === null
-                ? "rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-medium text-primary"
-                : "rounded-full border border-border-soft px-3 py-1 text-xs font-normal text-text-subtle transition hover:text-text-strong"
+                ? "max-w-full wrap-anywhere text-left rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-medium text-primary"
+                : "max-w-full wrap-anywhere text-left rounded-full border border-border-soft px-3 py-1 text-xs font-normal text-text-subtle transition hover:text-text-strong"
             }
           >
             {texts.groups.allTopics}
@@ -358,8 +360,8 @@ function GroupFeed({ group }: { group: GroupView }) {
             onClick={() => setTopicId(topic.id)}
             className={
               activeTopicId === topic.id
-                ? "rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-medium text-primary"
-                : "rounded-full border border-border-soft px-3 py-1 text-xs font-normal text-text-subtle transition hover:text-text-strong"
+                ? "max-w-full wrap-anywhere text-left rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-medium text-primary"
+                : "max-w-full wrap-anywhere text-left rounded-full border border-border-soft px-3 py-1 text-xs font-normal text-text-subtle transition hover:text-text-strong"
             }
           >
             {topic.name}
@@ -562,7 +564,7 @@ function GroupPostItem({
 
   return (
     <li className="rounded-2xl border border-border-soft bg-surface-card p-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <UserAvatar
           src={post.authorAvatar}
           frame={post.authorAvatarFrame}
@@ -570,14 +572,14 @@ function GroupPostItem({
           className="h-8 w-8 shrink-0"
         />
 
-        <span className="text-sm font-medium text-text-strong">
+        <span className="min-w-0 wrap-anywhere text-sm font-medium text-text-strong">
           <StyledName name={post.authorName ?? ""} style={post.authorStyle} />
         </span>
 
         <UserBadges badges={post.authorBadges} />
 
         {post.pinned && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">
             <Pin className="h-3 w-3" aria-hidden />
 
             <>{texts.posts.pin.pinned}</>
@@ -590,12 +592,12 @@ function GroupPostItem({
           {`${formatTime(post.createdAt)} · ${createdTime}`}
         </time>
 
-        {topicName && <span className="break-words">{`· ${topicName}`}</span>}
+        {topicName && <span className="break-words wrap-anywhere">{`· ${topicName}`}</span>}
       </div>
 
       <RichText
         content={post.content}
-        className="mt-2 whitespace-pre-line break-words text-sm text-text-strong"
+        className="mt-2 whitespace-pre-line break-words wrap-anywhere text-sm text-text-strong"
       />
 
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-text-subtle">
@@ -681,8 +683,11 @@ function GroupPostItem({
                   />
 
                   <div className="min-w-0">
-                    <p className="flex items-center gap-1 text-xs font-medium text-text-strong">
-                      <StyledName name={item.authorName ?? ""} style={item.authorStyle} />
+                    <p className="flex min-w-0 flex-wrap items-center gap-1 text-xs font-medium text-text-strong">
+                      <span className="min-w-0 wrap-anywhere">
+                        <StyledName name={item.authorName ?? ""} style={item.authorStyle} />
+                      </span>
+
                       <UserBadges badges={item.authorBadges} />
                     </p>
 
@@ -696,7 +701,7 @@ function GroupPostItem({
 
                     <RichText
                       content={item.content}
-                      className="whitespace-pre-line break-words text-sm text-text-strong"
+                      className="whitespace-pre-line break-words wrap-anywhere text-sm text-text-strong"
                     />
                   </div>
                 </li>
