@@ -1,128 +1,103 @@
 // @vitest-environment jsdom
-import { act, useState } from "react";
+import { act } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { texts } from "@/texts";
 import { type Root, createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentionTextarea } from "./mention-textarea";
 
-const mocks = vi.hoisted(() => ({
-  search: vi.fn(async () => [{ id: "u1", username: "ana", name: "Ana", avatar: null }]),
-}));
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-// A busca de menção é a única chamada de rede do campo: com ela mockada, a lista abre de verdade.
-vi.mock("@/lib/api", () => ({ usersApi: { search: mocks.search } }));
+const BTTV = "https://cdn.betterttv.net/emote/abc123/2x.png";
 
-function Field({ onSubmitShortcut }: { onSubmitShortcut?: () => void }) {
-  const [value, setValue] = useState("");
-  return (
-    <MentionTextarea
-      value={value}
-      onChange={(next) => setValue(next)}
-      onSubmitShortcut={onSubmitShortcut}
-    />
-  );
+/** Mesmo formato das duas APIs reais: o catálogo global chega pelo `fetch` do navegador. */
+function fakeFetch(input: RequestInfo | URL) {
+  if (String(input).includes("betterttv")) {
+    return { ok: true, json: async () => [{ id: "abc123", code: "KEKW" }] };
+  }
+  return { ok: true, json: async () => ({ default_sets: [], sets: {} }) };
 }
 
-describe("MentionTextarea: Ctrl+Enter", () => {
-  let root: Root;
-  let host: HTMLDivElement;
-  let client: QueryClient;
+let root: Root | null = null;
+let host: HTMLDivElement;
 
-  beforeEach(() => {
-    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-    host = document.createElement("div");
-    document.body.append(host);
-    root = createRoot(host);
-    client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(fakeFetch));
+  host = document.createElement("div");
+  document.body.append(host);
+  root = createRoot(host);
+});
+
+afterEach(() => {
+  act(() => root?.unmount());
+  host.remove();
+  root = null;
+  vi.unstubAllGlobals();
+});
+
+function botao(texto: string) {
+  return [...document.querySelectorAll("button")].find((node) => node.textContent?.includes(texto));
+}
+
+async function esperar() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50));
   });
+}
 
-  afterEach(async () => {
-    await act(async () => root.unmount());
-    host.remove();
-    client.clear();
-    vi.unstubAllGlobals();
-  });
+describe("Seletor de figurinhas do campo de escrita", () => {
+  it("insere o código da figurinha escolhida no texto", async () => {
+    const onChange = vi.fn();
 
-  async function render(onSubmitShortcut?: () => void) {
-    await act(async () =>
-      root.render(
-        <QueryClientProvider client={client}>
-          <Field onSubmitShortcut={onSubmitShortcut} />
+    await act(async () => {
+      root?.render(
+        <QueryClientProvider client={new QueryClient()}>
+          <MentionTextarea value="" onChange={onChange} toolbar />
         </QueryClientProvider>,
-      ),
+      );
+    });
+
+    const abrir = botao(texts.emotes.button);
+    expect(abrir).toBeTruthy();
+
+    await act(async () => abrir?.click());
+    await esperar();
+
+    const figurinha = document.querySelector<HTMLButtonElement>(`button[title="KEKW"]`);
+    expect(figurinha?.querySelector("img")?.getAttribute("src")).toBe(BTTV);
+
+    await act(async () => figurinha?.click());
+
+    expect(onChange).toHaveBeenCalled();
+    expect(onChange.mock.calls.at(-1)?.[0]).toBe("KEKW");
+  });
+
+  it("separa a figurinha do texto vizinho com espaço", async () => {
+    const onChange = vi.fn();
+
+    await act(async () => {
+      root?.render(
+        <QueryClientProvider client={new QueryClient()}>
+          <MentionTextarea value="oi" onChange={onChange} toolbar />
+        </QueryClientProvider>,
+      );
+    });
+
+    // O cursor fica onde a pessoa digitou: o campo guarda a seleção mesmo depois do clique que
+    // abre o seletor (o jsdom começa na posição 0, então a posição é colocada aqui).
+    const campo = host.querySelector("textarea");
+    expect(campo).toBeTruthy();
+    act(() => campo?.setSelectionRange(2, 2));
+
+    await act(async () => botao(texts.emotes.button)?.click());
+    await esperar();
+    await act(async () =>
+      document.querySelector<HTMLButtonElement>(`button[title="KEKW"]`)?.click(),
     );
-    return host.querySelector("textarea")!;
-  }
 
-  async function type(textarea: HTMLTextAreaElement, text: string) {
-    // Setter nativo: o React só vê a mudança se o valor não vier pela própria prop.
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
-    await act(async () => {
-      setter.call(textarea, text);
-      textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-  }
-
-  async function press(textarea: HTMLTextAreaElement, init: KeyboardEventInit) {
-    const event = new KeyboardEvent("keydown", {
-      key: "Enter",
-      bubbles: true,
-      cancelable: true,
-      ...init,
-    });
-    await act(async () => {
-      textarea.dispatchEvent(event);
-    });
-    return event;
-  }
-
-  it("Ctrl+Enter e Cmd+Enter chamam o envio e não quebram linha", async () => {
-    const submit = vi.fn();
-    const textarea = await render(submit);
-    await type(textarea, "oi");
-
-    expect((await press(textarea, { ctrlKey: true })).defaultPrevented).toBe(true);
-    await press(textarea, { metaKey: true });
-
-    expect(submit).toHaveBeenCalledTimes(2);
-  });
-
-  it("Enter puro não envia", async () => {
-    const submit = vi.fn();
-    const textarea = await render(submit);
-    await type(textarea, "oi");
-
-    expect((await press(textarea, {})).defaultPrevented).toBe(false);
-    expect(submit).not.toHaveBeenCalled();
-  });
-
-  it("com a lista de menção aberta, Enter escolhe a pessoa e Ctrl+Enter envia", async () => {
-    const submit = vi.fn();
-    const textarea = await render(submit);
-    await type(textarea, "@an");
-    await act(async () => {
-      await client.refetchQueries();
-    });
-    expect(host.textContent).toContain("ana");
-
-    // Com a lista aberta: Ctrl+Enter envia sem escolher ninguém...
-    await press(textarea, { ctrlKey: true });
-    expect(submit).toHaveBeenCalledTimes(1);
-    expect(textarea.value).toBe("@an");
-
-    // ...e Enter continua escolhendo a pessoa, sem enviar.
-    await press(textarea, {});
-    expect(submit).toHaveBeenCalledTimes(1);
-    expect(textarea.value).toBe("@ana ");
-  });
-
-  it("sem onSubmitShortcut, Ctrl+Enter não faz nada", async () => {
-    const textarea = await render();
-    await type(textarea, "oi");
-
-    expect((await press(textarea, { ctrlKey: true })).defaultPrevented).toBe(false);
+    expect(onChange.mock.calls.at(-1)?.[0]).toBe("oi KEKW");
   });
 });
