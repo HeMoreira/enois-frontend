@@ -33,7 +33,7 @@ export const texts = {
 
   coinEconomy: {
     title: "Economia da faísca",
-    hint: "A cotação é recalculada sozinha todos os dias às 03:10 (America/Sao_Paulo). O valor anda no máximo um passo por dia, na proporção do tempo decorrido desde a última publicação.",
+    hint: "A cotação é recalculada no máximo uma vez por dia, às 03:10 (America/Sao_Paulo), e anda um passo conforme a movimentação dos últimos 30 dias. O botão roda a mesma conta: se o período já fechou, publica; se não, nada muda.",
     cofre: "No cofre",
     retorno: "Voltou ao cofre (30d)",
     emissao: "Emissão (30d)",
@@ -43,11 +43,14 @@ export const texts = {
     cotacao: "Cotação",
     periodo: "Período decorrido",
     proxima: "Próxima avaliação",
+    janela: "Janela do período",
+    janelaAberta: "Aberta — publica agora",
+    janelaFechada: "Fechada",
     recalculate: "Recalcular agora",
     calculating: "Recalculando...",
     published: "Cotação recalculada e publicada.",
     unchanged:
-      "Cotação recalculada: o período diário ainda não rendeu passo, então o valor não mudou.",
+      "O período diário ainda não fechou: nada foi publicado. Veja a próxima avaliação no cartão.",
     error: "Não foi possível recalcular a cotação.",
   },
 

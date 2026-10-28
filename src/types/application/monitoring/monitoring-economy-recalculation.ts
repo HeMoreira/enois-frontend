@@ -12,10 +12,12 @@ export type MonitoringEconomyRecalculation = {
   circulacao: number;
   cofre: number;
   /**
-   * Fração do período diário já decorrida desde a última publicação (0 a 1). O valor só anda
-   * nessa proporção — clicar de novo no mesmo dia não soma períodos.
+   * Fração do período diário já decorrida desde a última publicação (0 a 1). Informativo: a
+   * publicação é no máximo uma por período, então clicar de novo não antecipa o passo.
    */
   periodoDecorrido: number;
+  /** Depois desta chamada, uma nova chamada publicaria algo? Fora do período, não. */
+  publicavelAgora: boolean;
   /** Quando a próxima reavaliação (com passo completo) acontece. */
   proximaAvaliacaoEm: string;
 };

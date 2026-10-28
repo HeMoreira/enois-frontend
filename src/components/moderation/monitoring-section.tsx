@@ -177,7 +177,7 @@ export function MonitoringSection() {
  * O cartão da economia automática fica abaixo do painel do design system: mostra as métricas do
  * cálculo (cofre, retorno, emissão, giro, escassez, índice) e o botão que roda a reavaliação agora.
  */
-function EconomyCard({
+export function EconomyCard({
   economy,
   pending,
   onRecalculate,
@@ -198,6 +198,10 @@ function EconomyCard({
     [texts.coinEconomy.indice, economy.indice.toFixed(2)],
     [texts.coinEconomy.periodo, `${Math.round(economy.periodoDecorrido * 100)}%`],
     [texts.coinEconomy.proxima, hora(economy.proximaAvaliacaoEm)],
+    [
+      texts.coinEconomy.janela,
+      economy.publicavelAgora ? texts.coinEconomy.janelaAberta : texts.coinEconomy.janelaFechada,
+    ],
   ];
 
   return (
@@ -212,7 +216,8 @@ function EconomyCard({
           size="sm"
           variant="outline"
           className="rounded-full gap-1.5"
-          disabled={pending}
+          // Fora da janela do período a chamada não publica nada — o botão desligado mostra isso.
+          disabled={pending || !economy.publicavelAgora}
           onClick={onRecalculate}
         >
           <RefreshCw className={cn("h-3.5 w-3.5", pending && "animate-spin")} />
