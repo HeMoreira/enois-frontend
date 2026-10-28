@@ -2122,6 +2122,9 @@ export const texts = {
       emptyEducation: "Nenhuma formação adicionada",
       emptyCertification: "Nenhuma certificação adicionada",
       currentlyHere: "Atualmente aqui",
+      requiredField: "Preencha este campo.",
+      invalidDate: "Data inválida. Confira o dia, o mês e o ano.",
+      endDateRequired: "Informe quando terminou ou marque “Atualmente aqui”.",
     },
   },
 

@@ -91,7 +91,11 @@ Dialog multi-aba para edição completa do perfil.
 **Componentes internos:**
 
 - `Field()` - Wrapper de campo com label e erro
-- `SubList()` - Componente genérico de CRUD para listas aninhadas
+- `SubList()` - Componente genérico de CRUD para listas aninhadas. Antes de salvar, valida com
+  `subListErrors` (`src/lib/profile/sub-list-errors.ts`): campos obrigatórios, data que o
+  navegador recusou (ex.: 31/11) e, nas listas com "atualmente aqui", data de fim quando o item foi
+  encerrado — o backend deriva "atual" de `endDate == null` e não lê `currentlyHere`. Erro da API
+  aparece no formulário, que só fecha quando salvou.
 
 ## `ImageCropDialog` (`src/components/image-crop-dialog.tsx`)
 
