@@ -29,6 +29,8 @@ The avatar or name of a person in a list opens a popover with the design system
 `ProfileMiniCard`. The public profile loads only when the popover opens (same query key as the
 profile page), with loading and error states. Used in the network, feed suggestions, group
 members, requests, posts and comments, community members, ranking and recommendations.
+In posts and comments it comes through the design system `renderAuthorTrigger` prop; a corporate
+post keeps the link to the professional profile.
 
 ## `ProfileStatusDialog` (`src/components/profile/profile-status-dialog.tsx`)
 
