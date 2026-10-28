@@ -35,6 +35,17 @@ export function lookPriceMf(
   return Math.round((missingMf * 3) / (4 * MF_PER_FAISCA)) * MF_PER_FAISCA;
 }
 
+/**
+ * Whether equipping these items changes the name style. The owner's local name preference wins
+ * over the server on their profile, so the shop clears it when the server style changes.
+ */
+export function changesNameStyle(
+  ids: readonly string[],
+  itemsById: ReadonlyMap<string, Pick<LojaItem, "kind">>,
+): boolean {
+  return ids.some((id): boolean => itemsById.get(id)?.kind === "NAME_STYLE");
+}
+
 /** pt-BR message for a failed shop, status or event call: one per known code, else generic. */
 export function cosmeticErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.code && texts.cosmetics.errors[error.code]) {

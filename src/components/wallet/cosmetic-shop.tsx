@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { usePreferencesStore } from "@/stores/preferences.store";
 import { texts } from "@/texts";
 import type { LojaItem } from "@/types/application/loja/loja-item";
 import {
@@ -15,6 +16,7 @@ import { useToast } from "@rede-enois/design-system/ui";
 import { lojaApi } from "@/lib/api";
 import {
   DUEL_COLLECTIONS,
+  changesNameStyle,
   cosmeticErrorMessage,
   invalidateCosmetics,
   lookPriceMf,
@@ -36,10 +38,30 @@ export function CosmeticShop() {
     queryFn: () => lojaApi.collections(),
   });
 
-  const onSuccess = (message: string) => (): void => {
-    invalidateCosmetics(queryClient);
-    toast(message, "success");
+  const setDisplayNameTheme = usePreferencesStore((state) => state.setDisplayNameTheme);
+  const setDisplayNameFont = usePreferencesStore((state) => state.setDisplayNameFont);
+  const setDisplayNameColor = usePreferencesStore((state) => state.setDisplayNameColor);
+  const itemsById = useMemo(
+    () => new Map((catalog.data ?? []).map((item): [string, LojaItem] => [item.id, item])),
+    [catalog.data],
+  );
+
+  // The server changed the name style: the device copy would otherwise keep winning on the profile.
+  const syncNameStyle = (ids: readonly string[]): void => {
+    if (!changesNameStyle(ids, itemsById)) return;
+    setDisplayNameTheme(null);
+    setDisplayNameFont(null);
+    setDisplayNameColor(null);
   };
+  const onSuccess =
+    (message: string, touched: (id: string) => readonly string[] = () => []) =>
+    (_: unknown, id: string): void => {
+      syncNameStyle(touched(id));
+      invalidateCosmetics(queryClient);
+      toast(message, "success");
+    };
+  const lookItems = (lookId: string): readonly string[] =>
+    collections.data?.flatMap((c) => c.looks).find((look) => look.id === lookId)?.items ?? [];
   const onError = (error: unknown): void => toast(cosmeticErrorMessage(error), "error");
   const buy = useMutation({
     mutationFn: (id: string) => lojaApi.buy(id),
@@ -48,17 +70,17 @@ export function CosmeticShop() {
   });
   const buyLook = useMutation({
     mutationFn: (id: string) => lojaApi.buyLook(id),
-    onSuccess: onSuccess(texts.cosmetics.lookBought),
+    onSuccess: onSuccess(texts.cosmetics.lookBought, lookItems),
     onError,
   });
   const equip = useMutation({
     mutationFn: (id: string) => lojaApi.equip(id),
-    onSuccess: onSuccess(texts.cosmetics.equipped),
+    onSuccess: onSuccess(texts.cosmetics.equipped, (id) => [id]),
     onError,
   });
   const unequip = useMutation({
     mutationFn: (id: string) => lojaApi.unequip(id),
-    onSuccess: onSuccess(texts.cosmetics.unequipped),
+    onSuccess: onSuccess(texts.cosmetics.unequipped, (id) => [id]),
     onError,
   });
 
@@ -72,9 +94,6 @@ export function CosmeticShop() {
   );
   const shopCollections = useMemo((): CosmeticShopCollection[] | undefined => {
     if (!collections.data) return undefined;
-    const itemsById = new Map(
-      (catalog.data ?? []).map((item): [string, LojaItem] => [item.id, item]),
-    );
     return collections.data.map((collection): CosmeticShopCollection => ({
       ...collection,
       looks: collection.looks.map((look): CosmeticShopLook => ({
@@ -82,7 +101,7 @@ export function CosmeticShop() {
         priceLabel: formatFaisca(lookPriceMf(look, itemsById)),
       })),
     }));
-  }, [catalog.data, collections.data]);
+  }, [itemsById, collections.data]);
 
   return (
     <CosmeticShopView

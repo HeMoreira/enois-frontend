@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
 
 import { ApiError } from "./api-client";
-import { cosmeticErrorMessage, huntSpotVisible, lookPriceMf, statusIconChoices } from "./cosmetics";
+import {
+  changesNameStyle,
+  cosmeticErrorMessage,
+  huntSpotVisible,
+  lookPriceMf,
+  statusIconChoices,
+} from "./cosmetics";
+
+describe("estilo de nome equipado pela loja", () => {
+  const itemsById = new Map([
+    ["nome-saci", { kind: "NAME_STYLE" as const }],
+    ["moldura-carapuca", { kind: "FRAME" as const }],
+  ]);
+
+  it("avisa quando um item ou look troca o estilo de nome", () => {
+    expect(changesNameStyle(["moldura-carapuca", "nome-saci"], itemsById)).toBe(true);
+  });
+
+  it("ignora itens de outros tipos e ids desconhecidos", () => {
+    expect(changesNameStyle(["moldura-carapuca", "nome-futuro"], itemsById)).toBe(false);
+  });
+});
 
 describe("preço do look", () => {
   const items = new Map([
