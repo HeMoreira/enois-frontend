@@ -2532,7 +2532,6 @@ export const texts = {
       description: "Um recado curto que aparece no seu cartão de perfil.",
       textLabel: "Texto",
       placeholder: "Procurando minha carapuça",
-      counter: (length: number, max: number) => `${length}/${max}`,
       iconLabel: "Ícone",
       noIcon: "Sem ícone",
       freeIcons: {
