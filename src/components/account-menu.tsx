@@ -14,7 +14,7 @@ import {
   subscribeActiveIdentity,
   writeActiveIdentity,
 } from "@/lib/active-identity";
-import { corporateApi, profileApi } from "@/lib/api";
+import { corporateApi } from "@/lib/api";
 import { logout } from "@/lib/logout";
 
 import { ChangeEmailDialog } from "./change-email-dialog";
@@ -59,15 +59,6 @@ export function AccountMenu({ profile }: AccountMenuProps) {
     queryFn: () => corporateApi.me(),
     enabled: menuOpen,
   });
-  // Algumas sessões antigas mantêm no cache um `/me` anterior às molduras. A consulta pública
-  // do próprio @ preenche somente esse detalhe visual até o cache ser renovado.
-  const { data: publicProfile } = useQuery({
-    queryKey: ["profile", profile.username],
-    queryFn: () => profileApi.get(profile.username),
-    enabled: !profile.avatarFrame,
-    staleTime: 60_000,
-  });
-  const avatarFrame = profile.avatarFrame ?? publicProfile?.avatarFrame;
   const identity = effectiveIdentity(chosenIdentity, corporate);
   const chooseIdentity = (next: ActiveIdentity) => {
     writeActiveIdentity(next);
@@ -92,7 +83,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
   return (
     <>
       <AccountMenuView
-        profile={{ ...profile, avatarFrame }}
+        profile={profile}
         hrefs={{ ...ACCOUNT_MENU_HREFS, profile: `/perfil/${profile.username}` }}
         open={menuOpen}
         onOpenChange={setMenuOpen}
