@@ -20,6 +20,17 @@ const common = {
 export const texts = {
   common,
 
+  emotes: {
+    title: "Figurinhas",
+    button: "Figurinhas",
+    searchPlaceholder: "Buscar figurinha",
+    all: "Todas",
+    loading: "Carregando figurinhas...",
+    empty: "Nenhuma figurinha com esse nome.",
+    error: "Não foi possível carregar as figurinhas agora.",
+    hint: "Coleções globais do BTTV e do FrankerFaceZ. O código entra no texto — quem lê vê a figurinha.",
+  },
+
   coinEconomy: {
     title: "Economia da faísca",
     hint: "A cotação é recalculada sozinha todos os dias às 03:10 (America/Sao_Paulo). Giro, escassez do cofre e emissão definem se o valor sobe ou desce.",
