@@ -1231,6 +1231,8 @@ export const texts = {
       "As faíscas ficam retidas com segurança até você confirmar que recebeu o conteúdo. Se algo der errado, o reembolso devolve tudo.",
     keepShopping: "Continuar comprando",
     details: "Ver detalhes",
+    previewHint:
+      "Amostra com as cores do pacote. O item pode incluir outros ajustes além da paleta.",
     soldBy: "Vendido por",
     noDescription: "Quem vende não escreveu uma descrição para este item.",
     escrowHint: "As faíscas ficam retidas até você confirmar que recebeu (ou por 7 dias).",

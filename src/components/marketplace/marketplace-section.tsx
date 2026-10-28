@@ -402,9 +402,7 @@ function ListingDetailsDialog({
             <div className="space-y-2">
               <PreviewMock packageJson={packageJson} />
 
-              <p className="text-xs text-text-subtle">
-                Amostra com as cores do pacote. O item pode incluir outros ajustes além da paleta.
-              </p>
+              <p className="text-xs text-text-subtle">{texts.marketplace.previewHint}</p>
             </div>
           )}
 
