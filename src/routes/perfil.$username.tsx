@@ -11,7 +11,6 @@ import type { RecommendationItemProps } from "@/types/routes/profile/recommendat
 import type { SectionProps } from "@/types/routes/profile/section-props";
 import {
   ContributorTag,
-  Nameplate,
   PostCardSkeletons,
   ProfileCard,
   StyledName,
@@ -200,6 +199,8 @@ function Profile() {
         theme: localNameTheme ?? user.nameTheme,
         font: localNameFont ?? user.nameFont,
         color: localNameColor ?? user.nameColor,
+        // The plate is not a device preference: it is always the equipped one.
+        nameplate: user.nameplate,
       }
     : authorNameStyle(user);
 
@@ -944,12 +945,7 @@ function Profile() {
                           name={u.name}
                           className="block max-w-full truncate text-sm font-normal text-text-strong hover:underline"
                         >
-                          <Nameplate plate={u.nameplate}>
-                            <StyledName
-                              name={u.name}
-                              style={{ theme: u.nameTheme, font: u.nameFont, color: u.nameColor }}
-                            />
-                          </Nameplate>
+                          <StyledName name={u.name} style={authorNameStyle(u)} />
                         </ProfilePeek>
                       </div>
 
