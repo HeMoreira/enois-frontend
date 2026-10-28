@@ -17,6 +17,7 @@ import { requireAuth } from "@/lib/require-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
 import { AppContainer } from "@/components/app-container";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 export const Route = createFileRoute("/rede")({
   beforeLoad: requireAuth,
@@ -151,20 +152,22 @@ function Rede() {
                 <div className="h-16" style={{ background: "var(--gradient-soft)" }} />
 
                 <div className="-mt-10 min-w-0 px-5 pb-5">
-                  <UserAvatar
-                    src={u.avatar}
-                    frame={u.avatarFrame}
-                    alt={u.name}
-                    className="mx-auto h-20 w-20 ring-4 ring-card"
-                  />
+                  <ProfilePeek username={u.username} name={u.name} className="mx-auto block">
+                    <UserAvatar
+                      src={u.avatar}
+                      frame={u.avatarFrame}
+                      alt={u.name}
+                      className="mx-auto h-20 w-20 ring-4 ring-card"
+                    />
+                  </ProfilePeek>
 
-                  <Link
-                    to="/perfil/$username"
-                    params={{ username: u.username }}
-                    className="mt-3 block break-words font-semibold hover:underline"
+                  <ProfilePeek
+                    username={u.username}
+                    name={u.name}
+                    className="mx-auto mt-3 block max-w-full break-words text-center font-semibold hover:underline"
                   >
                     <StyledName name={u.name} style={u.nameStyle} />
-                  </Link>
+                  </ProfilePeek>
 
                   <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-xs text-muted-foreground">
                     {u.headline}

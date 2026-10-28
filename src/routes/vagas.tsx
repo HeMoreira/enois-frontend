@@ -74,6 +74,7 @@ import { cn } from "@/lib/utils";
 
 import { AppContainer } from "@/components/app-container";
 import { CreateExternalJobDialog } from "@/components/create-external-job-dialog";
+import { SaciSpot } from "@/components/events/saci-spot";
 
 const MAX_CARD_SKILLS = 8;
 
@@ -319,6 +320,8 @@ export function JobsListPage({
                   </Button>
                 </>
               )}
+
+              <SaciSpot spot="vagas" />
             </div>
           </div>
 

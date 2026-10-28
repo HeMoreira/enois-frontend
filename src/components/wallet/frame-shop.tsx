@@ -40,7 +40,9 @@ export function FrameShop({ onlyOwned = false }: FrameShopProps) {
   return (
     <FrameShopView
       onlyOwned={onlyOwned}
-      items={catalog.data?.map((item) => ({ ...item, priceLabel: formatFaisca(item.priceMf) }))}
+      items={catalog.data
+        ?.filter((item): boolean => item.kind === "FRAME")
+        .map((item) => ({ ...item, priceLabel: formatFaisca(item.priceMf) }))}
       loading={catalog.isPending}
       error={catalog.isError}
       onRetry={() => void catalog.refetch()}

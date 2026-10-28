@@ -18,6 +18,7 @@ import { useCurrentUser } from "@/lib/current-user";
 import { useAuth } from "@/lib/use-auth";
 
 import { MentionTextarea } from "@/components/mention-textarea";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 import { CommentReactionsDialog } from "./comment-reactions-dialog";
 import { formatTime } from "./format-time";
@@ -189,6 +190,15 @@ export function CommentItem({
       onCancelEdit={() => setEditError(null)}
       renderRichText={(props) => <RichText {...props} />}
       renderMediaGrid={(props) => <MediaGrid {...props} />}
+      renderAuthorTrigger={
+        comment.authorUsername
+          ? (content) => (
+              <ProfilePeek username={comment.authorUsername} name={comment.authorName}>
+                {content}
+              </ProfilePeek>
+            )
+          : undefined
+      }
       renderEditField={(value, onChange) => (
         <MentionTextarea
           value={value}
