@@ -82,7 +82,7 @@ describe("Carteira e ordenação das molduras", () => {
       [...catalog].sort((a, b) => b.releaseOrder - a.releaseOrder),
     );
     client.setQueryData(["carteira"], { balance: 0, chave: "demonstracao", entries: [] });
-    client.setQueryData(["cotacao"], { brlCents: 100, historico: [] });
+    client.setQueryData(["cotacao"], { brlCents: 100, brlMicros: 1_000_000, historico: [] });
     const Page = Route.options.component!;
     await act(async () =>
       root.render(

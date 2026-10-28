@@ -3,18 +3,22 @@ import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 
-import {
-  profileNameFontFamily,
-  profileNameTheme,
-  profileNameThemePaint,
-} from "@/constants/profile-name-fonts";
 import { usePreferencesStore } from "@/stores/preferences.store";
 import { texts } from "@/texts";
 import type { UpdateProfileRequest } from "@/types/application/profile/update-profile-request";
 import type { ProfileCropPurpose } from "@/types/routes/profile/profile-crop-purpose";
 import type { RecommendationItemProps } from "@/types/routes/profile/recommendation-item-props";
 import type { SectionProps } from "@/types/routes/profile/section-props";
-import { ContributorTag, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
+import {
+  ContributorTag,
+  PostCardSkeletons,
+  StyledName,
+  UserAvatar,
+  profileNameFontFamily,
+  profileNameTheme,
+  profileNameThemePaint,
+} from "@rede-enois/design-system/domain";
+import { ImageCropDialog, InfiniteScroll } from "@rede-enois/design-system/patterns";
 import {
   Button,
   Dialog,
@@ -69,8 +73,6 @@ import { AppContainer } from "@/components/app-container";
 import { AppearanceDialog } from "@/components/appearance/appearance-dialog";
 import { BlockUserDialog } from "@/components/block-user-dialog";
 import { EditProfileDialog } from "@/components/edit-profile-dialog";
-import { ImageCropDialog } from "@/components/image-crop-dialog";
-import { InfiniteScroll } from "@/components/infinite-scroll";
 import { PostCard } from "@/components/post-card";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { RichText } from "@/components/post/rich-text";
@@ -86,7 +88,6 @@ import { ProfileGamificationPanel } from "@/components/profile/profile-gamificat
 import { ProfileNetworkDialog } from "@/components/profile/profile-network-dialog";
 import { ProfileQuickComposer } from "@/components/profile/profile-quick-composer";
 import { ProfileProjectsSection } from "@/components/profile/projects-section";
-import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
 import { VerifiedContributorPrompt } from "@/components/verified-contributor-prompt";
 
 /** Paginas de "Publicacoes recentes": o mesmo tamanho do feed, para nao sobrecarregar o perfil. */
