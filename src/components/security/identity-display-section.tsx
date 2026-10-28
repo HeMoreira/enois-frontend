@@ -12,7 +12,10 @@ import { useToast } from "@rede-enois/design-system/ui";
 
 import { preferencesApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
+import { resolveBadgeMediaUrl } from "@/lib/official-badge-url";
 import { useMediaUpload } from "@/lib/use-media-upload";
+
+import { DesignSystemProvider } from "@/components/design-system-provider";
 
 /**
  * Nome e identidade: nome social (substitui o de cadastro para todo mundo), apelido
@@ -78,15 +81,17 @@ export function IdentitySection() {
   };
 
   return (
-    <IdentitySectionView
-      identity={me}
-      onSave={(values) => saveIdentity.mutate(values)}
-      savePending={saveIdentity.isPending}
-      badges={badges}
-      onAddBadge={(file) => void addBadge(file)}
-      onRemoveBadge={(url) => void removeBadge(url)}
-      badgesPending={saveBadges.isPending}
-      uploading={badgeUpload.status === "uploading"}
-    />
+    <DesignSystemProvider resolveMediaUrl={resolveBadgeMediaUrl}>
+      <IdentitySectionView
+        identity={me}
+        onSave={(values) => saveIdentity.mutate(values)}
+        savePending={saveIdentity.isPending}
+        badges={badges}
+        onAddBadge={(file) => void addBadge(file)}
+        onRemoveBadge={(url) => void removeBadge(url)}
+        badgesPending={saveBadges.isPending}
+        uploading={badgeUpload.status === "uploading"}
+      />
+    </DesignSystemProvider>
   );
 }
