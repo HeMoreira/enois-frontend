@@ -12,10 +12,9 @@ import { useToast } from "@rede-enois/design-system/ui";
 
 import { preferencesApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
-import { resolveBadgeMediaUrl } from "@/lib/official-badge-url";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { DesignSystemProvider } from "@/components/design-system-provider";
+import { BadgeMediaProvider } from "@/components/badge-media-provider";
 
 /**
  * Nome e identidade: nome social (substitui o de cadastro para todo mundo), apelido
@@ -81,7 +80,7 @@ export function IdentitySection() {
   };
 
   return (
-    <DesignSystemProvider resolveMediaUrl={resolveBadgeMediaUrl}>
+    <BadgeMediaProvider badges={badges}>
       <IdentitySectionView
         identity={me}
         onSave={(values) => saveIdentity.mutate(values)}
@@ -92,6 +91,6 @@ export function IdentitySection() {
         badgesPending={saveBadges.isPending}
         uploading={badgeUpload.status === "uploading"}
       />
-    </DesignSystemProvider>
+    </BadgeMediaProvider>
   );
 }

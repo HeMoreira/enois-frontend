@@ -19,10 +19,9 @@ import {
 
 import { ApiError, preferencesApi, profileApi } from "@/lib/api";
 import { ISO_DATE, hasMinAge } from "@/lib/min-age";
-import { resolveBadgeMediaUrl } from "@/lib/official-badge-url";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { DesignSystemProvider } from "./design-system-provider";
+import { BadgeMediaProvider } from "./badge-media-provider";
 
 /** Criar, editar e remover os itens de uma lista do perfil (o formulário manda os campos crus). */
 function useListMutations<TData>(
@@ -199,7 +198,7 @@ export function EditProfileDialog({ profile, children }: Props) {
   };
 
   return (
-    <DesignSystemProvider resolveMediaUrl={resolveBadgeMediaUrl}>
+    <BadgeMediaProvider badges={profileBadges(profile)}>
       <EditProfileDialogView
         profile={profile}
         open={open}
@@ -223,6 +222,6 @@ export function EditProfileDialog({ profile, children }: Props) {
       >
         {children}
       </EditProfileDialogView>
-    </DesignSystemProvider>
+    </BadgeMediaProvider>
   );
 }

@@ -3,15 +3,14 @@ import { createElement } from "react";
 import { OfficialBadge, isOfficialBadgeId } from "@rede-enois/design-system/domain";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { resolveCdnUrl } from "./api/media";
-
 const SVG_NS = 'xmlns="http://www.w3.org/2000/svg"';
 const cache = new Map<string, string | undefined>();
 
 /**
  * An official badge (`emblema-*`) as an image URL. The badge editors of the design system draw
  * every badge with `<img src>`, which is right for uploads and broken for an id; the SVG becomes
- * a data URL instead (its colors are inline, so it needs no stylesheet).
+ * a data URL instead (its colors are inline, so it needs no stylesheet). It pulls in
+ * `react-dom/server`, so only `BadgeMediaProvider` loads this module, on demand.
  */
 export function officialBadgeDataUrl(badge: string): string | undefined {
   if (!isOfficialBadgeId(badge)) return undefined;
@@ -22,10 +21,4 @@ export function officialBadgeDataUrl(badge: string): string | undefined {
     : undefined;
   cache.set(badge, url);
   return url;
-}
-
-/** Media resolver for screens that list badges: official ids draw, the rest goes to the CDN. */
-export function resolveBadgeMediaUrl(url: string | null | undefined): string | undefined {
-  if (url && isOfficialBadgeId(url)) return officialBadgeDataUrl(url);
-  return resolveCdnUrl(url);
 }
