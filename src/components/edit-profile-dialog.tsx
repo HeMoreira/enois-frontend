@@ -21,6 +21,8 @@ import { ApiError, preferencesApi, profileApi } from "@/lib/api";
 import { ISO_DATE, hasMinAge } from "@/lib/min-age";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
+import { BadgeMediaProvider } from "./badge-media-provider";
+
 /** Criar, editar e remover os itens de uma lista do perfil (o formulário manda os campos crus). */
 function useListMutations<TData>(
   api: {
@@ -196,28 +198,30 @@ export function EditProfileDialog({ profile, children }: Props) {
   };
 
   return (
-    <EditProfileDialogView
-      profile={profile}
-      open={open}
-      onOpenChange={setOpen}
-      tab={tab}
-      onTabChange={setTab}
-      savePending={updateProfile.isPending}
-      onSave={handleSave}
-      onUploadBadge={uploadBadge}
-      experiences={experiences}
-      education={education}
-      certifications={certifications}
-      listPending={{
-        experiences: lists.experiences.pending,
-        education: lists.education.pending,
-        certifications: lists.certifications.pending,
-      }}
-      onCreateItem={(kind: EditProfileListKind, data) => lists[kind].create.mutateAsync(data)}
-      onUpdateItem={(kind, id, data) => lists[kind].update.mutateAsync({ id, data })}
-      onDeleteItem={(kind, id) => lists[kind].remove.mutate(id)}
-    >
-      {children}
-    </EditProfileDialogView>
+    <BadgeMediaProvider badges={profileBadges(profile)}>
+      <EditProfileDialogView
+        profile={profile}
+        open={open}
+        onOpenChange={setOpen}
+        tab={tab}
+        onTabChange={setTab}
+        savePending={updateProfile.isPending}
+        onSave={handleSave}
+        onUploadBadge={uploadBadge}
+        experiences={experiences}
+        education={education}
+        certifications={certifications}
+        listPending={{
+          experiences: lists.experiences.pending,
+          education: lists.education.pending,
+          certifications: lists.certifications.pending,
+        }}
+        onCreateItem={(kind: EditProfileListKind, data) => lists[kind].create.mutateAsync(data)}
+        onUpdateItem={(kind, id, data) => lists[kind].update.mutateAsync({ id, data })}
+        onDeleteItem={(kind, id) => lists[kind].remove.mutate(id)}
+      >
+        {children}
+      </EditProfileDialogView>
+    </BadgeMediaProvider>
   );
 }

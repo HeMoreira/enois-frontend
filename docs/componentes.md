@@ -1,25 +1,53 @@
 # Componentes
 
+## `CosmeticShop` (`src/components/wallet/cosmetic-shop.tsx`)
+
+Seasonal cosmetics shop in the `Loja` tab of `/carteira`, drawn by the design system
+`CosmeticShop`.
+
+- Reads `GET /loja` and `GET /loja/colecoes` (Zod-validated in `src/lib/api/loja.ts`); prices are
+  formatted with `formatFaisca`, and each look shows the price of the pieces still missing
+  (`lookPriceMf` in `src/lib/cosmetics.ts`: 75% of their sum, rounded to whole faíscas, the
+  backend arithmetic)
+- Buy, buy look, equip and unequip invalidate `loja`, `carteira`, `profile`, `me` and `feed`;
+  every API error code has its own pt-BR toast (`texts.cosmetics.errors`)
+- The `saci` and `halloween` collections show the Saci × Halloween duel (`SaciDuelPanel`)
+
 ## `FrameShop` (`src/components/wallet/frame-shop.tsx`)
 
-Loja de molduras de avatar na rota `/carteira`.
+The owned frames in the `Minhas molduras` tab of `/carteira` (`onlyOwned`). It lists only the
+`FRAME` items of the catalog.
 
 **Props:** `{ onlyOwned?: boolean }`
 
-**Funcionalidades:**
+- Search, filters, `oldest`/`newest` order (`GET /loja?order=`), pagination of 12 and the frame
+  preview come from the design system `FrameShop`
 
-- Abas Carteira, Loja e Minhas molduras com ícones; a rota abre na aba Carteira
-- Busca por nome e descrição, filtros Todas, Simples e Animadas
-- Ordenação por mais antigas (padrão) ou mais novas, preservada ao buscar e filtrar
-- Ordenação solicitada à API por `GET /loja?order=oldest|newest`, baseada no campo
-  `releaseOrder` do catálogo; resposta validada antes da exibição
-- Paginação de 12 itens com botão "Mostrar mais molduras"
-- Prévia da moldura no avatar e no perfil
-- Compra, equipar e desequipar pelos contratos existentes de `POST /loja/{itemId}/comprar` e
-  `POST /loja/{itemId}/equipar`
+## `ProfilePeek` (`src/components/profile/profile-peek.tsx`)
 
-**Estado:** `useQuery` para catálogo; `useMutation` para comprar e equipar; estado local para
-busca, filtro, ordenação, quantidade visível e prévia selecionada
+The avatar or name of a person in a list opens a popover with the design system
+`ProfileMiniCard`. The public profile loads only when the popover opens (same query key as the
+profile page), with loading and error states. Used in the network, feed suggestions, group
+members, requests, posts and comments, community members, ranking and recommendations.
+In posts and comments it comes through the design system `renderAuthorTrigger` prop; a corporate
+post keeps the link to the professional profile.
+
+## `ProfileStatusDialog` (`src/components/profile/profile-status-dialog.tsx`)
+
+The owner's status bubble (`PUT /me/status`): up to 60 characters and an icon from the free
+icons or the icons of owned official badges.
+
+## `SaciSpot` and `SaciDuelBanner` (`src/components/events/`)
+
+- `SaciSpot`: the hidden Saci of the hunt in one of the 7 spots (feed, vagas, comunidades, blog,
+  carteira, mensagens, perfil), shown only while the hunt is active, for a signed-in person, and
+  until that spot is found
+- `SaciDuelBanner`: the duel on the feed while it is open; closing it hides it on the device
+
+## `BadgeMediaProvider` (`src/components/badge-media-provider.tsx`)
+
+The badge editors of the design system draw each badge with `<img src>`. Official badge ids
+(`emblema-*`) become SVG data URLs; the renderer is loaded only when the list has one.
 
 ## `AppShell` (`src/components/app-shell.tsx`)
 
@@ -111,6 +139,33 @@ Textarea com autocomplete de @menções.
 - Query na API de search de usuários (mínimo 2 caracteres)
 - Dropdown de resultados com navegação por setas, Tab/Enter para selecionar, Escape para fechar
 - Insere `@username` no texto e rastreia IDs dos mencionados
+- Com `toolbar`, mostra o botão `Figurinhas`: o código escolhido (`KEKW`) entra no texto como
+  palavra (ver abaixo)
+
+## Figurinhas globais (BTTV + FrankerFaceZ)
+
+`src/lib/emotes/` (catálogo, cache, paginação) e `src/components/emotes/emote-picker-dialog.tsx`
+(seletor). O texto gravado continua sendo o CÓDIGO — a troca por imagem acontece na leitura
+(`useEmoteText` dentro do `RichText`), então quem edita vê `KEKW`, não um endereço de CDN.
+
+- **Catálogo:** as duas APIs públicas são chamadas pelo navegador (`fetch`), sem passar pelo
+  backend. Hoje são 78 figurinhas globais (65 do BTTV + 13 do FFZ; o código repetido fica com o
+  BTTV). Do FFZ só entram os `default_sets` — os outros sets da resposta não são a coleção global.
+  O `top`/`trending` do BTTV exige chave de API (responde 403 sem ela).
+- **Cache:** o catálogo montado vai para o `localStorage` (`rede:emotes:global`) e entra como dado
+  inicial do react-query. O JSON do FFZ responde `cache-control: private, must-revalidate`, então
+  sem essa cópia toda visita pagava a ida à API antes de desenhar figurinha nenhuma. O que vem do
+  armazenamento é revalidado item por item antes de virar imagem.
+- **Animação:** GIF do BTTV (`/emote/{id}/1x.gif`) e WebP animado do FFZ
+  (`/emote/{id}/animated/{escala}`, campo `animated` da API) quando o provedor publica a versão em
+  movimento; estático continua `2x.png` / `urls["2"]`. Na grade do seletor a figurinha do BTTV usa
+  o PNG de 1x mesmo quando é animada — GIF de ~300KB na grade é o que deixava o seletor lento.
+- **Grade:** `preview` (escala 1x) em páginas de 40 (`EMOTES_POR_PAGINA` em
+  `src/lib/emotes/pagination.ts`), com busca e filtro por provedor voltando para a página 1.
+- **Tamanho no chat:** `src/styles.css` casa pelo HOST do CDN (`cdn.betterttv.net`,
+  `cdn.frankerfacez.com`) e dá a toda figurinha a mesma caixa quadrada de 28px com
+  `object-fit: contain`. O seletor antigo só conhecia o caminho `/emoticon/` do FFZ, que a API não
+  usa mais (`/emote/{id}/...`), e por isso as figurinhas do FFZ saíam no tamanho original.
 
 ## `UserAvatar` (`@rede-enois/design-system/domain`)
 

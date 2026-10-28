@@ -16,6 +16,7 @@ import { requireAuth } from "@/lib/require-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
 import { AppContainer } from "@/components/app-container";
+import { SaciSpot } from "@/components/events/saci-spot";
 import { ConversationItem } from "@/components/messages/conversation-item";
 import { ConversationThread } from "@/components/messages/conversation-thread";
 
@@ -182,6 +183,8 @@ function Mensagens() {
                 >
                   {showSearch ? texts.messages.back : texts.messages.new}
                 </Button>
+
+                <SaciSpot spot="mensagens" />
               </div>
             </div>
             {showSearch ? (

@@ -34,8 +34,10 @@ import { faiscaToBrlMicros, formatBrlMicros, formatFaisca, parseFaiscaInput } fr
 import { requireAuth } from "@/lib/require-auth";
 
 import { AppContainer } from "@/components/app-container";
+import { SaciSpot } from "@/components/events/saci-spot";
 import { MarketplaceSection } from "@/components/marketplace/marketplace-section";
 import { UserPicker } from "@/components/user-picker";
+import { CosmeticShop } from "@/components/wallet/cosmetic-shop";
 import { FrameShop } from "@/components/wallet/frame-shop";
 
 const WALLET_TABS: WalletTab[] = ["carteira", "marketplace", "loja", "minhas"];
@@ -152,12 +154,16 @@ function Carteira() {
           <>{texts.wallet.back}</>
         </Link>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-text-strong">
-            {texts.frameShop.title}
-          </h1>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-strong">
+              {texts.frameShop.title}
+            </h1>
 
-          <p className="text-sm text-text-subtle">{texts.frameShop.subtitle}</p>
+            <p className="text-sm text-text-subtle">{texts.frameShop.subtitle}</p>
+          </div>
+
+          <SaciSpot spot="carteira" className="shrink-0" />
         </div>
 
         <Tabs
@@ -295,7 +301,7 @@ function Carteira() {
           </TabsContent>
 
           <TabsContent value="loja" className="pt-5">
-            <FrameShop />
+            <CosmeticShop />
           </TabsContent>
 
           <TabsContent value="minhas" className="pt-5">

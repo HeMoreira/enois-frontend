@@ -14,6 +14,8 @@ import { preferencesApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
+import { BadgeMediaProvider } from "@/components/badge-media-provider";
+
 /**
  * Nome e identidade: nome social (substitui o de cadastro para todo mundo), apelido
  * (entra entre parênteses depois do nome), pronomes (só no perfil) e até 5 emblemas
@@ -78,15 +80,17 @@ export function IdentitySection() {
   };
 
   return (
-    <IdentitySectionView
-      identity={me}
-      onSave={(values) => saveIdentity.mutate(values)}
-      savePending={saveIdentity.isPending}
-      badges={badges}
-      onAddBadge={(file) => void addBadge(file)}
-      onRemoveBadge={(url) => void removeBadge(url)}
-      badgesPending={saveBadges.isPending}
-      uploading={badgeUpload.status === "uploading"}
-    />
+    <BadgeMediaProvider badges={badges}>
+      <IdentitySectionView
+        identity={me}
+        onSave={(values) => saveIdentity.mutate(values)}
+        savePending={saveIdentity.isPending}
+        badges={badges}
+        onAddBadge={(file) => void addBadge(file)}
+        onRemoveBadge={(url) => void removeBadge(url)}
+        badgesPending={saveBadges.isPending}
+        uploading={badgeUpload.status === "uploading"}
+      />
+    </BadgeMediaProvider>
   );
 }

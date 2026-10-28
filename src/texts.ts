@@ -20,6 +20,44 @@ const common = {
 export const texts = {
   common,
 
+  emotes: {
+    title: "Figurinhas",
+    button: "Figurinhas",
+    searchPlaceholder: "Buscar figurinha",
+    all: "Todas",
+    loading: "Carregando figurinhas...",
+    empty: "Nenhuma figurinha com esse nome.",
+    error: "Não foi possível carregar as figurinhas agora.",
+    hint: "Coleções globais do BTTV e do FrankerFaceZ. O código entra no texto — quem lê vê a figurinha.",
+    count: (total: number) => `${total} ${total === 1 ? "figurinha" : "figurinhas"}`,
+    page: (page: number, totalPages: number) => `Página ${page} de ${totalPages}`,
+    previous: "Página anterior",
+    next: "Próxima página",
+  },
+
+  coinEconomy: {
+    title: "Economia da faísca",
+    hint: "A cotação é recalculada no máximo uma vez por dia, às 03:10 (America/Sao_Paulo), e anda um passo conforme a movimentação dos últimos 30 dias. O botão roda a mesma conta: se o período já fechou, publica; se não, nada muda.",
+    cofre: "No cofre",
+    retorno: "Voltou ao cofre (30d)",
+    emissao: "Emissão (30d)",
+    giro: "Giro (30d)",
+    escassez: "Escassez",
+    indice: "Índice",
+    cotacao: "Cotação",
+    periodo: "Período decorrido",
+    proxima: "Próxima avaliação",
+    janela: "Janela do período",
+    janelaAberta: "Aberta — publica agora",
+    janelaFechada: "Fechada",
+    recalculate: "Recalcular agora",
+    calculating: "Recalculando...",
+    published: "Cotação recalculada e publicada.",
+    unchanged:
+      "O período diário ainda não fechou: nada foi publicado. Veja a próxima avaliação no cartão.",
+    error: "Não foi possível recalcular a cotação.",
+  },
+
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
 
@@ -2501,6 +2539,57 @@ export const texts = {
     bought: "Moldura comprada. Agora você pode equipá-la.",
     buyError: "Não foi possível comprar a moldura. Confira seu saldo e tente novamente.",
     equipError: "Não foi possível atualizar a moldura. Tente novamente.",
+  },
+
+  /** Seasonal cosmetics: shop actions, status bubble, profile popover and the Saci events. */
+  cosmetics: {
+    bought: "Item comprado. Agora é só equipar.",
+    lookBought: "Look comprado e vestido no seu perfil.",
+    equipped: "Item equipado no seu perfil.",
+    unequipped: "Item guardado. Ele continua seu.",
+    /** One message per API error code of the shop, the status and the events. */
+    errors: {
+      ITEM_NOT_FOUND: "Esse item não existe mais na loja.",
+      ALREADY_OWNED: "Você já tem tudo isso.",
+      OUT_OF_SEASON: "Esse item está fora da temporada. Ele volta na próxima.",
+      NOT_FOR_SALE: "Esse item é prêmio de evento e não está à venda.",
+      INSUFFICIENT_SPARKS: "Você não tem faíscas suficientes para essa compra.",
+      MAX_BADGES: "Você já mostra 5 emblemas. Guarde um antes de equipar outro.",
+      NOT_OWNED: "Esse item ainda não é seu.",
+      INVALID_STATUS_ICON: "Esse ícone não está disponível para você.",
+      FIELD_TOO_LONG: "O status pode ter no máximo 60 caracteres.",
+      ALREADY_CHOSEN: "Você já escolheu um time.",
+      EVENT_CLOSED: "O evento já terminou.",
+      INVALID_CHOICE: "Escolha o time do Saci ou o do Halloween.",
+      SPOT_NOT_FOUND: "Esse esconderijo não existe.",
+    } as Record<string, string>,
+    genericError: "Não foi possível concluir agora. Tente de novo.",
+    status: {
+      action: "Status",
+      title: "Seu status",
+      description: "Um recado curto que aparece no seu cartão de perfil.",
+      textLabel: "Texto",
+      placeholder: "Procurando minha carapuça",
+      iconLabel: "Ícone",
+      noIcon: "Sem ícone",
+      freeIcons: {
+        cafe: "Café",
+        estrela: "Estrela",
+        coracao: "Coração",
+        chip: "Chip",
+      } as Record<string, string>,
+      saved: "Status atualizado.",
+    },
+    peek: {
+      open: (name: string) => `Abrir o cartão de ${name}`,
+      loadError: "Não foi possível carregar este perfil.",
+      retry: "Tentar de novo",
+    },
+    eventLoadError: "Não foi possível carregar o evento.",
+    duelBannerDismiss: "Fechar o duelo",
+    duelChosen: "Você entrou no time! O emblema já está no seu perfil.",
+    huntFound: (found: number, total: number) => `Você achou o Saci! ${found} de ${total}.`,
+    huntCompleted: "Você achou os 7 Sacis! O emblema Achei o Saci já é seu.",
   },
 
   wallet: {
