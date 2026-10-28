@@ -239,6 +239,9 @@ export function CommentItem({
                 maxLength={1024}
                 className="rounded-lg border border-border-soft bg-surface-card px-3 py-2 text-sm font-normal"
                 toolbar
+                onSubmitShortcut={() => {
+                  if (!saving && editDraft.trim()) void saveEdit();
+                }}
               />
 
               {editError && <p className="text-xs text-destructive">{editError}</p>}

@@ -10,4 +10,6 @@ export type Props = Pick<
   toolbar?: boolean;
   /** Imagens coladas no campo (Ctrl+V): o dono do campo decide subir e anexar. */
   onPasteImages?: (files: File[]) => void;
+  /** Ctrl+Enter (Cmd+Enter no Mac): o dono do campo decide o que é "enviar". Sem ela, não há atalho. */
+  onSubmitShortcut?: () => void;
 };

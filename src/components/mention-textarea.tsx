@@ -26,6 +26,7 @@ import {
 } from "@/lib/mentions/list-placement";
 import { applyFormat } from "@/lib/rich-text/apply-format";
 import { insertSnippet } from "@/lib/rich-text/insert-snippet";
+import { isSubmitShortcut } from "@/lib/submit-shortcut";
 
 import { RichTextToolbar } from "@/components/rich-text-toolbar";
 
@@ -57,6 +58,7 @@ export function MentionTextarea({
   rows,
   toolbar = false,
   onPasteImages,
+  onSubmitShortcut,
 }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -234,6 +236,13 @@ export function MentionTextarea({
   };
 
   const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Antes da lista de menção: com a lista aberta, Enter escolhe a pessoa, mas Ctrl+Enter envia.
+    if (onSubmitShortcut && isSubmitShortcut(e.nativeEvent)) {
+      e.preventDefault();
+      onSubmitShortcut();
+      return;
+    }
+
     if (toolbar && (e.ctrlKey || e.metaKey) && !e.altKey) {
       const shortcut = SHORTCUTS[e.key.toLowerCase()];
       if (shortcut) {

@@ -67,6 +67,7 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
   const [posting, setPosting] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const upload = useMediaUpload();
 
   // Gravar áudio: o mesmo caminho do anexo (vira arquivo e sobe como mídia) — o que muda é que o
@@ -286,7 +287,7 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
 
   return (
     <section className="mt-4 border-t border-border-soft pt-4">
-      <form onSubmit={submit} className="mb-4" id={`comment-form-${postId}`}>
+      <form ref={formRef} onSubmit={submit} className="mb-4" id={`comment-form-${postId}`}>
         <input
           type="text"
           name="website"
@@ -408,6 +409,8 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
               maxLength={800}
               toolbar
               onPasteImages={addMediaFiles}
+              // requestSubmit passa pelo mesmo submit do botão (validação, anexos e login).
+              onSubmitShortcut={() => formRef.current?.requestSubmit()}
             />
 
             <div className="mt-1 flex items-center gap-1 px-1">
