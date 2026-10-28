@@ -19,6 +19,8 @@ import { profileCardData } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 
 const PEEK_STALE_MS = 60_000;
+/** Same 16px gutter as the page: the card never touches the screen edge on a phone. */
+const PEEK_EDGE_PX = 16;
 
 /** Loads the public profile only when the popover opens; shares the profile page cache. */
 function ProfilePeekCard({ username, userId }: ProfilePeekCardProps) {
@@ -80,7 +82,10 @@ export function ProfilePeek({ username, userId, name, children, className }: Pro
         </button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl p-0">
+      <PopoverContent
+        collisionPadding={PEEK_EDGE_PX}
+        className="w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl p-0"
+      >
         {open && <ProfilePeekCard username={username} userId={userId} />}
       </PopoverContent>
     </Popover>
