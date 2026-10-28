@@ -236,8 +236,9 @@ function RequestCard({ request, onAccept, onCancel }: RequestCardProps) {
   });
 
   return (
-    <div className="surface-card flex items-center justify-between gap-4 p-4">
-      <div className="flex items-center gap-3 min-w-0">
+    // The name keeps at least 12rem: on a phone the buttons drop below it instead of squeezing it.
+    <div className="surface-card flex flex-wrap items-center justify-between gap-4 p-4">
+      <div className="flex min-w-[12rem] flex-1 items-center gap-3">
         <UserAvatar src={user?.avatar} alt={user?.name} className="h-12 w-12 shrink-0" />
 
         <div className="min-w-0">
