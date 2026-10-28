@@ -78,6 +78,7 @@ import { MentionTextarea } from "@/components/mention-textarea";
 import { NightRestReminder } from "@/components/night-rest-reminder";
 import { PlatformSpacesCard } from "@/components/platform-spaces-card";
 import { PostCard } from "@/components/post-card";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 /** Abas válidas da tela inicial (a URL carrega a escolhida). */
 const HOME_TABS: HomeTab[] = ["ALL", "FOR_YOU", "UNSEEN", "TRENDING", "CORPORATE"];
@@ -1175,21 +1176,23 @@ function Home() {
               <ul className="mt-4 space-y-3">
                 {visibleSuggestions.map((u) => (
                   <li key={u.id} className="flex items-center gap-3">
-                    <UserAvatar
-                      src={u.avatar}
-                      frame={u.avatarFrame}
-                      alt={u.name}
-                      className="h-10 w-10"
-                    />
+                    <ProfilePeek username={u.username} name={u.name} className="shrink-0">
+                      <UserAvatar
+                        src={u.avatar}
+                        frame={u.avatarFrame}
+                        alt={u.name}
+                        className="h-10 w-10"
+                      />
+                    </ProfilePeek>
 
                     <div className="min-w-0 flex-1">
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: u.username }}
-                        className="block truncate text-sm font-normal text-text-strong hover:underline"
+                      <ProfilePeek
+                        username={u.username}
+                        name={u.name}
+                        className="block max-w-full truncate text-sm font-normal text-text-strong hover:underline"
                       >
                         <StyledName name={u.name} style={u.nameStyle} />
-                      </Link>
+                      </ProfilePeek>
 
                       <p className="truncate text-xs font-normal text-text-subtle">{u.headline}</p>
                     </div>
