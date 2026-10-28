@@ -609,7 +609,7 @@ function GroupPostItem({
         className="mt-2 whitespace-pre-line break-words text-sm text-text-strong"
       />
 
-      <div className="mt-2 flex items-center gap-3 text-xs text-text-subtle">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-subtle">
         <ReactionPicker
           emojis={REACTION_EMOJIS}
           activeType={currentReaction}
@@ -1142,7 +1142,7 @@ function AdminPanel({ group }: { group: GroupView }) {
                   username={request.username}
                   userId={request.userId}
                   name={nameOf(request)}
-                  className="flex min-w-0 flex-1 items-center gap-2"
+                  className="flex min-w-[10rem] flex-1 items-center gap-2"
                 >
                   <UserAvatar
                     src={request.avatar}
@@ -1207,7 +1207,7 @@ function AdminPanel({ group }: { group: GroupView }) {
                   username={member.username}
                   userId={member.userId}
                   name={nameOf(member)}
-                  className="flex min-w-0 flex-1 items-center gap-2"
+                  className="flex min-w-[10rem] flex-1 items-center gap-2"
                 >
                   <UserAvatar
                     src={member.avatar}

@@ -74,7 +74,7 @@ export function ProfilePeek({ username, userId, name, children, className }: Pro
           title={label}
           aria-label={label}
           className={cn(
-            "min-w-0 rounded-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            "min-w-0 max-w-full rounded-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             className,
           )}
         >

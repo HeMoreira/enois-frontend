@@ -13,6 +13,7 @@ import { Check, Send, UserMinus, UserPlus, X } from "lucide-react";
 import { networkApi, profileApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { liteInterval } from "@/lib/lite-mode";
+import { authorNameStyle } from "@/lib/profile-name-style";
 import { requireAuth } from "@/lib/require-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
@@ -243,9 +244,9 @@ function RequestCard({ request, onAccept, onCancel }: RequestCardProps) {
           <Link
             to="/perfil/$username"
             params={{ username: user?.username ?? targetUserId }}
-            className="break-words font-semibold hover:underline"
+            className="block truncate font-semibold hover:underline"
           >
-            {user?.name ?? texts.common.loading}
+            <StyledName name={user?.name ?? texts.common.loading} style={authorNameStyle(user)} />
           </Link>
           {user?.headline && (
             <p className="truncate text-xs text-muted-foreground">{user.headline}</p>
