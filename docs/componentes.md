@@ -199,6 +199,17 @@ a troca por imagem acontece na leitura (`useEmoteText` dentro do `RichText`), en
 - **Tamanho no chat:** `src/styles.css` casa pelo caminho `/emotes/image/` e dá a toda figurinha a
   mesma caixa quadrada de 28px com `object-fit: contain` (os CDNs dos provedores continuam na regra
   para texto antigo).
+- **Procedência e crédito:** as artes não são nossas. O BetterTTV e o FrankerFaceZ **não** licenciam
+  os emotes sob Creative Commons — os termos dos dois proíbem copiar, hospedar ou redistribuir sem
+  autorização expressa (FFZ: "users are forbidden from downloading, hosting, modifying, or
+  redistributing content hosted on FFZ servers without explicit permission from both FFZ and the
+  original owner(s)"; BetterTTV: "You may not distribute, modify, transmit, reuse, download, repost,
+  copy, or use said Content… for commercial purposes or for personal gain, without express advance
+  written permission"), e o uso da API do FFZ por aplicação não ligada ao Twitch também depende de
+  permissão. Por isso o rodapé da landing declara a origem (`texts.landing.footer.emotesTitle` /
+  `emotes`) e oferece a via de remoção pela página de contato; os Termos de Uso têm a seção
+  "15. Figurinhas de terceiros". O aviso não substitui a autorização dos provedores: enquanto ela não
+  existir, o uso é acessório e não comercial, sem venda nem licenciamento das imagens.
 
 ## `UserAvatar` (`@rede-enois/design-system/domain`)
 
