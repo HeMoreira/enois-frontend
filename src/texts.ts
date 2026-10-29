@@ -2333,6 +2333,7 @@ export const texts = {
       notes: "Notas",
       suspicious: "Contas suspeitas",
       suspiciousPosts: "Posts suspeitos",
+      notices: "Avisos",
     },
     suspiciousPosts: {
       result: (deleted: number, failed: number) =>
@@ -2373,6 +2374,34 @@ export const texts = {
       approved: "PR aprovado.",
       changesRequested: "Mudanças solicitadas.",
       reviewError: "Não foi possível enviar a revisão. Confira a permissão do seu GitHub.",
+    },
+    notices: {
+      title: "Aviso da plataforma",
+      description:
+        "Um aviso por vez, em HTML e CSS. Publicar reescreve o que está no ar; tirar do ar some com ele.",
+      none: "Nenhum aviso no ar.",
+      live: (title: string, surface: string) => `No ar: ${title} (${surface}).`,
+      titleLabel: "Título",
+      titlePlaceholder: "Ex.: Manutenção no marketplace",
+      surfaceLabel: "Onde aparece",
+      surfaces: {
+        BANNER: "Faixa no topo",
+        MODAL: "Popup",
+        BOTH: "Faixa e popup",
+      } as Record<string, string>,
+      surfaceHint: "A faixa tem altura fixa: um recado longo cabe melhor no popup.",
+      htmlLabel: "Conteúdo (HTML e CSS)",
+      htmlHint:
+        "Sem JavaScript: o aviso é renderizado num quadro isolado, do mesmo jeito que o post de página.",
+      emptyPreview: "Escreva um HTML para ver como fica.",
+      formHint: "Quem já fechou o aviso volta a vê-lo depois de uma nova publicação.",
+      publish: "Publicar aviso",
+      republish: "Republicar alterações",
+      publishing: "Publicando…",
+      retire: "Tirar do ar",
+      published: "Aviso publicado.",
+      retired: "Aviso tirado do ar.",
+      error: "Não foi possível publicar o aviso.",
     },
     sanction: {
       title: "Punição por votação",
@@ -2482,6 +2511,24 @@ export const texts = {
     savedMinor:
       "Data registrada. Agora falta a autorização de um responsável para liberar a conta.",
     error: "Não foi possível salvar a data. Tente de novo.",
+  },
+  /** Aviso da plataforma publicado por um admin (faixa e/ou popup). */
+  notices: {
+    bannerLabel: "Aviso",
+    close: "Fechar aviso",
+    closeButton: "Entendi",
+    dialogDescription: "Aviso publicado pela equipe do Énóis.",
+    publishedOn: (raw: string | undefined) => {
+      if (!raw) return "";
+      const at = new Date(raw);
+      if (Number.isNaN(at.getTime())) return "";
+      return `Publicado em ${at.toLocaleString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      })}.`;
+    },
   },
   /** Canais privados por tema dentro das comunidades. */
   communityChannels: {
