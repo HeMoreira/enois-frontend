@@ -522,7 +522,7 @@ export function DailyWord() {
               <p className="text-lg font-semibold">
                 {state.status === "WON"
                   ? `🎉 Você acertou em ${confirmedGuesses.length} tentativa${confirmedGuesses.length === 1 ? "" : "s"}!`
-                  : `😔 Não foi dessa vez. A palavra era ${confirmedGuesses.at(-1)?.word ?? "—"}.`}
+                  : "😔 Não foi dessa vez."}
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-2">
