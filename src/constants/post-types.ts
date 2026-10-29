@@ -44,4 +44,4 @@ export const POST_TYPES: { id: string; label: string; icon: LucideIcon; hint?: s
 ];
 
 /** Teto do texto do artigo — o mesmo do backend (`PublishPostService.MAX_ARTICLE_BODY`). */
-export const ARTICLE_BODY_MAX_LENGTH = 4_000;
+export const ARTICLE_BODY_MAX_LENGTH = 10_000;

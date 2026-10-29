@@ -59,6 +59,7 @@ import { formatTime } from "@/components/post/format-time";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 export const Route = createFileRoute("/grupos/$slug")({
   head: () => ({ meta: [{ title: texts.groups.seoTitle }] }),
@@ -566,16 +567,23 @@ function GroupPostItem({
   return (
     <li className="rounded-2xl border border-border-soft bg-surface-card p-4">
       <div className="flex items-center gap-2">
-        <UserAvatar
-          src={post.authorAvatar}
-          frame={post.authorAvatarFrame}
-          alt={post.authorName ?? ""}
-          className="h-8 w-8 shrink-0"
-        />
+        <ProfilePeek
+          username={post.authorUsername}
+          userId={post.authorId}
+          name={post.authorName ?? ""}
+          className="flex min-w-0 items-center gap-2"
+        >
+          <UserAvatar
+            src={post.authorAvatar}
+            frame={post.authorAvatarFrame}
+            alt={post.authorName ?? ""}
+            className="h-8 w-8 shrink-0"
+          />
 
-        <span className="text-sm font-medium text-text-strong">
-          <StyledName name={post.authorName ?? ""} style={post.authorStyle} />
-        </span>
+          <span className="truncate text-sm font-medium text-text-strong">
+            <StyledName name={post.authorName ?? ""} style={post.authorStyle} />
+          </span>
+        </ProfilePeek>
 
         <UserBadges badges={post.authorBadges} />
 
@@ -601,7 +609,7 @@ function GroupPostItem({
         className="mt-2 whitespace-pre-line break-words text-sm text-text-strong"
       />
 
-      <div className="mt-2 flex items-center gap-3 text-xs text-text-subtle">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-subtle">
         <ReactionPicker
           emojis={REACTION_EMOJIS}
           activeType={currentReaction}
@@ -677,16 +685,31 @@ function GroupPostItem({
             <ul className="space-y-2">
               {comments.map((item) => (
                 <li key={item.id} className="flex items-start gap-2">
-                  <UserAvatar
-                    src={item.authorAvatar}
-                    frame={item.authorAvatarFrame}
-                    alt={item.authorName ?? ""}
-                    className="h-6 w-6 shrink-0"
-                  />
+                  <ProfilePeek
+                    username={item.authorUsername}
+                    userId={item.authorId}
+                    name={item.authorName ?? ""}
+                    className="shrink-0"
+                  >
+                    <UserAvatar
+                      src={item.authorAvatar}
+                      frame={item.authorAvatarFrame}
+                      alt={item.authorName ?? ""}
+                      className="h-6 w-6 shrink-0"
+                    />
+                  </ProfilePeek>
 
                   <div className="min-w-0">
                     <p className="flex items-center gap-1 text-xs font-medium text-text-strong">
-                      <StyledName name={item.authorName ?? ""} style={item.authorStyle} />
+                      <ProfilePeek
+                        username={item.authorUsername}
+                        userId={item.authorId}
+                        name={item.authorName ?? ""}
+                        className="hover:underline"
+                      >
+                        <StyledName name={item.authorName ?? ""} style={item.authorStyle} />
+                      </ProfilePeek>
+
                       <UserBadges badges={item.authorBadges} />
                     </p>
 
@@ -1115,15 +1138,22 @@ function AdminPanel({ group }: { group: GroupView }) {
                 key={request.id}
                 className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-1 px-3 py-2"
               >
-                <UserAvatar
-                  src={request.avatar}
-                  alt={request.name ?? ""}
-                  className="h-7 w-7 shrink-0"
-                />
+                <ProfilePeek
+                  username={request.username}
+                  userId={request.userId}
+                  name={nameOf(request)}
+                  className="flex min-w-[10rem] flex-1 items-center gap-2"
+                >
+                  <UserAvatar
+                    src={request.avatar}
+                    alt={request.name ?? ""}
+                    className="h-7 w-7 shrink-0"
+                  />
 
-                <span className="min-w-0 flex-1 truncate text-sm text-text-strong">
-                  <StyledName name={nameOf(request)} style={request.nameStyle} />
-                </span>
+                  <span className="min-w-0 truncate text-sm text-text-strong">
+                    <StyledName name={nameOf(request)} style={request.nameStyle} />
+                  </span>
+                </ProfilePeek>
 
                 <Button
                   size="sm"
@@ -1173,15 +1203,22 @@ function AdminPanel({ group }: { group: GroupView }) {
                 key={member.userId}
                 className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-1 px-3 py-2"
               >
-                <UserAvatar
-                  src={member.avatar}
-                  alt={member.name ?? ""}
-                  className="h-7 w-7 shrink-0"
-                />
+                <ProfilePeek
+                  username={member.username}
+                  userId={member.userId}
+                  name={nameOf(member)}
+                  className="flex min-w-[10rem] flex-1 items-center gap-2"
+                >
+                  <UserAvatar
+                    src={member.avatar}
+                    alt={member.name ?? ""}
+                    className="h-7 w-7 shrink-0"
+                  />
 
-                <span className="min-w-0 flex-1 truncate text-sm text-text-strong">
-                  <StyledName name={nameOf(member)} style={member.nameStyle} />
-                </span>
+                  <span className="min-w-0 truncate text-sm text-text-strong">
+                    <StyledName name={nameOf(member)} style={member.nameStyle} />
+                  </span>
+                </ProfilePeek>
 
                 <span className="text-xs text-text-subtle">{roleLabel(member.role)}</span>
 

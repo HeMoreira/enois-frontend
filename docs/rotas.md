@@ -293,6 +293,15 @@ Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatame
 preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
 automático usa `one-time-code`.
 
-Integração pendente: o campo usa o `Input` de `@rede-enois/design-system/ui` com `maxLength={6}` e
-`showCounter={false}`. Ocultar o contador depende de uma versão do design system que implemente
-`showCounter`; a versão instalada `0.4.0-rc.9` ainda não oferece essa propriedade.
+O campo usa o `Input` de `@rede-enois/design-system/ui` na versão `0.12.0`, com `maxLength={6}` e
+`showCounter={false}`. O limite nativo de seis caracteres permanece ativo, sem exibir o contador
+ou o aviso de limite atingido.
+
+## Nametag do perfil profissional
+
+O `:username` de `/profissional/:username` é o **nametag** do perfil profissional: ele é o `@` e o
+fim da URL pública, tem namespace próprio no backend e pode ser diferente do `@` social (ex.:
+`aminadojava` no social e `melsantos` no profissional). É editável em `/profissional`, num campo
+com ação própria (não espera o resto do formulário); o formato é validado em
+`src/lib/corporate/nametag.ts`, o mesmo do backend. Trocar o nametag muda o endereço público — o
+antigo deixa de responder — sem tocar no perfil social.

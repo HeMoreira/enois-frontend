@@ -84,7 +84,7 @@ describe("ativação do código por e-mail", () => {
     expect(confirm().disabled).toBe(false);
     expect(input.maxLength).toBe(6);
     expect(input.autocomplete).toBe("one-time-code");
-    expect(host.textContent).not.toContain(texts.common.charactersLimitReached);
+    expect(input.parentElement!.querySelector("[aria-live]")).toBeNull();
     expect(host.textContent).not.toContain("6 / 6");
     await act(async () => {
       confirm().click();

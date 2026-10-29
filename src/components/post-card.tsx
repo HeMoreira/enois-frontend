@@ -28,6 +28,7 @@ import { useAuth } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
 import { MentionTextarea } from "@/components/mention-textarea";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 import { formatTime } from "./post/format-time";
 import { MediaGrid } from "./post/media-grid";
@@ -360,6 +361,16 @@ function PostCardContainer({
       }
       renderRichText={(props) => <RichText {...props} />}
       renderMediaGrid={(props) => <MediaGrid {...props} />}
+      // The mini card is the social profile; a corporate post keeps the link to its own page.
+      renderAuthorTrigger={
+        post.authorIdentity === "CORPORATE"
+          ? undefined
+          : (content) => (
+              <ProfilePeek username={post.authorUsername} name={post.authorName}>
+                {content}
+              </ProfilePeek>
+            )
+      }
     />
   );
 }

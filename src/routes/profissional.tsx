@@ -10,6 +10,7 @@ import { ArrowLeft, Camera, Image as ImageIcon } from "lucide-react";
 
 import { corporateApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
+import { isValidNametag, nametagPath, normalizeNametag } from "@/lib/corporate/nametag";
 import { requireAuth } from "@/lib/require-auth";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
@@ -117,6 +118,23 @@ function Profissional() {
       toast(error instanceof Error ? error.message : texts.corporate.saveError, "error"),
   });
 
+  /**
+   * O nametag tem ação própria: trocar o @ não depende (nem fica preso) ao resto do formulário —
+   * se o nametag escolhido estiver em uso, os outros campos não deixam de salvar.
+   */
+  const changeNametag = useMutation({
+    mutationFn: () => corporateApi.changeUsername(normalizeNametag(form.username)),
+    onSuccess: (updated) => {
+      setForm((current) => ({ ...current, username: updated.username }));
+      setLoadedFor(updated.username);
+      toast(texts.corporate.nametagChanged, "success");
+      void queryClient.invalidateQueries({ queryKey: ["business-profile"] });
+      void queryClient.invalidateQueries({ queryKey: ["corporate-public"] });
+    },
+    onError: (error) =>
+      toast(error instanceof Error ? error.message : texts.corporate.saveError, "error"),
+  });
+
   const activate = useMutation({
     mutationFn: () => corporateApi.activate(),
     onSuccess: () => {
@@ -211,6 +229,11 @@ function Profissional() {
   const importable = preview
     ? (Object.entries(preview).filter(([, value]) => Boolean(value)) as [string, string][])
     : [];
+
+  const nametagDigitado = normalizeNametag(form.username);
+  const nametagValido = isValidNametag(form.username);
+  const nametagMudou =
+    Boolean(profile.exists) && nametagValido && nametagDigitado !== profile.username;
 
   return (
     <AppContainer>
@@ -368,6 +391,47 @@ function Profissional() {
                   onChange={(event) => setForm({ ...form, name: event.target.value })}
                   maxLength={160}
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">{texts.corporate.nametag}</label>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-1">
+                    <span className="text-sm text-text-subtle">@</span>
+
+                    <Input
+                      className={`${FIELD_CLASS} min-w-0`}
+                      value={form.username}
+                      onChange={(event) => setForm({ ...form, username: event.target.value })}
+                      maxLength={30}
+                      aria-label={texts.corporate.nametag}
+                    />
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-auto rounded-full"
+                    disabled={changeNametag.isPending || !nametagMudou}
+                    onClick={() => changeNametag.mutate()}
+                  >
+                    {texts.corporate.nametagChange}
+                  </Button>
+                </div>
+
+                <p className="text-xs text-text-subtle">{texts.corporate.nametagHint}</p>
+
+                {nametagValido ? (
+                  <p className="text-xs text-text-subtle">
+                    <code>{nametagPath(nametagDigitado)}</code>
+                  </p>
+                ) : (
+                  <p className="text-xs text-text-subtle">{texts.corporate.nametagInvalid}</p>
+                )}
+
+                {nametagMudou && (
+                  <p className="text-xs text-text-subtle">{texts.corporate.nametagWarning}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
