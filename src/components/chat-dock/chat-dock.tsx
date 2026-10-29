@@ -5,13 +5,15 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { useChatDockStore } from "@/stores/chat-dock.store";
 import { ChatDock as ChatDockView } from "@rede-enois/design-system/domain";
 
-import { messagesApi } from "@/lib/api";
+import { authApi, messagesApi } from "@/lib/api";
 import { janelasQueCabem } from "@/lib/chat-dock/chat-dock-layout";
 import { useLarguraDaJanela } from "@/lib/chat-dock/use-largura-da-janela";
+import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { hasSession } from "@/lib/require-auth";
 import { useIsAuthenticated } from "@/lib/use-auth";
 
 import { ConversationItem } from "@/components/messages/conversation-item";
+import { E2eSetupBanner } from "@/components/messages/e2e-setup-banner";
 
 import { ChatDockWindow } from "./chat-dock-window";
 
@@ -37,6 +39,18 @@ export function ChatDock() {
 function ChatDockInner() {
   const queryClient = useQueryClient();
   const larguraDaJanela = useLarguraDaJanela();
+
+  // Gate E2E: sem chaves locais, o dock mostra o setup em vez das conversas.
+  const [e2eReady, setE2eReady] = useState<boolean | null>(null);
+  useEffect(() => {
+    hasLocalKeys().then(setE2eReady);
+  }, []);
+  const { data: authMe } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: () => authApi.me(),
+    enabled: e2eReady === false,
+  });
+
   const expanded = useChatDockStore((s) => s.expanded);
   const openChats = useChatDockStore((s) => s.openChats);
   const toggleExpanded = useChatDockStore((s) => s.toggleExpanded);
@@ -90,6 +104,30 @@ function ChatDockInner() {
     const conv = conversations.find((c) => c.id === id);
     if (conv && conv.unread > 0) markAsRead.mutate(id);
   };
+
+  if (e2eReady === false) {
+    return (
+      <ChatDockView
+        expanded={expanded}
+        onToggleExpanded={toggleExpanded}
+        unreadCount={0}
+        windows={[]}
+        empty
+        hasMore={false}
+        loadingMore={false}
+        onLoadMore={() => {}}
+      >
+        {authMe && (
+          <div className="flex flex-col items-center gap-3 p-4">
+            <E2eSetupBanner
+              hasPassword={authMe.hasPassword}
+              onSetupComplete={() => setE2eReady(true)}
+            />
+          </div>
+        )}
+      </ChatDockView>
+    );
+  }
 
   return (
     <ChatDockView
