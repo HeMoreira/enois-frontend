@@ -329,7 +329,7 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
         <img
           src={resolveCdnUrl(mentor.banner)}
           alt=""
-          className="-mx-5 -mt-5 mb-1 h-36 w-[calc(100%+2.5rem)] object-cover"
+          className="-mx-5 -mt-5 mb-1 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover"
         />
       )}
 
