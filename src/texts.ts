@@ -597,6 +597,8 @@ export const texts = {
       pushUnavailable: "Este dispositivo não suporta notificações no celular.",
       pushServerOff: "As notificações no celular ainda não estão disponíveis.",
       pushError: "Não foi possível ativar as notificações. Tente novamente.",
+      identitySocial: "Identidade ativa: social.",
+      identityCorporate: "Identidade ativa: profissional.",
     },
     changeEmail: {
       error: "Não foi possível alterar o e-mail. Tente novamente.",
