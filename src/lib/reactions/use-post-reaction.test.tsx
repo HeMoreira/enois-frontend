@@ -27,7 +27,10 @@ vi.mock("@/lib/api", () => ({ ApiError: Error, reactionsApi: mocks }));
 vi.mock("@/lib/use-auth", () => ({
   useAuth: () => ({ requireAuth: () => true, user: { id: "viewer" } }),
 }));
-vi.mock("@/components/ui/toast", () => ({ useToast: () => ({ toast: mocks.toast }) }));
+vi.mock("@rede-enois/design-system/ui", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@rede-enois/design-system/ui")>()),
+  useToast: () => ({ toast: mocks.toast }),
+}));
 
 const post: PostView = {
   id: "post-reaction-race",

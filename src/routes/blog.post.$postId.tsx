@@ -2,12 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { EmptyState, LoadingState } from "@rede-enois/design-system/ui";
 
 import { blogsApi } from "@/lib/api/blogs";
 import { requireAuth } from "@/lib/require-auth";
-
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
 
 import { AppContainer } from "@/components/app-container";
 import { BlogPostEditor } from "@/components/blog/blog-post-editor";

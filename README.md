@@ -13,6 +13,26 @@ ou propriedade: a tela pede, o backend decide.
 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Falha de segurança tem canal próprio no
 [`SECURITY.md`](SECURITY.md) — não vira issue pública.
 
+> [!IMPORTANT]
+> **`npm install` requires a GitHub token.** The components come from
+> [`@rede-enois/design-system`](https://github.com/Rede-ENois/enois-design-system), published on
+> GitHub Packages, and GitHub Packages only serves npm packages to authenticated requests, even
+> public ones. Without a token, `npm install` / `npm ci` fails with `E401 Unauthorized` on
+> `npm.pkg.github.com`.
+>
+> 1. Create a [classic personal access token](https://github.com/settings/tokens/new?scopes=read:packages&description=enois-frontend%20npm)
+>    with only the `read:packages` scope (or reuse the GitHub CLI's: `gh auth refresh -s read:packages`, then `gh auth token`).
+> 2. Export it before installing, e.g. in your shell profile:
+>
+>    ```bash
+>    export NODE_AUTH_TOKEN=ghp_your_token
+>    npm install
+>    ```
+>
+> The repository's `.npmrc` reads `NODE_AUTH_TOKEN`; never commit the token itself. Docker builds take
+> it as a secret: `docker build --secret id=npm_token,env=NODE_AUTH_TOKEN .`. CI uses the workflow's
+> `GITHUB_TOKEN`.
+
 ## O que o Énóis é
 
 - Uma rede **de gente**: conversa, grupos, trabalho, estudo, brincadeira e construção juntos.
@@ -48,6 +68,8 @@ ou propriedade: a tela pede, o backend decide.
 Instale as dependencias:
 
 ```bash
+# Required: a GitHub token with read:packages (see the warning at the top of this README)
+export NODE_AUTH_TOKEN=ghp_your_token
 npm install
 ```
 
@@ -261,7 +283,7 @@ cuidado com rota que é página e mãe ao mesmo tempo (a que "não abre" quando 
 
 ```bash
 npx vitest run                # tudo
-npx vitest run src/lib/rich-text/parse.test.ts   # um arquivo
+npx vitest run src/lib/api-client.test.ts        # um arquivo
 ```
 
 Os testes cobrem lógica pura — parser de formatação, inserção no cursor, cálculo de contraste de

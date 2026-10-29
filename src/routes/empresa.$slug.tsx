@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { CompanyWebsiteLink } from "@rede-enois/design-system/domain";
+import { Button, Textarea, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, MapPin, Users } from "lucide-react";
 
 import { companiesApi } from "@/lib/api";
@@ -11,13 +13,8 @@ import { resolveCdnUrl } from "@/lib/api/media";
 import { getCurrentUser } from "@/lib/current-user";
 import { dataCurta } from "@/lib/date/format";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { CompanyEditDialog } from "@/components/company-edit-dialog";
-import { CompanyWebsiteLink } from "@/components/company-website-link";
 import { RichText } from "@/components/post/rich-text";
 
 export const Route = createFileRoute("/empresa/$slug")({

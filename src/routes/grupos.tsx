@@ -5,26 +5,25 @@ import { Link, Outlet, createFileRoute, useMatchRoute, useNavigate } from "@tans
 
 import { texts } from "@/texts";
 import type { GroupView } from "@/types/application/group/group-view";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  PageHeader,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import { Camera, ChevronRight, Loader2, Plus, Search, Users } from "lucide-react";
 
 import { groupsApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
-
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/ui/page-header";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 

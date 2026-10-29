@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { StyledName, UserAvatar } from "@rede-enois/design-system/domain";
+import { Button, ConfirmDialog, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
 import { feedApi } from "@/lib/api";
@@ -12,18 +14,12 @@ import { resolveCdnUrl } from "@/lib/api/media";
 import { formatarData } from "@/lib/date/format";
 import { buildShareTags } from "@/lib/open-graph";
 
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { PostActions } from "@/components/post/post-actions";
 import { PostComments } from "@/components/post/post-comments";
 import { ReactionsSummary } from "@/components/post/reactions-summary";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
-import { StyledName } from "@/components/styled-name";
-import { UserAvatar } from "@/components/user-avatar";
 
 /**
  * Um post do blog: `/blog/{username}/{postId}`.
@@ -104,7 +100,11 @@ function BlogPostPage() {
   });
 
   const blog = data ?? loaderData.blog;
-  const post = blog.items.find((item) => item.id === loaderData.post.id) ?? loaderData.post;
+  const post =
+    blog.items.find(
+      (item: import("@/types/application/blog/blog-post").BlogPost) =>
+        item.id === loaderData.post.id,
+    ) ?? loaderData.post;
 
   // O post do blog é o MESMO post do feed (o ponteiro nasce com o id dele), então as ações —
   // reagir, comentar, compartilhar, salvar, denunciar — são as do feed, e as contagens vêm de lá.

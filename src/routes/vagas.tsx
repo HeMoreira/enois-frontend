@@ -23,6 +23,30 @@ import type { JobApplicationFieldInput } from "@/types/application/job/job-appli
 import type { JobReportReason } from "@/types/application/job/job-report-reason";
 import type { CreateJobDialogProps } from "@/types/routes/jobs/create-job-dialog-props";
 import type { ReportJobDialogProps } from "@/types/routes/jobs/report-job-dialog-props";
+import { JobCardSkeletons } from "@rede-enois/design-system/domain";
+import { InfiniteScroll } from "@rede-enois/design-system/patterns";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  EmptyState,
+  Input,
+  Label,
+  LoadingState,
+  Pill,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import {
   AlertTriangle,
   Bookmark,
@@ -48,29 +72,9 @@ import { safeHref } from "@/lib/safe-url";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Pill } from "@/components/ui/pill";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { CreateExternalJobDialog } from "@/components/create-external-job-dialog";
-import { InfiniteScroll } from "@/components/infinite-scroll";
-import { JobCardSkeletons } from "@/components/skeletons/job-card-skeletons";
+import { SaciSpot } from "@/components/events/saci-spot";
 
 const MAX_CARD_SKILLS = 8;
 
@@ -316,6 +320,8 @@ export function JobsListPage({
                   </Button>
                 </>
               )}
+
+              <SaciSpot spot="vagas" />
             </div>
           </div>
 

@@ -3,6 +3,8 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { CorporateProfileView } from "@/types/application/corporate/corporate-profile-view";
+import { PostCardSkeletons, UserAvatar } from "@rede-enois/design-system/domain";
+import { Button, EmptyState } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Building2, Globe, Link as LinkIcon, MapPin, UserX } from "lucide-react";
 
 import { ApiError, corporateApi, feedApi } from "@/lib/api";
@@ -13,16 +15,11 @@ import { ogMetas } from "@/lib/seo";
 import { useAuth } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-
 import { AppContainer } from "@/components/app-container";
 import { PostCard } from "@/components/post-card";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
 import { ProfileSeals } from "@/components/profile-seals";
 import { PageSkeleton } from "@/components/skeletons/page-skeleton";
-import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
-import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/profissional_/$username")({
   head: ({ params }) => ({
@@ -140,7 +137,7 @@ function ProfessionalProfile() {
             <div className="space-y-1">
               <h1 className="break-words text-2xl font-semibold tracking-tight">{data.name}</h1>
 
-              <p className="text-sm text-text-subtle">@{data.username}</p>
+              <p className="break-words text-sm text-text-subtle">@{data.username}</p>
 
               {data.headline && (
                 <p className="break-words text-sm text-text-strong">{data.headline}</p>

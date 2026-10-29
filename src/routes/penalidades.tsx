@@ -4,17 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { Button, EmptyState, LoadingState, Textarea, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
 
 import { sanctionsApi } from "@/lib/api";
 import { formatarData } from "@/lib/date/format";
 import { requireAuth } from "@/lib/require-auth";
-
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -6,14 +6,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { texts } from "@/texts";
 import type { BlogPost } from "@/types/application/blog/blog-post";
 import type { BlogPostFormat } from "@/types/application/blog/blog-post-format";
+import { Button, Input, Pill, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Eye, PenLine } from "lucide-react";
 
 import { blogsApi } from "@/lib/api/blogs";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Pill } from "@/components/ui/pill";
-import { useToast } from "@/components/ui/toast";
+import { getCurrentUserId } from "@/lib/current-user";
 
 import { AppContainer } from "@/components/app-container";
 import { HtmlEditor } from "@/components/html-editor";
@@ -35,13 +32,71 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
   const [preview, setPreview] = useState(false);
   const [avisar, setAvisar] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [draftKey, setDraftKey] = useState<string | null>(null);
+  const [draftSaved, setDraftSaved] = useState<boolean | null>(null);
+
+  // Restaura depois da hidratação e só então permite gravar: o formulário vazio não apaga o rascunho.
+  useEffect(() => {
+    if (post) return;
+    const userId = getCurrentUserId();
+    if (!userId) {
+      setDraftSaved(false);
+      return;
+    }
+    const key = `connect-grow-blog-post-draft:${userId}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const draft = JSON.parse(raw) as Record<string, unknown>;
+        if (
+          draft &&
+          typeof draft.title === "string" &&
+          typeof draft.body === "string" &&
+          (draft.format === "MARKDOWN" || draft.format === "HTML") &&
+          typeof draft.avisar === "boolean"
+        ) {
+          setTitle(draft.title);
+          setBody(draft.body);
+          setFormat(draft.format);
+          setAvisar(draft.avisar);
+        }
+      }
+    } catch {
+      // Um rascunho ilegível não impede escrever outro post.
+    }
+    setDraftKey(key);
+  }, [post]);
+
+  useEffect(() => {
+    if (post || !draftKey) return;
+    try {
+      if (title || body) {
+        localStorage.setItem(draftKey, JSON.stringify({ title, body, format, avisar }));
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+      setDraftSaved(Boolean(title || body));
+    } catch {
+      setDraftSaved(false);
+    }
+  }, [post, draftKey, title, body, format, avisar]);
 
   const publish = useMutation({
+    onMutate: () => JSON.stringify({ title, body, format, avisar }),
     mutationFn: () =>
       post
         ? blogsApi.editPost(post.id, { title, body, format })
         : blogsApi.publish({ title, body, format, notifySubscribers: avisar }),
-    onSuccess: async () => {
+    onSuccess: async (_result, _variables, submittedDraft) => {
+      if (!post && draftKey) {
+        try {
+          if (localStorage.getItem(draftKey) === submittedDraft) {
+            localStorage.removeItem(draftKey);
+          }
+        } catch {
+          // A publicação já foi concluída mesmo se o navegador bloquear o armazenamento.
+        }
+      }
       queryClient.invalidateQueries({ queryKey: ["blog"] });
       queryClient.invalidateQueries({ queryKey: ["blogs"] });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
@@ -73,6 +128,12 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
         <h1 className="text-xl font-semibold tracking-tight text-text-strong">
           {post ? texts.blog.editor.editPost : texts.blog.newPost}
         </h1>
+
+        {!post && (title || body) && draftSaved !== null && (
+          <p role="status" className="text-xs text-text-subtle">
+            {draftSaved ? texts.blog.editor.draftSaved : texts.blog.editor.draftSaveError}
+          </p>
+        )}
 
         <div className="space-y-3">
           <Input

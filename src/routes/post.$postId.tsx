@@ -3,6 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { HomeTab } from "@/types/routes/feed/home-tab";
+import { PostCardSkeletons } from "@rede-enois/design-system/domain";
 import { ArrowLeft } from "lucide-react";
 
 import { feedApi, mediaApi } from "@/lib/api";
@@ -11,7 +12,6 @@ import { buildPostShareMeta } from "@/lib/open-graph";
 import { AppContainer } from "@/components/app-container";
 import { PostCard } from "@/components/post-card";
 import { RichText } from "@/components/post/rich-text";
-import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
 
 export const Route = createFileRoute("/post/$postId")({
   validateSearch: (search: Record<string, unknown>): { feedTab?: HomeTab } => ({
@@ -118,7 +118,7 @@ function PostDetail() {
       <div className="space-y-6">
         <Link
           to="/feed"
-          search={{ aba: feedTab ?? "FOR_YOU" }}
+          search={{ aba: feedTab ?? "ALL" }}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

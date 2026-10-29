@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { StyledName, UserAvatar, UserBadges } from "@rede-enois/design-system/domain";
+import { Button, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, PenLine, Plus, Rss } from "lucide-react";
 
 import { blogsApi } from "@/lib/api/blogs";
@@ -11,15 +13,9 @@ import { buildShareTags } from "@/lib/open-graph";
 import { plainPreview } from "@/lib/rich-text/preview";
 import { useAuth } from "@/lib/use-auth";
 
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
-import { StyledName } from "@/components/styled-name";
-import { UserAvatar } from "@/components/user-avatar";
-import { UserBadges } from "@/components/user-badge";
 
 export const Route = createFileRoute("/blog/$username")({
   loader: async ({ params }) => {
@@ -201,7 +197,7 @@ function BlogPage() {
           </p>
         ) : (
           <div className="space-y-3">
-            {blog.items.map((post) => {
+            {blog.items.map((post: import("@/types/application/blog/blog-post").BlogPost) => {
               // O resumo: sem ele a lista mostrava só o título, e um post cheio de texto parecia
               // vazio. Post escrito no editor livre (HTML/CSS) não tem resumo em texto — o rótulo
               // diz o que é, em vez de abrir um espaço em branco no card.

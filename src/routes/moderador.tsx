@@ -10,6 +10,15 @@ import type { SanctionProposalDecision } from "@/types/application/moderation/sa
 import type { SanctionProposalView } from "@/types/application/moderation/sanction-proposal-view";
 import type { ModeratorTabId } from "@/types/routes/moderador/moderator-tab-id";
 import {
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  Input,
+  LoadingState,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
+import {
   Activity,
   ArrowLeft,
   Bug,
@@ -22,6 +31,7 @@ import {
   History,
   LifeBuoy,
   Mail,
+  Megaphone,
   Scale,
   ScanEye,
   Shield,
@@ -40,14 +50,6 @@ import { dataHora } from "@/lib/date/format";
 import { requireAuth } from "@/lib/require-auth";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { AppealsSection } from "@/components/moderation/appeals-section";
 import { ContributionsSection } from "@/components/moderation/contributions-section";
@@ -57,6 +59,7 @@ import { EmailLogSection } from "@/components/moderation/email-log-section";
 import { GamesReviewSection } from "@/components/moderation/games-review-section";
 import { MonitoringSection } from "@/components/moderation/monitoring-section";
 import { NotesSection } from "@/components/moderation/notes-section";
+import { NoticesSection } from "@/components/moderation/notices-section";
 import { PanicModeSection } from "@/components/moderation/panic-mode-section";
 import { ProjectsReviewSection } from "@/components/moderation/projects-review-section";
 import { PullRequestsSection } from "@/components/moderation/pull-requests-section";
@@ -91,6 +94,12 @@ const ALL_TABS: { id: ModeratorTabId; label: string; icon: typeof Flag; adminOnl
   { id: "users", label: texts.moderator.tabs.users, icon: Gavel, adminOnly: false },
   // Triagem de contas em série é trabalho do time inteiro (decisão da dona): qualquer moderador
   // aprovado vê a fila e pode banir em lote.
+  {
+    id: "notices",
+    label: texts.moderator.tabs.notices,
+    icon: Megaphone,
+    adminOnly: true,
+  },
   {
     id: "suspicious",
     label: texts.moderator.tabs.suspicious,
@@ -259,6 +268,7 @@ function Moderador() {
             {me.admin && activeTab === "githubContributions" && <ContributionsSection />}
             {canModerate && activeTab === "pulls" && <PullRequestsSection />}
             {canModerate && activeTab === "notes" && <NotesSection />}
+            {me.admin && activeTab === "notices" && <NoticesSection />}
           </div>
         ) : (
           <ApplicationSection me={me} />

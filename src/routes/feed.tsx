@@ -16,6 +16,24 @@ import type { ComposerActionProps } from "@/types/routes/feed/composer-action-pr
 import type { HomeTab } from "@/types/routes/feed/home-tab";
 import type { MediaItem } from "@/types/routes/feed/media-item";
 import {
+  ApoieCard,
+  PostCardSkeletons,
+  SpoilerPreview,
+  StyledName,
+  UserAvatar,
+} from "@rede-enois/design-system/domain";
+import { InfiniteScroll } from "@rede-enois/design-system/patterns";
+import {
+  Button,
+  EmptyState,
+  Input,
+  LoadingState,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  useToast,
+} from "@rede-enois/design-system/ui";
+import {
   ArrowUp,
   BarChart3,
   Briefcase,
@@ -52,36 +70,27 @@ import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/components/ui/toast";
-
-import { ApoieCard } from "@/components/apoie-card";
 import { AppContainer } from "@/components/app-container";
+import { SaciDuelBanner } from "@/components/events/saci-duel-banner";
+import { SaciSpot } from "@/components/events/saci-spot";
 import { TodayGamesCard } from "@/components/games/today-games-card";
 import { HtmlEditor } from "@/components/html-editor";
-import { InfiniteScroll } from "@/components/infinite-scroll";
 import { LinkedInSyncPrompt } from "@/components/linkedin-sync-prompt";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { NightRestReminder } from "@/components/night-rest-reminder";
 import { PlatformSpacesCard } from "@/components/platform-spaces-card";
 import { PostCard } from "@/components/post-card";
-import { SpoilerPreview } from "@/components/post/spoiler-preview";
-import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
-import { StyledName } from "@/components/styled-name";
-import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 /** Abas válidas da tela inicial (a URL carrega a escolhida). */
-const HOME_TABS: HomeTab[] = ["ALL", "FOR_YOU", "UNSEEN", "TRENDING", "CORPORATE"];
+const HOME_TABS: HomeTab[] = ["ALL", "FOR_YOU", "UNSEEN", "TRENDING", "INTERACTED", "CORPORATE"];
 
 const TAB_LABELS: Record<HomeTab, string> = {
   ALL: texts.feed.tabs.all,
   FOR_YOU: texts.feed.tabs.forYou,
   UNSEEN: texts.feed.tabs.unseen,
   TRENDING: texts.feed.tabs.trending,
+  INTERACTED: texts.feed.tabs.interacted,
   CORPORATE: texts.feed.tabs.corporate,
   // Legado (backend aceita mas frontend não mostra).
   FOLLOWING: texts.feed.tabs.following,
@@ -218,7 +227,7 @@ function Home() {
   // página anterior, e não passeando pelas abas).
   const { aba } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const tab: HomeTab = aba ?? "FOR_YOU";
+  const tab: HomeTab = aba ?? "ALL";
   const setTab = (next: HomeTab) => {
     if (next === tab) return;
     void navigate({ search: { aba: next }, replace: true });
@@ -229,6 +238,7 @@ function Home() {
   const {
     data: feedData,
     isLoading: feedLoading,
+    isFetching: feedFetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -522,11 +532,15 @@ function Home() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
+          <SaciDuelBanner />
+
           {/* Composer */}
           <form
             onSubmit={publishPost}
-            className="rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
+            className="relative rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
           >
+            {/* Na borda de cima do compositor, dentro da folga: não cobre o campo nem botões. */}
+            <SaciSpot spot="feed" className="absolute -top-4 right-4" />
             <input
               type="text"
               name="website"
@@ -1068,6 +1082,15 @@ function Home() {
 
           <div className="space-y-4">
             {feedLoading && <PostCardSkeletons />}
+
+            {!feedLoading && feedFetching && !isFetchingNextPage && (
+              <div className="flex items-center justify-center gap-2 py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+
+                <span className="text-sm text-text-subtle">{texts.feed.refreshing}</span>
+              </div>
+            )}
+
             {!feedLoading && feedPosts.map((p) => <PostCard key={p.id} post={p} feedTab={tab} />)}
 
             {!feedLoading && feedPosts.length === 0 && <EmptyState title={texts.feed.empty} />}
@@ -1160,21 +1183,23 @@ function Home() {
               <ul className="mt-4 space-y-3">
                 {visibleSuggestions.map((u) => (
                   <li key={u.id} className="flex items-center gap-3">
-                    <UserAvatar
-                      src={u.avatar}
-                      frame={u.avatarFrame}
-                      alt={u.name}
-                      className="h-10 w-10"
-                    />
+                    <ProfilePeek username={u.username} name={u.name} className="shrink-0">
+                      <UserAvatar
+                        src={u.avatar}
+                        frame={u.avatarFrame}
+                        alt={u.name}
+                        className="h-10 w-10"
+                      />
+                    </ProfilePeek>
 
                     <div className="min-w-0 flex-1">
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: u.username }}
-                        className="block truncate text-sm font-normal text-text-strong hover:underline"
+                      <ProfilePeek
+                        username={u.username}
+                        name={u.name}
+                        className="block max-w-full truncate text-sm font-normal text-text-strong hover:underline"
                       >
                         <StyledName name={u.name} style={u.nameStyle} />
-                      </Link>
+                      </ProfilePeek>
 
                       <p className="truncate text-xs font-normal text-text-subtle">{u.headline}</p>
                     </div>

@@ -37,6 +37,11 @@ env:
 
 permissions:
   contents: read
+  # A TOKEN IS REQUIRED to install @rede-enois/design-system: GitHub Packages asks for one even for
+  # public packages. The Docker builds get this run's GITHUB_TOKEN (read-only on packages, and
+  # read-only everywhere on fork PRs) as the `npm_token` build secret. The package must grant this
+  # repository read access in its settings ("Manage Actions access"), or `npm ci` fails with E401.
+  packages: read
 
 jobs:
   # ===========================================================================
@@ -63,6 +68,8 @@ jobs:
           build-args: |
             VITE_API_BACKEND=${{ env.VITE_API_BACKEND_QA }}
             VITE_SITE_URL=${{ env.VITE_SITE_URL_QA }}
+          secrets: |
+            npm_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -129,6 +136,8 @@ jobs:
           build-args: |
             VITE_API_BACKEND=${{ steps.buildargs.outputs.api_backend }}
             VITE_SITE_URL=${{ steps.buildargs.outputs.site_url }}
+          secrets: |
+            npm_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
             ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.image_tag }}
             ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.branch }}

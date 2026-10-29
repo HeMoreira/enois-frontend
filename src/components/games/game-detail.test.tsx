@@ -20,7 +20,7 @@ const { Outlet, RouterProvider, createMemoryHistory, createRootRoute, createRout
 const { clearSession } = await import("@/lib/api-client");
 const { registerBrowserQueryClient } = await import("@/lib/query-client");
 const { storeSession } = await import("@/lib/session");
-const { ToastProvider } = await import("@/components/ui/toast");
+const { ToastProvider } = await import("@rede-enois/design-system/ui");
 const { GameDetail } = await import("./game-detail");
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

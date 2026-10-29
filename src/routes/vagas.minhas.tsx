@@ -5,6 +5,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { Job } from "@/types/application/job/job";
+import { Button, ConfirmDialog, useToast } from "@rede-enois/design-system/ui";
 import {
   ArrowLeft,
   Briefcase,
@@ -20,10 +21,6 @@ import { ApiError, jobsApi } from "@/lib/api";
 import { applicationStatusLabel, statusTone } from "@/lib/job-application-status";
 import { requireAuth } from "@/lib/require-auth";
 import { safeHref } from "@/lib/safe-url";
-
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 import { JobEditDialog } from "@/components/job-edit-dialog";

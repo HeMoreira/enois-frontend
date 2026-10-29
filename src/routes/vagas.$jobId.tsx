@@ -7,6 +7,12 @@ import { jobLevelLabel, jobTypeLabel } from "@/constants/job-options";
 import { texts } from "@/texts";
 import type { JobApplication } from "@/types/application/job/job-application";
 import {
+  ApplicationFeedbackDialog,
+  StyledName,
+  UserAvatar,
+} from "@rede-enois/design-system/domain";
+import { Button, ConfirmDialog } from "@rede-enois/design-system/ui";
+import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
@@ -31,17 +37,11 @@ import { actionsFor, applicationStatusLabel, statusTone } from "@/lib/job-applic
 import { buildShareTags } from "@/lib/open-graph";
 import { safeHref } from "@/lib/safe-url";
 
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-
 import { AppContainer } from "@/components/app-container";
-import { ApplicationFeedbackDialog } from "@/components/application-feedback-dialog";
 import { ApplyByEmailButton } from "@/components/apply-by-email-button";
 import { ApplyJobDialog } from "@/components/apply-job-dialog";
 import { JobEditDialog } from "@/components/job-edit-dialog";
 import { RichText } from "@/components/post/rich-text";
-import { StyledName } from "@/components/styled-name";
-import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/vagas/$jobId")({
   loader: async ({ params }) => {

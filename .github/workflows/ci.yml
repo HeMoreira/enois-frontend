@@ -9,6 +9,10 @@ on:
 
 permissions:
   contents: read
+  # A TOKEN IS REQUIRED to install @rede-enois/design-system from GitHub Packages (even public
+  # packages need one). `npm ci` gets this run's GITHUB_TOKEN; the package must grant this
+  # repository read access in its settings ("Manage Actions access"), or it fails with E401.
+  packages: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -29,6 +33,8 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # A divida que travava estes passos foi paga (o lint e o typecheck passam limpos
       # nas duas linhas), entao eles rodam aqui de verdade: sem o typecheck, um campo que a

@@ -6,6 +6,19 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { texts } from "@/texts";
 import type { FreelanceView } from "@/types/application/freelance/freelance-view";
 import {
+  Button,
+  ConfirmDialog,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  EmptyState,
+  Input,
+  LoadingState,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
+import {
   Banknote,
   CalendarClock,
   Handshake,
@@ -23,15 +36,6 @@ import { litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
-
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 import { ApplyFreelanceDialog } from "@/components/apply-freelance-dialog";
@@ -265,7 +269,7 @@ function FreelanceCard({ item, authenticated }: { item: FreelanceView; authentic
         </span>
       </div>
 
-      {item.username && <p className="text-xs text-text-subtle">@{item.username}</p>}
+      {item.username && <p className="break-words text-xs text-text-subtle">@{item.username}</p>}
 
       {/* Candidatar-se é falar com quem publicou: abre a conversa direta (mesma API do botão
           "Mensagem" do perfil) e manda a apresentação. Sem conta, o clique leva ao login. */}

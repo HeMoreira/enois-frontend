@@ -24,6 +24,8 @@ atualizada (`upstream/qa`).
 ## Rodando
 
 ```bash
+# Required: a GitHub token with read:packages (see "npm install requires a GitHub token" in the README)
+export NODE_AUTH_TOKEN=ghp_your_token
 npm install
 npm run dev
 ```

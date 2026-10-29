@@ -2,10 +2,10 @@ import { useEffect } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
+import { LoadingState } from "@rede-enois/design-system/ui";
+
 import { useCurrentUser } from "@/lib/current-user";
 import { hasSession } from "@/lib/require-auth";
-
-import { LoadingState } from "@/components/ui/loading-state";
 
 import { AppContainer } from "@/components/app-container";
 

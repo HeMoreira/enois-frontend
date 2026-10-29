@@ -2,13 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { EmptyState, LoadingState } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Code2, Globe } from "lucide-react";
 
 import { communityProjectsApi } from "@/lib/api";
 import { safeHref } from "@/lib/safe-url";
-
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
 
 import { AppContainer } from "@/components/app-container";
 

@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { Button, EmptyState, Input, LoadingState } from "@rede-enois/design-system/ui";
 import { Code2, FolderKanban, Globe, Plus, Search } from "lucide-react";
 
 import { communityProjectsApi } from "@/lib/api";
@@ -12,11 +13,6 @@ import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
-
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
 
 import { AppContainer } from "@/components/app-container";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";

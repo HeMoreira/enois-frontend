@@ -1,7 +1,8 @@
 import type { WithRequiredChildren } from "@/types/components/with-required-children";
+import { AppLayout } from "@rede-enois/design-system/patterns";
 
-import { AppLayout } from "./app-layout";
 import { GuestAppHeader } from "./guest-app-header";
+import { AdminNoticeBanner } from "./notices/admin-notice";
 
 export function GuestAppContainer({ children }: WithRequiredChildren) {
   return (
@@ -9,6 +10,8 @@ export function GuestAppContainer({ children }: WithRequiredChildren) {
       <AppLayout.Header>
         <GuestAppHeader />
       </AppLayout.Header>
+
+      <AdminNoticeBanner />
 
       <AppLayout.Content>
         <AppLayout.Main>{children}</AppLayout.Main>

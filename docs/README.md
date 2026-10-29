@@ -51,12 +51,10 @@ src/
 ├── components/                  # Componentes React
 │   ├── app-shell.tsx            # Layout principal
 │   ├── edit-profile-dialog.tsx  # Edição de perfil
-│   ├── image-crop-dialog.tsx    # Crop de imagens
 │   ├── mention-textarea.tsx     # Textarea com @menções
 │   ├── post-card.tsx            # Card de post
 │   ├── theme-toggle.tsx         # Alternador de tema
-│   ├── user-avatar.tsx          # Avatar do usuário
-│   └── ui/                      # 46 componentes shadcn/ui
+│   └── …                        # primitivas de UI: @rede-enois/design-system/ui
 ├── hooks/
 │   └── use-mobile.tsx           # Hook de breakpoint mobile
 ├── lib/

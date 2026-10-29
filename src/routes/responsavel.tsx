@@ -5,6 +5,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { SupervisedMinorView } from "@/types/application/age/supervised-minor-view";
+import { Button, useToast } from "@rede-enois/design-system/ui";
 import { Check, ShieldCheck, UserMinus, X } from "lucide-react";
 import { z } from "zod";
 
@@ -12,9 +13,6 @@ import { parentalApi } from "@/lib/api";
 import { dataCurta } from "@/lib/date/format";
 import { hasSession } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
-
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 

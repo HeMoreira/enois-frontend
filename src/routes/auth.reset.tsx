@@ -3,15 +3,12 @@ import { type FormEvent, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { Button, Label, PasswordInput } from "@rede-enois/design-system/ui";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 import { ApiError, authApi } from "@/lib/api";
 import { ogMetas } from "@/lib/seo";
-
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
 
 import { AuthHero } from "@/components/auth-hero";
 

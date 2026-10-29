@@ -5,14 +5,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { SectionProps } from "@/types/routes/security/section-props";
+import { Button, Input, Label } from "@rede-enois/design-system/ui";
 import { AlertTriangle, CheckCircle2, Copy, Loader2, ShieldCheck } from "lucide-react";
 
 import { ApiError, authApi } from "@/lib/api";
 import { requireAuth } from "@/lib/require-auth";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import { AppContainer } from "@/components/app-container";
 import { GitHubLinkCard } from "@/components/security/github-link-card";

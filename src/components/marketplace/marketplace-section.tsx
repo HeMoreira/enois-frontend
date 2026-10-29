@@ -8,6 +8,18 @@ import { texts } from "@/texts";
 import type { MarketplaceListing as MarketplaceListingView } from "@/types/application/marketplace/marketplace-listing";
 import type { MarketplacePalette } from "@/types/application/marketplace/marketplace-palette";
 import type { MarketplacePurchase } from "@/types/application/marketplace/marketplace-purchase";
+import { StyledName } from "@rede-enois/design-system/domain";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  PageHeader,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import { BadgeCheck, Check, RotateCcw, Search, Sparkles, Store } from "lucide-react";
 
 import { marketplaceApi, themesApi } from "@/lib/api";
@@ -17,22 +29,9 @@ import { registerGalleryCollection } from "@/lib/theme/gallery-collections";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/page-header";
-import { useToast } from "@/components/ui/toast";
-
 import { ThemeSellDialog } from "@/components/appearance/theme-sell-dialog";
 import { MarketplaceContentDialog } from "@/components/marketplace/marketplace-content-dialog";
 import { MarketplaceSellDialog } from "@/components/marketplace/marketplace-sell-dialog";
-import { StyledName } from "@/components/styled-name";
 
 /** Piso de preço do marketplace: 50 faíscas (o backend também recusa abaixo disso). */
 const MIN_PRICE = parseFaiscaInput("50") ?? 50_000;

@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { Button } from "@rede-enois/design-system/ui";
 import { Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { finishOAuthLogin, oauthCallbackUrl } from "@/lib/oauth-callback";
-
-import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
   /** Cancelamento ou falha devolvidos pelo provedor (ver finishOAuthError no backend). */

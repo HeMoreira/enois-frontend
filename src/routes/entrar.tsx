@@ -15,6 +15,17 @@ import type { LoginFormProps } from "@/types/routes/auth/login-form-props";
 import type { SocialButtonsProps } from "@/types/routes/auth/social-buttons-props";
 import type { TabBtnProps } from "@/types/routes/auth/tab-btn-props";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import {
+  Button,
+  DateTextInput,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  PasswordInput,
+} from "@rede-enois/design-system/ui";
 import { ArrowRight, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
@@ -24,13 +35,6 @@ import { ogMetas } from "@/lib/seo";
 import { storeSession } from "@/lib/session";
 import { twoFactorLockedMessage } from "@/lib/two-factor-locked";
 import { useAuthConfig } from "@/lib/use-auth-config";
-
-import { Button } from "@/components/ui/button";
-import { DateTextInput } from "@/components/ui/date-text-input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
 
 import { AuthHero } from "@/components/auth-hero";
 import { ErrorBanner } from "@/components/error-banner";

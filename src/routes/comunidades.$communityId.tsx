@@ -15,6 +15,23 @@ import type { PostView } from "@/types/application/feed/post-view";
 import type { CommunityCropPurpose } from "@/types/routes/communities/community-crop-purpose";
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
+import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
+import { ImageCropDialog } from "@rede-enois/design-system/patterns";
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  Label,
+  Pill,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import {
   ArrowLeft,
   Camera,
@@ -35,33 +52,15 @@ import { buildShareTags } from "@/lib/open-graph";
 import { useAuth } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Pill } from "@/components/ui/pill";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { CommunityChannels } from "@/components/communities/community-channels";
 import { CommunityFavoriteButton } from "@/components/community-favorite-button";
 import { HtmlEditor } from "@/components/html-editor";
-import { ImageCropDialog } from "@/components/image-crop-dialog";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { PostCard } from "@/components/post-card";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
-import { SpoilerPreview } from "@/components/post/spoiler-preview";
-import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 export const Route = createFileRoute("/comunidades/$communityId")({
   loader: async ({ params }) => {
@@ -769,20 +768,20 @@ function CommunityDetail() {
               <div className="space-y-3">
                 {members.map((m) => (
                   <div key={m.username} className="flex items-center gap-3">
-                    <Link to="/perfil/$username" params={{ username: m.username }}>
+                    <ProfilePeek username={m.username} name={m.name} className="shrink-0">
                       <UserAvatar src={m.avatar} alt={m.name} className="h-9 w-9 shrink-0" />
-                    </Link>
+                    </ProfilePeek>
 
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      {/* `block` é necessário: truncate não pega em elemento inline (o <a> era inline
-                          e nomes longos vazavam para fora do card). */}
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: m.username }}
+                      {/* `block` é necessário: truncate não pega em elemento inline (nomes longos
+                          vazavam para fora do card). */}
+                      <ProfilePeek
+                        username={m.username}
+                        name={m.name}
                         className="block min-w-0 truncate text-sm font-medium hover:underline"
                       >
-                        {m.name}
-                      </Link>
+                        <StyledName name={m.name} style={m.nameStyle} />
+                      </ProfilePeek>
                       {m.role === "ADMIN" && (
                         <Badge
                           variant="outline"
