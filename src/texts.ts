@@ -1156,6 +1156,16 @@ export const texts = {
     blockedHint:
       "O bloqueio vale para sempre e os dois lados deixam de se ver. Desbloqueie aqui quando quiser.",
     blockedSince: (date: string | null) => (date ? `Bloqueado em ${dataCurta(date)}` : "Bloqueado"),
+    mute: "Silenciar",
+    unmute: "Remover silêncio",
+    mutedTitle: "Usuários silenciados",
+    mutedSeoTitle: "Usuários silenciados · Énóis",
+    mutedDescription:
+      "Estas pessoas estão silenciadas: os posts, mensagens e notificações delas não aparecem para você, mas elas não sabem.",
+    mutedEmpty: "Você não silenciou ninguém.",
+    mutedHint:
+      "O silêncio esconde o conteúdo da pessoa sem que ela saiba. Diferente do bloqueio, a pessoa ainda pode ver você. Remova o silêncio aqui quando quiser.",
+    mutedSince: (date: string | null) => (date ? `Silenciado em ${dataCurta(date)}` : "Silenciado"),
     openToWork: "Aberto a oportunidades",
     mentorAvailable: "Mentor disponível",
     connectionsMeta: (count: number) => `· ${count} ${count === 1 ? "conexão" : "conexões"}`,
