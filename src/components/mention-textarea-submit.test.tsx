@@ -106,7 +106,7 @@ describe("MentionTextarea: Ctrl+Enter", () => {
     await act(async () => {
       await client.refetchQueries();
     });
-    expect(host.textContent).toContain("ana");
+    await vi.waitFor(() => expect(host.textContent).toContain("ana"));
 
     // Com a lista aberta: Ctrl+Enter envia sem escolher ninguém...
     await press(textarea, { ctrlKey: true });
