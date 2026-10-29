@@ -3,12 +3,18 @@ import type { FfzEmote } from "@/types/application/emote/ffz-emote";
 import type { FfzGlobalResponse } from "@/types/application/emote/ffz-global-response";
 import type { GlobalEmote } from "@/types/application/emote/global-emote";
 
+import { fetchPopularEmotes } from "./popular";
+
 /**
  * Figurinhas GLOBAIS do BetterTTV e do FrankerFaceZ.
  *
  * As duas APIs são públicas e liberam CORS; o catálogo é buscado pelo navegador e fica em cache
  * (react-query), sem passar pelo backend. O `code` (`KEKW`, `catJAM`) é o que a pessoa escreve no
  * texto — o mesmo contrato do Twitch — e na hora de desenhar ele vira a imagem do CDN do provedor.
+ *
+ * Essas duas coleções são curtas (~88 figurinhas somadas): é a lista COMPLETA que os provedores
+ * publicam como global. As mais usadas vêm do retrato `popular.json` (ver `./popular.ts`), que é
+ * o que faz o seletor abrir cheio.
  */
 const BTTV_GLOBAL = "https://api.betterttv.net/3/cached/emotes/global";
 const FFZ_GLOBAL = "https://api.frankerfacez.com/v1/set/global";
@@ -84,6 +90,36 @@ export async function fetchGlobalEmotes(signal?: AbortSignal): Promise<GlobalEmo
       if (!byCode.has(emote.code)) byCode.set(emote.code, emote);
     }
   }
+  return [...byCode.values()].sort((a, b) => a.code.localeCompare(b.code));
+}
+
+/**
+ * O catálogo que o site usa: coleções globais + as mais usadas do retrato popular.
+ *
+ * O retrato é NOSSO (arquivo estático), então ele é igual para todas as pessoas — inclusive para
+ * quem só lê. É isso que garante que a figurinha escolhida no seletor apareça como imagem no texto
+ * de qualquer leitor, e não como o código cru. As globais entram primeiro porque são a fonte viva
+ * do provedor: se o retrato também tiver o código, só o `popularRank` é aproveitado.
+ *
+ * Se o retrato falhar (deploy sem o arquivo, rede), o catálogo global continua valendo.
+ */
+export async function fetchEmoteCatalog(signal?: AbortSignal): Promise<GlobalEmote[]> {
+  const [globais, populares] = await Promise.allSettled([
+    fetchGlobalEmotes(signal),
+    fetchPopularEmotes(signal),
+  ]);
+
+  const byCode = new Map<string, GlobalEmote>();
+  if (globais.status === "fulfilled") {
+    for (const emote of globais.value) byCode.set(emote.code, emote);
+  }
+  if (populares.status === "fulfilled") {
+    for (const emote of populares.value) {
+      const conhecida = byCode.get(emote.code);
+      byCode.set(emote.code, conhecida ? { ...conhecida, popularRank: emote.popularRank } : emote);
+    }
+  }
+
   return [...byCode.values()].sort((a, b) => a.code.localeCompare(b.code));
 }
 

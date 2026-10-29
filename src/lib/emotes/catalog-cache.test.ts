@@ -11,7 +11,7 @@ const KEKW: GlobalEmote = {
   provider: "BTTV",
 };
 
-const CHAVE = "rede:emotes:global";
+const CHAVE = "rede:emotes:global:v2";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -58,5 +58,28 @@ describe("cache do catálogo de figurinhas", () => {
     saveCachedEmotes([], 20);
 
     expect(loadCachedEmotes()?.emotes).toHaveLength(1);
+  });
+
+  it("guarda a posição de uso das populares", () => {
+    const popular: GlobalEmote = { ...KEKW, popularRank: 3 };
+
+    saveCachedEmotes([popular], 5);
+
+    expect(loadCachedEmotes()?.emotes[0]?.popularRank).toBe(3);
+  });
+
+  it("posição de uso inválida descarta a figurinha", () => {
+    const dados = {
+      emotes: [
+        KEKW,
+        { ...KEKW, code: "ZERO", popularRank: 0 },
+        { ...KEKW, code: "TEXTO", popularRank: "1" },
+        { ...KEKW, code: "FRACAO", popularRank: 1.5 },
+      ],
+      savedAt: 7,
+    };
+    window.localStorage.setItem(CHAVE, JSON.stringify(dados));
+
+    expect(loadCachedEmotes()?.emotes.map((emote) => emote.code)).toEqual(["KEKW"]);
   });
 });
