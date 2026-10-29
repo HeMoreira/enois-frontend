@@ -905,6 +905,10 @@ export const texts = {
       seals: "Selos",
       about: "Sobre o énóis",
       home: "Início",
+      emotesTitle: "De onde vêm as figurinhas",
+      emotes:
+        "As figurinhas das conversas não são nossas nem foram feitas por nós: vêm do BetterTTV e do FrankerFaceZ, e cada uma continua pertencendo a quem a criou. O énóis não vende, não licencia e não usa essas imagens fora do site — mantém só uma cópia em cache, para elas abrirem na hora nas conversas. Se você é autor de uma figurinha e quer que ela saia do ar aqui, escreva pela página de contato e ela sai.",
+      emotesRemoval: "Pedir a remoção de uma figurinha",
     },
   },
 
@@ -2927,6 +2931,10 @@ export const texts = {
         {
           title: "14. Contribuição open source",
           text: "O código do Énóis é aberto e recebe contribuições pelo GitHub. Contribuir não cria vínculo empregatício, sociedade, participação societária, direito a remuneração ou expectativa de retorno financeiro. A decisão sobre aceitar, revisar ou mesclar uma contribuição é dos mantenedores, conforme o guia de contribuição e o código de conduta.\n\nO formulário de contribuição da landing existe para organizar e documentar quem procura o projeto. Ao enviar, você declara que os dados são verdadeiros e autoriza o contato pelo GitHub ou pelo e-mail informado. O envio não garante aprovação, atribuição ou prioridade; o processo segue as regras publicadas no repositório.\n\nContribuições devem vir com issue ou discussão prévia quando mudarem arquitetura, contrato público, segurança ou dados. Mudanças pequenas, com teste e descrição clara, têm prioridade. O projeto não é uma bagunça: é aberto, com processo, revisão e responsabilidade sobre o que entra.",
+        },
+        {
+          title: "15. Figurinhas de terceiros",
+          text: "As figurinhas disponíveis nas conversas do Énóis não são criadas nem de propriedade da plataforma. Elas vêm de dois catálogos públicos de emotes, o BetterTTV e o FrankerFaceZ, e cada imagem continua pertencendo a quem a criou. A plataforma não reivindica direito autoral sobre essas artes.\n\nO Énóis não vende, não licencia, não sublicencia e não explora comercialmente essas imagens. O uso é acessório e não comercial: a plataforma mantém uma cópia temporária em cache, para que a figurinha abra imediatamente nas conversas em vez de depender do tempo de resposta dos sites de origem. Essa cópia não é oferecida para download, para redistribuição nem para uso fora do Énóis.\n\nSe você é autor ou titular de uma figurinha e não quer que ela apareça na plataforma, escreva pela página de contato (enois.ia.br/contato) informando o código e o endereço da figurinha. A remoção é feita assim que o pedido é confirmado, sem necessidade de justificativa, e o código correspondente passa a não ser mais exibido nas conversas.\n\nAs marcas, os nomes e os logotipos do BetterTTV e do FrankerFaceZ pertencem aos seus respectivos titulares. O Énóis não tem vínculo, patrocínio ou endosso dessas plataformas.",
         },
       ],
     },
