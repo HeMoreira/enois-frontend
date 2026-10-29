@@ -30,11 +30,42 @@ function fakeFetch(input: RequestInfo | URL) {
   return { ok: true, json: async () => ({ default_sets: [], sets: {} }) };
 }
 
+/**
+ * Mesmo catálogo do BTTV e um retrato popular de duas figurinhas: a ordem de uso é o INVERSO da
+ * alfabética, então a grade prova de qual lista ela veio.
+ */
+function fakeFetchComPopulares(input: RequestInfo | URL) {
+  if (String(input).includes("/emotes/popular.json")) {
+    return {
+      ok: true,
+      json: async () => ({
+        emotes: [
+          { code: "POPULAR_B", url: "https://cdn.frankerfacez.com/emote/1/2", preview: "/1/1" },
+          { code: "POPULAR_A", url: "https://cdn.frankerfacez.com/emote/2/2", preview: "/2/1" },
+        ],
+      }),
+    };
+  }
+  return fakeFetch(input);
+}
+
 let root: Root | null = null;
 let host: HTMLDivElement;
 
 function grade() {
   return [...document.querySelectorAll<HTMLButtonElement>('button[title^="EMOTE"]')];
+}
+
+function titulos() {
+  return [...document.querySelectorAll<HTMLButtonElement>("button[title]")].map(
+    (botao) => botao.title,
+  );
+}
+
+function aba(rotulo: string) {
+  return [...document.querySelectorAll<HTMLButtonElement>("button")].find(
+    (botao) => botao.textContent === rotulo,
+  );
 }
 
 function botao(rotulo: string) {
@@ -124,5 +155,23 @@ describe("Seletor de figurinhas", () => {
     expect(grade()).toHaveLength(1);
     expect(grade()[0]?.getAttribute("title")).toBe("EMOTE51");
     expect(document.body.textContent).not.toContain(texts.emotes.page(2, 2));
+  });
+
+  it("abre nos populares, na ordem de uso (não na alfabética)", async () => {
+    vi.stubGlobal("fetch", vi.fn(fakeFetchComPopulares));
+    await renderizar();
+
+    expect(titulos()).toEqual(["POPULAR_B", "POPULAR_A"]);
+    expect(document.body.textContent).toContain(texts.emotes.count(2));
+  });
+
+  it("a aba Todas continua mostrando o catálogo inteiro", async () => {
+    vi.stubGlobal("fetch", vi.fn(fakeFetchComPopulares));
+    await renderizar();
+
+    await act(async () => aba(texts.emotes.all)?.click());
+
+    expect(grade()).toHaveLength(EMOTES_POR_PAGINA);
+    expect(document.body.textContent).toContain(texts.emotes.count(TOTAL + 2));
   });
 });

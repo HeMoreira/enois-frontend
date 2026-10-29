@@ -2,28 +2,35 @@ import type { CachedEmotes } from "@/types/application/emote/cached-emotes";
 import type { GlobalEmote } from "@/types/application/emote/global-emote";
 
 /**
- * O catálogo global quase não muda, mas o FrankerFaceZ responde com `cache-control: private,
+ * O catálogo quase não muda, mas o FrankerFaceZ responde com `cache-control: private,
  * must-revalidate` — o navegador nunca reaproveita o JSON e toda visita paga a ida à API de novo.
  * Guardar a lista no `localStorage` dá ao seletor o que mostrar no primeiro instante; a busca em
  * segundo plano revalida e troca a cópia.
  *
  * O conteúdo é dado de terceiro: o que vem do armazenamento é revalidado item por item antes de
  * virar imagem na tela.
+ *
+ * `v2`: a cópia antiga não tem as figurinhas populares (`popularRank`). Trocar a chave descarta a
+ * lista de uma vez, em vez de deixar o seletor sem os populares até a próxima revalidação.
  */
-const CHAVE = "rede:emotes:global";
+const CHAVE = "rede:emotes:global:v2";
 
 const PROVEDORES = new Set(["BTTV", "FFZ"]);
 
 function isEmote(valor: unknown): valor is GlobalEmote {
   if (!valor || typeof valor !== "object") return false;
   const emote = valor as Record<string, unknown>;
+  const rank = emote.popularRank;
+  const rankValido =
+    rank === undefined || (typeof rank === "number" && Number.isInteger(rank) && rank > 0);
   return (
     typeof emote.code === "string" &&
     emote.code !== "" &&
     typeof emote.url === "string" &&
     typeof emote.preview === "string" &&
     typeof emote.provider === "string" &&
-    PROVEDORES.has(emote.provider)
+    PROVEDORES.has(emote.provider) &&
+    rankValido
   );
 }
 

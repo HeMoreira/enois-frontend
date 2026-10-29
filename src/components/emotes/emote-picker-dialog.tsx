@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { texts } from "@/texts";
-import type { EmoteProvider } from "@/types/application/emote/emote-provider";
+import type { EmoteFilter } from "@/types/application/emote/emote-filter";
 import {
   Button,
   Dialog,
@@ -15,15 +15,20 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { emotePage } from "@/lib/emotes/pagination";
 import { useGlobalEmotes } from "@/lib/emotes/use-global-emotes";
 
-const FILTROS = [
+const FILTROS: { id: EmoteFilter; label: string }[] = [
   { id: "ALL", label: texts.emotes.all },
+  { id: "POPULAR", label: texts.emotes.popular },
   { id: "BTTV", label: "BTTV" },
   { id: "FFZ", label: "FFZ" },
-] as const;
+];
 
 /**
- * Seletor de figurinhas globais (BTTV + FFZ), no formato dos chats: busca, filtro por coleção e a
- * grade de emotes. O clique devolve o CÓDIGO (`KEKW`), que entra no texto como qualquer palavra.
+ * Seletor de figurinhas, no formato dos chats: busca, filtro por coleção e a grade de emotes. O
+ * clique devolve o CÓDIGO (`KEKW`), que entra no texto como qualquer palavra.
+ *
+ * O catálogo é o global (BTTV + FFZ) somado ao retrato de mais usadas — por isso a aba Populares
+ * vem na ORDEM DE USO, enquanto "Todas" segue alfabética. Nada aqui é buscado ao vivo no provedor:
+ * o catálogo é o mesmo para todo mundo, então toda figurinha escolhida é desenhada por quem lê.
  *
  * A grade mostra uma PÁGINA de miniaturas 1x, não a coleção inteira: com a lista toda de uma vez o
  * seletor baixava centenas de KB de imagem de uma vez só e demorava a abrir.
@@ -38,18 +43,28 @@ export function EmotePickerDialog({
   onSelect: (code: string) => void;
 }) {
   const [busca, setBusca] = useState("");
-  const [filtro, setFiltro] = useState<"ALL" | EmoteProvider>("ALL");
+  const [filtro, setFiltro] = useState<EmoteFilter>("POPULAR");
   const [pagina, setPagina] = useState(1);
   const { data, isLoading, isError } = useGlobalEmotes();
 
+  const temPopulares = (data ?? []).some((emote) => emote.popularRank !== undefined);
+  /** Sem o retrato popular (arquivo ausente no deploy), "Populares" ficaria vazio: mostra tudo. */
+  const filtroAtivo: EmoteFilter = filtro === "POPULAR" && !temPopulares ? "ALL" : filtro;
+
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
+    const casa = (code: string) => termo === "" || code.toLowerCase().includes(termo);
+
+    if (filtroAtivo === "POPULAR") {
+      return (data ?? [])
+        .filter((emote) => emote.popularRank !== undefined && casa(emote.code))
+        .sort((a, b) => (a.popularRank ?? 0) - (b.popularRank ?? 0));
+    }
+
     return (data ?? []).filter(
-      (emote) =>
-        (filtro === "ALL" || emote.provider === filtro) &&
-        (termo === "" || emote.code.toLowerCase().includes(termo)),
+      (emote) => (filtroAtivo === "ALL" || emote.provider === filtroAtivo) && casa(emote.code),
     );
-  }, [busca, data, filtro]);
+  }, [busca, data, filtroAtivo]);
 
   const { items, page, totalPages } = useMemo(
     () => emotePage(filtrados, pagina),
@@ -83,7 +98,7 @@ export function EmotePickerDialog({
               key={item.id}
               type="button"
               size="sm"
-              variant={filtro === item.id ? "secondary" : "outline"}
+              variant={filtroAtivo === item.id ? "secondary" : "outline"}
               className="rounded-full"
               onClick={() => {
                 setFiltro(item.id);

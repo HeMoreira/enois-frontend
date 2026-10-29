@@ -1,7 +1,7 @@
 import type { GlobalEmote } from "@/types/application/emote/global-emote";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { applyEmotes, emoteIndex, fetchGlobalEmotes } from "./catalog";
+import { applyEmotes, emoteIndex, fetchEmoteCatalog, fetchGlobalEmotes } from "./catalog";
 
 const KEKW: GlobalEmote = {
   code: "KEKW",
@@ -160,5 +160,66 @@ describe("fetchGlobalEmotes", () => {
     const codes = (await fetchGlobalEmotes()).map((emote) => emote.code);
 
     expect(codes).toEqual(["HYPERGIF", "KEKW"]);
+  });
+});
+
+/** O retrato popular: as mais usadas, com o KEKW aparecendo também na coleção global do BTTV. */
+const POPULAR_RESPONSE = {
+  emotes: [
+    { code: "OMEGALUL", url: "ffz/90/2", preview: "ffz/90/1" },
+    { code: "KEKW", url: "ffz/1/popular", preview: "ffz/1/popular-1" },
+  ],
+};
+
+function catalogFetch(popularOk = true) {
+  return vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes("betterttv")) return { ok: true, json: async () => BTTV_RESPONSE };
+    if (url.includes("frankerfacez")) return { ok: true, json: async () => FFZ_RESPONSE };
+    if (!popularOk) return { ok: false, status: 404, json: async () => ({}) };
+    return { ok: true, json: async () => POPULAR_RESPONSE };
+  });
+}
+
+describe("fetchEmoteCatalog", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("junta as coleções globais com o retrato das mais usadas, em ordem alfabética", async () => {
+    vi.stubGlobal("fetch", catalogFetch());
+    const codes = (await fetchEmoteCatalog()).map((emote) => emote.code);
+
+    expect(codes).toEqual(["catJAM", "HYPERGIF", "KEKW", "OMEGALUL", "POPCAT"]);
+  });
+
+  it("figurinha que só existe no retrato entra como FFZ com a posição de uso", async () => {
+    vi.stubGlobal("fetch", catalogFetch());
+    const omegaralul = findByCode(await fetchEmoteCatalog(), "OMEGALUL");
+
+    expect(omegaralul).toEqual({
+      code: "OMEGALUL",
+      url: "ffz/90/2",
+      preview: "ffz/90/1",
+      provider: "FFZ",
+      popularRank: 1,
+    });
+  });
+
+  it("na figurinha que está nas duas listas vale a coleção global e a posição do retrato", async () => {
+    vi.stubGlobal("fetch", catalogFetch());
+    const keKW = findByCode(await fetchEmoteCatalog(), "KEKW");
+
+    expect(keKW?.provider).toBe("BTTV");
+    expect(keKW?.url).toBe("https://cdn.betterttv.net/emote/abc/2x.png");
+    expect(keKW?.popularRank).toBe(2);
+  });
+
+  it("sem o retrato popular o catálogo continua com as coleções globais", async () => {
+    vi.stubGlobal("fetch", catalogFetch(false));
+    const emotes = await fetchEmoteCatalog();
+
+    expect(emotes.map((emote) => emote.code)).toEqual(["catJAM", "HYPERGIF", "KEKW", "POPCAT"]);
+    expect(emotes.every((emote) => emote.popularRank === undefined)).toBe(true);
   });
 });

@@ -142,26 +142,35 @@ Textarea com autocomplete de @menções.
 - Com `toolbar`, mostra o botão `Figurinhas`: o código escolhido (`KEKW`) entra no texto como
   palavra (ver abaixo)
 
-## Figurinhas globais (BTTV + FrankerFaceZ)
+## Figurinhas (globais + populares)
 
-`src/lib/emotes/` (catálogo, cache, paginação) e `src/components/emotes/emote-picker-dialog.tsx`
-(seletor). O texto gravado continua sendo o CÓDIGO — a troca por imagem acontece na leitura
-(`useEmoteText` dentro do `RichText`), então quem edita vê `KEKW`, não um endereço de CDN.
+`src/lib/emotes/` (catálogo, cache, paginação, retrato popular) e
+`src/components/emotes/emote-picker-dialog.tsx` (seletor). O texto gravado continua sendo o CÓDIGO —
+a troca por imagem acontece na leitura (`useEmoteText` dentro do `RichText`), então quem edita vê
+`KEKW`, não um endereço de CDN.
 
 - **Catálogo:** as duas APIs públicas são chamadas pelo navegador (`fetch`), sem passar pelo
-  backend. Hoje são 78 figurinhas globais (65 do BTTV + 13 do FFZ; o código repetido fica com o
-  BTTV). Do FFZ só entram os `default_sets` — os outros sets da resposta não são a coleção global.
-  O `top`/`trending` do BTTV exige chave de API (responde 403 sem ela).
-- **Cache:** o catálogo montado vai para o `localStorage` (`rede:emotes:global`) e entra como dado
+  backend. São 78 figurinhas globais (65 do BTTV + 13 do FFZ; o código repetido fica com o BTTV).
+  Do FFZ só entram os `default_sets` — os outros sets da resposta não são a coleção global. Isso é
+  TUDO que os dois publicam como global: a lista popular do BTTV responde `401/403` para qualquer
+  origem que não seja `betterttv.com`, e nem o CORS libera outra origem.
+- **Populares:** as mais usadas vêm do retrato `public/emotes/popular.json` (737 figurinhas hoje),
+  gerado por `node scripts/update-popular-emotes.mjs [paginas]` a partir do catálogo público do
+  FFZ ordenado por uso. É o catálogo INTEIRO do FFZ ordenado por uso — a API leva de 8 a 30
+  segundos por página, inviável no clique, daí o retrato versionado. Como o arquivo é nosso e igual
+  para todo mundo, toda figurinha escolhida no seletor é desenhada no texto de qualquer leitor; a
+  aba `Populares` usa essa ordem e a grade inteira soma globais + retrato.
+- **Cache:** o catálogo montado vai para o `localStorage` (`rede:emotes:global:v2`) e entra como dado
   inicial do react-query. O JSON do FFZ responde `cache-control: private, must-revalidate`, então
   sem essa cópia toda visita pagava a ida à API antes de desenhar figurinha nenhuma. O que vem do
-  armazenamento é revalidado item por item antes de virar imagem.
+  armazenamento é revalidado item por item (inclusive `popularRank`) antes de virar imagem.
 - **Animação:** GIF do BTTV (`/emote/{id}/1x.gif`) e WebP animado do FFZ
   (`/emote/{id}/animated/{escala}`, campo `animated` da API) quando o provedor publica a versão em
   movimento; estático continua `2x.png` / `urls["2"]`. Na grade do seletor a figurinha do BTTV usa
   o PNG de 1x mesmo quando é animada — GIF de ~300KB na grade é o que deixava o seletor lento.
 - **Grade:** `preview` (escala 1x) em páginas de 40 (`EMOTES_POR_PAGINA` em
-  `src/lib/emotes/pagination.ts`), com busca e filtro por provedor voltando para a página 1.
+  `src/lib/emotes/pagination.ts`), com busca e filtro (`Todas`, `Populares`, `BTTV`, `FFZ`) voltando
+  para a página 1.
 - **Tamanho no chat:** `src/styles.css` casa pelo HOST do CDN (`cdn.betterttv.net`,
   `cdn.frankerfacez.com`) e dá a toda figurinha a mesma caixa quadrada de 28px com
   `object-fit: contain`. O seletor antigo só conhecia o caminho `/emoticon/` do FFZ, que a API não

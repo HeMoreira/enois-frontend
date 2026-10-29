@@ -7,10 +7,15 @@ import type { EmoteProvider } from "./emote-provider";
  *
  * O `preview` é a miniatura da grade do seletor (escala 1x): mesma figurinha, uma fração do peso.
  * Carregar a grade com a imagem grande é o que deixava o seletor lento.
+ *
+ * `popularRank` só existe nas figurinhas que também estão na lista de mais usadas (o retrato
+ * `popular.json`, catálogo do FrankerFaceZ ordenado por uso): 1 é a mais usada. É por ele que o
+ * seletor monta a aba de populares — a lista completa continua ordenada por código.
  */
 export type GlobalEmote = {
   code: string;
   url: string;
   preview: string;
   provider: EmoteProvider;
+  popularRank?: number;
 };
