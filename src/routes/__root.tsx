@@ -33,6 +33,7 @@ import { HealthyUsageGuard } from "@/components/healthy-usage/healthy-usage-guar
 import { InstallPwaBanner } from "@/components/install-pwa-banner";
 import { LiteModeEffects } from "@/components/lite-mode-effects";
 import { ModuleDisabledGate } from "@/components/module-disabled-gate";
+import { AdminNoticeDialog } from "@/components/notices/admin-notice";
 
 import appCss from "../styles.css?url";
 
@@ -147,7 +148,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&family=Creepster&family=Mountains+of+Christmas:wght@700&family=Pacifico&family=Rye&family=Gochi+Hand&display=swap",
       },
     ],
   }),
@@ -263,6 +264,7 @@ function RootInsideProvider() {
       <LiteModeEffects />
       <HealthyUsageGuard />
       <AgeGate />
+      <AdminNoticeDialog />
     </ToastProvider>
   );
 }

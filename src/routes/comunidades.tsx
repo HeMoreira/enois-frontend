@@ -37,6 +37,7 @@ import { useLiteMode } from "@/lib/use-lite-mode";
 
 import { AppContainer } from "@/components/app-container";
 import { CommunityCard } from "@/components/community-card";
+import { SaciSpot } from "@/components/events/saci-spot";
 
 export const Route = createFileRoute("/comunidades")({
   head: () => ({ meta: [{ title: texts.communities.seoTitle }] }),
@@ -59,7 +60,8 @@ function Comunidades() {
   const [open, setOpen] = useState(false);
   const [leaveTarget, setLeaveTarget] = useState<Community | null>(null);
   const [ownerBlockedId, setOwnerBlockedId] = useState<string | null>(null);
-  const isDetail = matchRoute({ to: "/comunidades/$communityId" });
+  // Esta rota também é mãe do detalhe e dos canais; o catálogo só ocupa o caminho exato.
+  const isCommunityIndex = Boolean(matchRoute({ to: "/comunidades", fuzzy: false }));
 
   // A busca é do servidor (nome/descrição em todas as páginas), com 300 ms de debounce para
   // não disparar uma requisição por tecla.
@@ -87,7 +89,7 @@ function Comunidades() {
       ),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !isDetail,
+    enabled: isCommunityIndex,
   });
 
   // Favoritas têm seção própria no início da página; a lista principal não repete
@@ -96,7 +98,7 @@ function Comunidades() {
   const { data: favoritesData } = useQuery({
     queryKey: COMMUNITY_FAVORITES_KEY,
     queryFn: () => communitiesApi.favorites(),
-    enabled: !isDetail && isAuthenticated,
+    enabled: isCommunityIndex && isAuthenticated,
   });
 
   // As comunidades em que a pessoa já está vêm ANTES de tudo (pedido de quem usa: as primeiras
@@ -104,7 +106,7 @@ function Comunidades() {
   const { data: mineData } = useQuery({
     queryKey: ["my-communities"],
     queryFn: () => communitiesApi.mine(50),
-    enabled: !isDetail && isAuthenticated,
+    enabled: isCommunityIndex && isAuthenticated,
   });
 
   // Um item pode reaparecer na página seguinte se a lista mudar entre as buscas; fica o primeiro.
@@ -169,7 +171,7 @@ function Comunidades() {
     },
   });
 
-  if (isDetail) {
+  if (!isCommunityIndex) {
     return <Outlet />;
   }
 
@@ -180,20 +182,24 @@ function Comunidades() {
           title={texts.communities.title}
           description={texts.communities.description}
           actions={
-            <CreateCommunityDialog
-              open={open}
-              onOpenChange={(o) => {
-                // Visitante nao abre o formulario: manda para o login.
-                if (o && !needsLogin()) return;
-                setOpen(o);
-              }}
-            >
-              <Button className="rounded-full gap-1.5">
-                <Plus className="h-4 w-4" />
+            <>
+              <CreateCommunityDialog
+                open={open}
+                onOpenChange={(o) => {
+                  // Visitante nao abre o formulario: manda para o login.
+                  if (o && !needsLogin()) return;
+                  setOpen(o);
+                }}
+              >
+                <Button className="rounded-full gap-1.5">
+                  <Plus className="h-4 w-4" />
 
-                <>{texts.communities.createCommunity}</>
-              </Button>
-            </CreateCommunityDialog>
+                  <>{texts.communities.createCommunity}</>
+                </Button>
+              </CreateCommunityDialog>
+
+              <SaciSpot spot="comunidades" />
+            </>
           }
         />
 

@@ -20,6 +20,43 @@ const common = {
 export const texts = {
   common,
 
+  emotes: {
+    title: "Figurinhas",
+    button: "Figurinhas",
+    searchPlaceholder: "Buscar figurinha",
+    loading: "Carregando figurinhas...",
+    empty: "Nenhuma figurinha com esse nome.",
+    error: "Não foi possível carregar as figurinhas agora.",
+    hint: "As mais usadas primeiro. O código entra no texto — quem lê vê a figurinha.",
+    count: (total: number) => `${total} ${total === 1 ? "figurinha" : "figurinhas"}`,
+    page: (page: number, totalPages: number) => `Página ${page} de ${totalPages}`,
+    previous: "Página anterior",
+    next: "Próxima página",
+  },
+
+  coinEconomy: {
+    title: "Economia da faísca",
+    hint: "A cotação é recalculada no máximo uma vez por dia, às 03:10 (America/Sao_Paulo), e anda um passo conforme a movimentação dos últimos 30 dias. O botão roda a mesma conta: se o período já fechou, publica; se não, nada muda.",
+    cofre: "No cofre",
+    retorno: "Voltou ao cofre (30d)",
+    emissao: "Emissão (30d)",
+    giro: "Giro (30d)",
+    escassez: "Escassez",
+    indice: "Índice",
+    cotacao: "Cotação",
+    periodo: "Período decorrido",
+    proxima: "Próxima avaliação",
+    janela: "Janela do período",
+    janelaAberta: "Aberta — publica agora",
+    janelaFechada: "Fechada",
+    recalculate: "Recalcular agora",
+    calculating: "Recalculando...",
+    published: "Cotação recalculada e publicada.",
+    unchanged:
+      "O período diário ainda não fechou: nada foi publicado. Veja a próxima avaliação no cartão.",
+    error: "Não foi possível recalcular a cotação.",
+  },
+
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
 
@@ -457,6 +494,14 @@ export const texts = {
       "Crie para publicar no feed corporativo, se candidatar a vagas com a sua identidade de trabalho e ter um @ profissional próprio.",
     username: "@ profissional",
     usernameHint: "3 a 30 caracteres: letras, números, ponto, hífen ou underline.",
+    nametag: "Nametag (@ e fim da URL)",
+    nametagHint:
+      "É o @ do perfil e o endereço público dele. Não precisa ser igual ao do seu perfil social.",
+    nametagChange: "Alterar nametag",
+    nametagChanged: "Nametag alterado.",
+    nametagWarning:
+      "Ao alterar, o endereço antigo deixa de funcionar — quem salvou o link anterior não chega mais.",
+    nametagInvalid: "Use 3 a 30 caracteres, começando e terminando em letra ou número.",
     name: "Nome profissional",
     headline: "Headline",
     bio: "Sobre (profissional)",
@@ -494,6 +539,7 @@ export const texts = {
       bio: "Sobre",
       avatar: "Foto de perfil",
       banner: "Capa",
+      bannerHtml: "Capa em HTML/CSS",
       location: "Localização",
     },
     changeAvatar: "Trocar foto",
@@ -967,6 +1013,7 @@ export const texts = {
       discussions: "Discussões",
       unseen: "Ainda não vi",
       trending: "Em Alta",
+      interacted: "Interações",
       projects: "Projetos",
       corporate: "Corporativo",
       type: "Tipo de feed",
@@ -1107,6 +1154,16 @@ export const texts = {
     blockedHint:
       "O bloqueio vale para sempre e os dois lados deixam de se ver. Desbloqueie aqui quando quiser.",
     blockedSince: (date: string | null) => (date ? `Bloqueado em ${dataCurta(date)}` : "Bloqueado"),
+    mute: "Silenciar",
+    unmute: "Remover silêncio",
+    mutedTitle: "Usuários silenciados",
+    mutedSeoTitle: "Usuários silenciados · Énóis",
+    mutedDescription:
+      "Estas pessoas estão silenciadas: os posts, mensagens e notificações delas não aparecem para você, mas elas não sabem.",
+    mutedEmpty: "Você não silenciou ninguém.",
+    mutedHint:
+      "O silêncio esconde o conteúdo da pessoa sem que ela saiba. Diferente do bloqueio, a pessoa ainda pode ver você. Remova o silêncio aqui quando quiser.",
+    mutedSince: (date: string | null) => (date ? `Silenciado em ${dataCurta(date)}` : "Silenciado"),
     openToWork: "Aberto a oportunidades",
     mentorAvailable: "Mentor disponível",
     connectionsMeta: (count: number) => `· ${count} ${count === 1 ? "conexão" : "conexões"}`,
@@ -1209,7 +1266,22 @@ export const texts = {
     /** Post escrito no editor livre: na lista não há resumo em texto, então o card diz o que é. */
     pagePost: "Página em HTML/CSS",
     editor: {
+      postTitle: "Título do post",
+      modeText: "Texto",
+      modeHtml: "HTML/CSS",
+      write: "Editar",
+      preview: "Pré-visualizar",
+      textHint: "Use Markdown para formatar o texto.",
+      htmlHint: "Cole o HTML que quiser — ele é sanitizado antes de publicar.",
+      publish: "Publicar",
+      savePost: "Salvar",
       published: "Post publicado. Quem segue seu blog foi avisado.",
+      draftSaved: "Rascunho salvo neste navegador.",
+      draftSaveError:
+        "Não foi possível salvar o rascunho neste navegador. Mantenha esta página aberta.",
+      notifySubscribers: "Avisar os assinantes por e-mail",
+      notifySubscribersHint:
+        "Quem assina o seu blog recebe um e-mail com este post (além da notificação no app). Dá para desativar só para este post.",
       updated: "Post atualizado.",
       editPost: "Editar post",
       deletePost: "Excluir post",
@@ -2293,6 +2365,7 @@ export const texts = {
       notes: "Notas",
       suspicious: "Contas suspeitas",
       suspiciousPosts: "Posts suspeitos",
+      notices: "Avisos",
     },
     suspiciousPosts: {
       result: (deleted: number, failed: number) =>
@@ -2333,6 +2406,34 @@ export const texts = {
       approved: "PR aprovado.",
       changesRequested: "Mudanças solicitadas.",
       reviewError: "Não foi possível enviar a revisão. Confira a permissão do seu GitHub.",
+    },
+    notices: {
+      title: "Aviso da plataforma",
+      description:
+        "Um aviso por vez, em HTML e CSS. Publicar reescreve o que está no ar; tirar do ar some com ele.",
+      none: "Nenhum aviso no ar.",
+      live: (title: string, surface: string) => `No ar: ${title} (${surface}).`,
+      titleLabel: "Título",
+      titlePlaceholder: "Ex.: Manutenção no marketplace",
+      surfaceLabel: "Onde aparece",
+      surfaces: {
+        BANNER: "Faixa no topo",
+        MODAL: "Popup",
+        BOTH: "Faixa e popup",
+      } as Record<string, string>,
+      surfaceHint: "A faixa tem altura fixa: um recado longo cabe melhor no popup.",
+      htmlLabel: "Conteúdo (HTML e CSS)",
+      htmlHint:
+        "Sem JavaScript: o aviso é renderizado num quadro isolado, do mesmo jeito que o post de página.",
+      emptyPreview: "Escreva um HTML para ver como fica.",
+      formHint: "Quem já fechou o aviso volta a vê-lo depois de uma nova publicação.",
+      publish: "Publicar aviso",
+      republish: "Republicar alterações",
+      publishing: "Publicando…",
+      retire: "Tirar do ar",
+      published: "Aviso publicado.",
+      retired: "Aviso tirado do ar.",
+      error: "Não foi possível publicar o aviso.",
     },
     sanction: {
       title: "Punição por votação",
@@ -2443,6 +2544,24 @@ export const texts = {
       "Data registrada. Agora falta a autorização de um responsável para liberar a conta.",
     error: "Não foi possível salvar a data. Tente de novo.",
   },
+  /** Aviso da plataforma publicado por um admin (faixa e/ou popup). */
+  notices: {
+    bannerLabel: "Aviso",
+    close: "Fechar aviso",
+    closeButton: "Entendi",
+    dialogDescription: "Aviso publicado pela equipe do Énóis.",
+    publishedOn: (raw: string | undefined) => {
+      if (!raw) return "";
+      const at = new Date(raw);
+      if (Number.isNaN(at.getTime())) return "";
+      return `Publicado em ${at.toLocaleString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      })}.`;
+    },
+  },
   /** Canais privados por tema dentro das comunidades. */
   communityChannels: {
     title: "Canais privados",
@@ -2510,6 +2629,57 @@ export const texts = {
     bought: "Moldura comprada. Agora você pode equipá-la.",
     buyError: "Não foi possível comprar a moldura. Confira seu saldo e tente novamente.",
     equipError: "Não foi possível atualizar a moldura. Tente novamente.",
+  },
+
+  /** Seasonal cosmetics: shop actions, status bubble, profile popover and the Saci events. */
+  cosmetics: {
+    bought: "Item comprado. Agora é só equipar.",
+    lookBought: "Look comprado e vestido no seu perfil.",
+    equipped: "Item equipado no seu perfil.",
+    unequipped: "Item guardado. Ele continua seu.",
+    /** One message per API error code of the shop, the status and the events. */
+    errors: {
+      ITEM_NOT_FOUND: "Esse item não existe mais na loja.",
+      ALREADY_OWNED: "Você já tem tudo isso.",
+      OUT_OF_SEASON: "Esse item está fora da temporada. Ele volta na próxima.",
+      NOT_FOR_SALE: "Esse item é prêmio de evento e não está à venda.",
+      INSUFFICIENT_SPARKS: "Você não tem faíscas suficientes para essa compra.",
+      MAX_BADGES: "Você já mostra 5 emblemas. Guarde um antes de equipar outro.",
+      NOT_OWNED: "Esse item ainda não é seu.",
+      INVALID_STATUS_ICON: "Esse ícone não está disponível para você.",
+      FIELD_TOO_LONG: "O status pode ter no máximo 60 caracteres.",
+      ALREADY_CHOSEN: "Você já escolheu um time.",
+      EVENT_CLOSED: "O evento já terminou.",
+      INVALID_CHOICE: "Escolha o time do Saci ou o do Halloween.",
+      SPOT_NOT_FOUND: "Esse esconderijo não existe.",
+    } as Record<string, string>,
+    genericError: "Não foi possível concluir agora. Tente de novo.",
+    status: {
+      action: "Status",
+      title: "Seu status",
+      description: "Um recado curto que aparece no seu cartão de perfil.",
+      textLabel: "Texto",
+      placeholder: "Procurando minha carapuça",
+      iconLabel: "Ícone",
+      noIcon: "Sem ícone",
+      freeIcons: {
+        cafe: "Café",
+        estrela: "Estrela",
+        coracao: "Coração",
+        chip: "Chip",
+      } as Record<string, string>,
+      saved: "Status atualizado.",
+    },
+    peek: {
+      open: (name: string) => `Abrir o cartão de ${name}`,
+      loadError: "Não foi possível carregar este perfil.",
+      retry: "Tentar de novo",
+    },
+    eventLoadError: "Não foi possível carregar o evento.",
+    duelBannerDismiss: "Fechar o duelo",
+    duelChosen: "Você entrou no time! O emblema já está no seu perfil.",
+    huntFound: (found: number, total: number) => `Você achou o Saci! ${found} de ${total}.`,
+    huntCompleted: "Você achou os 7 Sacis! O emblema Achei o Saci já é seu.",
   },
 
   wallet: {

@@ -1,25 +1,53 @@
 # Componentes
 
+## `CosmeticShop` (`src/components/wallet/cosmetic-shop.tsx`)
+
+Seasonal cosmetics shop in the `Loja` tab of `/carteira`, drawn by the design system
+`CosmeticShop`.
+
+- Reads `GET /loja` and `GET /loja/colecoes` (Zod-validated in `src/lib/api/loja.ts`); prices are
+  formatted with `formatFaisca`, and each look shows the price of the pieces still missing
+  (`lookPriceMf` in `src/lib/cosmetics.ts`: 75% of their sum, rounded to whole faíscas, the
+  backend arithmetic)
+- Buy, buy look, equip and unequip invalidate `loja`, `carteira`, `profile`, `me` and `feed`;
+  every API error code has its own pt-BR toast (`texts.cosmetics.errors`)
+- The `saci` and `halloween` collections show the Saci × Halloween duel (`SaciDuelPanel`)
+
 ## `FrameShop` (`src/components/wallet/frame-shop.tsx`)
 
-Loja de molduras de avatar na rota `/carteira`.
+The owned frames in the `Minhas molduras` tab of `/carteira` (`onlyOwned`). It lists only the
+`FRAME` items of the catalog.
 
 **Props:** `{ onlyOwned?: boolean }`
 
-**Funcionalidades:**
+- Search, filters, `oldest`/`newest` order (`GET /loja?order=`), pagination of 12 and the frame
+  preview come from the design system `FrameShop`
 
-- Abas Carteira, Loja e Minhas molduras com ícones; a rota abre na aba Carteira
-- Busca por nome e descrição, filtros Todas, Simples e Animadas
-- Ordenação por mais antigas (padrão) ou mais novas, preservada ao buscar e filtrar
-- Ordenação solicitada à API por `GET /loja?order=oldest|newest`, baseada no campo
-  `releaseOrder` do catálogo; resposta validada antes da exibição
-- Paginação de 12 itens com botão "Mostrar mais molduras"
-- Prévia da moldura no avatar e no perfil
-- Compra, equipar e desequipar pelos contratos existentes de `POST /loja/{itemId}/comprar` e
-  `POST /loja/{itemId}/equipar`
+## `ProfilePeek` (`src/components/profile/profile-peek.tsx`)
 
-**Estado:** `useQuery` para catálogo; `useMutation` para comprar e equipar; estado local para
-busca, filtro, ordenação, quantidade visível e prévia selecionada
+The avatar or name of a person in a list opens a popover with the design system
+`ProfileMiniCard`. The public profile loads only when the popover opens (same query key as the
+profile page), with loading and error states. Used in the network, feed suggestions, group
+members, requests, posts and comments, community members, ranking and recommendations.
+In posts and comments it comes through the design system `renderAuthorTrigger` prop; a corporate
+post keeps the link to the professional profile.
+
+## `ProfileStatusDialog` (`src/components/profile/profile-status-dialog.tsx`)
+
+The owner's status bubble (`PUT /me/status`): up to 60 characters and an icon from the free
+icons or the icons of owned official badges.
+
+## `SaciSpot` and `SaciDuelBanner` (`src/components/events/`)
+
+- `SaciSpot`: the hidden Saci of the hunt in one of the 7 spots (feed, vagas, comunidades, blog,
+  carteira, mensagens, perfil), shown only while the hunt is active, for a signed-in person, and
+  until that spot is found
+- `SaciDuelBanner`: the duel on the feed while it is open; closing it hides it on the device
+
+## `BadgeMediaProvider` (`src/components/badge-media-provider.tsx`)
+
+The badge editors of the design system draw each badge with `<img src>`. Official badge ids
+(`emblema-*`) become SVG data URLs; the renderer is loaded only when the list has one.
 
 ## `AppShell` (`src/components/app-shell.tsx`)
 
@@ -91,7 +119,11 @@ Dialog multi-aba para edição completa do perfil.
 **Componentes internos:**
 
 - `Field()` - Wrapper de campo com label e erro
-- `SubList()` - Componente genérico de CRUD para listas aninhadas
+- `SubList()` - Componente genérico de CRUD para listas aninhadas. Antes de salvar, valida com
+  `subListErrors` (no design system, `src/domain/profile/sub-list-errors.ts`): campos obrigatórios, data que o
+  navegador recusou (ex.: 31/11) e, nas listas com "atualmente aqui", data de fim quando o item foi
+  encerrado — o backend deriva "atual" de `endDate == null` e não lê `currentlyHere`. Erro da API
+  aparece no formulário, que só fecha quando salvou.
 
 ## `ImageCropDialog` (`@rede-enois/design-system/patterns`)
 
@@ -111,6 +143,40 @@ Textarea com autocomplete de @menções.
 - Query na API de search de usuários (mínimo 2 caracteres)
 - Dropdown de resultados com navegação por setas, Tab/Enter para selecionar, Escape para fechar
 - Insere `@username` no texto e rastreia IDs dos mencionados
+- Com `toolbar`, mostra o botão `Figurinhas`: o código escolhido (`KEKW`) entra no texto como
+  palavra (ver abaixo)
+
+## Figurinhas
+
+`src/lib/emotes/` (`api`, `catalog`, `catalog-cache`, `use-emotes`) e
+`src/components/emotes/emote-picker-dialog.tsx` (seletor). O texto gravado continua sendo o CÓDIGO —
+a troca por imagem acontece na leitura (`useEmoteText` dentro do `RichText`), então quem edita vê
+`KEKW`, não um endereço de imagem.
+
+- **Catálogo:** é do BACKEND, não do navegador. O backend fala com o BTTV e o FrankerFaceZ de 3 em 3
+  horas, junta tudo em memória e serve três rotas: `GET /emotes?page&limit&q` (página do seletor),
+  `GET /emotes/index` (mapa código → imagem, que o texto usa) e `GET /emotes/image/{provedor}/{id}`
+  (a imagem, por um cache próprio). O front só lê — abrir o seletor não faz o navegador falar com
+  API de terceiro, e por isso não existe mais "Carregando figurinhas..." interminável. Detalhes do
+  módulo em `enois-backend/docs/FIGURINHAS.md`.
+- **Uma lista só:** `GET /emotes` já volta na ordem do seletor — as mais usadas primeiro, o resto em
+  ordem alfabética —, sem aba nem filtro por provedor. Toda figurinha da lista existe no catálogo do
+  backend, então a escolhida aparece igual no texto de quem lê.
+- **Paginação:** uma página de 40 por vez (`EMOTES_POR_PAGINA` em `src/lib/emotes/use-emotes.ts`),
+  pedida ao backend a cada clique. A resposta anterior fica na tela (`placeholderData`) enquanto a
+  nova chega, e a busca é debounced (250 ms) antes de virar `q`.
+- **Cache:** o índice vai para o `localStorage` (`rede:emotes:index:v3`) e entra como dado inicial do
+  react-query, para o primeiro quadro já desenhar figurinha. O que vem do armazenamento é revalidado
+  entrada por entrada — só passa código válido e caminho do proxy de imagens.
+- **Animação:** decidida no catálogo do backend; o caminho da imagem carrega `&a=1` quando a
+  figurinha tem versão em movimento, então o cache do navegador não mistura animada com estática. Na
+  grade o seletor usa a miniatura (`variant=thumb`), que nunca é animada.
+- **Endereço da imagem:** `emoteImageUrl` prefixa o caminho com a base da API (`apiUrl`). Em produção
+  a API mora em outro host, então `isOwnMediaUrl` (`src/lib/api/media.ts`) libera o host da API
+  explicitamente — sem isso a figurinha viraria link no texto.
+- **Tamanho no chat:** `src/styles.css` casa pelo caminho `/emotes/image/` e dá a toda figurinha a
+  mesma caixa quadrada de 28px com `object-fit: contain` (os CDNs dos provedores continuam na regra
+  para texto antigo).
 
 ## `UserAvatar` (`@rede-enois/design-system/domain`)
 

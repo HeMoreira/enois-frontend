@@ -43,10 +43,32 @@ const IMAGEKIT_HOST = (() => {
 })();
 
 /**
- * O endereço é de mídia nossa (caminho relativo, mesmo host do app ou o CDN que a gente usa)?
+ * CDNs de figurinha (BTTV/FFZ). Hoje o catálogo e as imagens saem do NOSSO backend, mas o endereço
+ * de um CDN desses pode aparecer em texto antigo — imagem que o app mostra de propósito, nunca uma
+ * URL escolhida por quem escreveu.
+ */
+const EMOTE_HOSTS = new Set(["cdn.betterttv.net", "cdn.frankerfacez.com"]);
+
+/**
+ * Host da nossa API, onde moram as imagens do catálogo de figurinhas (`/emotes/image/...`).
  *
- * Serve para decidir o que pode virar imagem num texto formatado: imagem de servidor de terceiro
- * carrega sozinha e entrega o IP de quem lê para quem publicou, então ela sai como link.
+ * Em produção a API está em outro host (`https://api.enois.ia.br/api`), então sem esta entrada a
+ * figurinha servida pelo proxy viraria LINK dentro do texto. Em dev o endereço é relativo e cai no
+ * mesmo host do app.
+ */
+const API_HOST = (() => {
+  try {
+    return new URL(apiUrl("/"), "http://localhost").host;
+  } catch {
+    return "";
+  }
+})();
+
+/**
+ * O endereço é de mídia nossa (caminho relativo, mesmo host do app, a API ou o CDN que a gente usa)?
+ *
+ * Serve para decidir o que pode virar imagem num texto formatado: imagem de servidor de
+ * terceiro carrega sozinha e entrega o IP de quem lê para quem publicou, então ela sai como link.
  */
 export function isOwnMediaUrl(url: string): boolean {
   if (!/^https?:\/\//i.test(url)) return true;
@@ -54,6 +76,8 @@ export function isOwnMediaUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     if (typeof window !== "undefined" && parsed.host === window.location.host) return true;
+    if (API_HOST !== "" && parsed.host === API_HOST) return true;
+    if (EMOTE_HOSTS.has(parsed.host)) return true;
     return IMAGEKIT_HOST !== "" && parsed.host === IMAGEKIT_HOST;
   } catch {
     return false;

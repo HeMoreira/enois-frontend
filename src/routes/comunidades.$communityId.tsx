@@ -1,7 +1,14 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  notFound,
+  useMatchRoute,
+  useNavigate,
+} from "@tanstack/react-router";
 
 import { TOPICS, TOPIC_LABELS, topicLabel } from "@/constants/community-topics";
 import { postContentLimit } from "@/constants/post-content-limits";
@@ -15,7 +22,7 @@ import type { PostView } from "@/types/application/feed/post-view";
 import type { CommunityCropPurpose } from "@/types/routes/communities/community-crop-purpose";
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
-import { SpoilerPreview, UserAvatar } from "@rede-enois/design-system/domain";
+import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
 import { ImageCropDialog } from "@rede-enois/design-system/patterns";
 import {
   Badge,
@@ -60,6 +67,7 @@ import { MentionTextarea } from "@/components/mention-textarea";
 import { PostCard } from "@/components/post-card";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 export const Route = createFileRoute("/comunidades/$communityId")({
   loader: async ({ params }) => {
@@ -83,8 +91,20 @@ export const Route = createFileRoute("/comunidades/$communityId")({
       }),
     };
   },
-  component: CommunityDetail,
+  component: CommunityRoute,
 });
+
+function CommunityRoute() {
+  const matchRoute = useMatchRoute();
+  const isCommunityDetail = Boolean(matchRoute({ to: "/comunidades/$communityId", fuzzy: false }));
+
+  // O canal é rota filha; esta tela só ocupa o caminho exato da comunidade.
+  if (!isCommunityDetail) {
+    return <Outlet />;
+  }
+
+  return <CommunityDetail />;
+}
 
 function CommunityDetail() {
   const queryClient = useQueryClient();
@@ -767,20 +787,20 @@ function CommunityDetail() {
               <div className="space-y-3">
                 {members.map((m) => (
                   <div key={m.username} className="flex items-center gap-3">
-                    <Link to="/perfil/$username" params={{ username: m.username }}>
+                    <ProfilePeek username={m.username} name={m.name} className="shrink-0">
                       <UserAvatar src={m.avatar} alt={m.name} className="h-9 w-9 shrink-0" />
-                    </Link>
+                    </ProfilePeek>
 
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      {/* `block` é necessário: truncate não pega em elemento inline (o <a> era inline
-                          e nomes longos vazavam para fora do card). */}
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: m.username }}
+                      {/* `block` é necessário: truncate não pega em elemento inline (nomes longos
+                          vazavam para fora do card). */}
+                      <ProfilePeek
+                        username={m.username}
+                        name={m.name}
                         className="block min-w-0 truncate text-sm font-medium hover:underline"
                       >
-                        {m.name}
-                      </Link>
+                        <StyledName name={m.name} style={m.nameStyle} />
+                      </ProfilePeek>
                       {m.role === "ADMIN" && (
                         <Badge
                           variant="outline"

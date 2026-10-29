@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import type { WithRequiredChildren } from "@/types/components/with-required-children";
+import type { DesignSystemProviderProps } from "@/types/components/design-system-provider-props";
 import { EnoisProvider, type LinkProps } from "@rede-enois/design-system";
 
 import { isOwnMediaUrl, resolveCdnUrl, withImageKitOriginal } from "@/lib/api/media";
@@ -16,11 +16,11 @@ function RouterLink({ href, ...props }: LinkProps) {
 }
 
 /** Plugs the app's router and media CDN into the design system components. */
-export function DesignSystemProvider({ children }: WithRequiredChildren) {
+export function DesignSystemProvider({ children, resolveMediaUrl }: DesignSystemProviderProps) {
   return (
     <EnoisProvider
       Link={RouterLink}
-      resolveMediaUrl={resolveCdnUrl}
+      resolveMediaUrl={resolveMediaUrl ?? resolveCdnUrl}
       resolveMediaOriginalUrl={withImageKitOriginal}
       isOwnMediaUrl={isOwnMediaUrl}
     >
