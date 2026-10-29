@@ -1268,6 +1268,15 @@ export const texts = {
     /** Post escrito no editor livre: na lista não há resumo em texto, então o card diz o que é. */
     pagePost: "Página em HTML/CSS",
     editor: {
+      postTitle: "Título do post",
+      modeText: "Texto",
+      modeHtml: "HTML/CSS",
+      write: "Editar",
+      preview: "Pré-visualizar",
+      textHint: "Use Markdown para formatar o texto.",
+      htmlHint: "Cole o HTML que quiser — ele é sanitizado antes de publicar.",
+      publish: "Publicar",
+      savePost: "Salvar",
       published: "Post publicado. Quem segue seu blog foi avisado.",
       draftSaved: "Rascunho salvo neste navegador.",
       draftSaveError:
