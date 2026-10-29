@@ -26,6 +26,7 @@ Seções:
 Funcionalidades:
 
 - **Compositor de posts** com textarea com @menção, seletor de tipo (INSIGHT, ARTICLE, QUESTION, PROJECT), upload de mídia (imagem/vídeo)
+- **Identidade ativa:** escolhida no menu da conta; com a profissional, o compositor publica no feed corporativo (`BUSINESS`) — regras em `componentes.md`
 - **Abas de filtro:** Para você, Tudo, Seguindo, Discussões, Projetos
 - **Feed infinito** de `PostCard` components
 - **Sidebar direita:** Mini-perfil, sugestões de conexão, eventos

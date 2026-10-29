@@ -72,6 +72,26 @@ O limite da navegação é 1024px (`lg`): abaixo, hambúrguer/drawer; a partir, 
 - `SearchBox()` - Input de busca global com debounce (250ms), resultados em popover, suporte mobile
 - `formatTime(iso)` - Formata ISO timestamp para relativo em português
 
+## Menu da conta e identidade ativa (`src/components/account-menu.tsx`)
+
+Menu do avatar no header, renderizado pelo `AccountMenu` do design system. Além dos atalhos da
+conta, ele escolhe qual identidade a interface usa: **social** ou **profissional**.
+
+**Regras da troca:**
+
+- A seção "Identidade" só aparece com o perfil profissional **`ACTIVE`**. Em `DRAFT` (rascunho) ou
+  `DISABLED`, ela não é exibida — o controle ficaria desabilitado sem explicar o motivo. O item
+  "Perfil profissional" do menu leva a `/profissional` para criar ou ativar o perfil.
+- A escolha é gravada em `localStorage('connect-grow-active-identity')` (como o tema) e sincroniza
+  entre abas pelo evento `storage` — ver `src/lib/active-identity.ts`.
+- `effectiveIdentity()` derruba a escolha para `SOCIAL` quando o perfil não existe ou não está
+  ativo: a interface nunca assume a identidade de um perfil inativo.
+- Ao escolher, o menu fecha e um toast confirma a identidade ativa. No `/feed`, a identidade
+  profissional restringe o compositor a publicações `BUSINESS` (feed corporativo); a social remove
+  esse tipo da seleção.
+- É conveniência de interface, **não autorização**: o backend decide a autoria de cada publicação e
+  valida permissões em toda requisição.
+
 ## `PostCard` (`src/components/post-card.tsx`)
 
 Card de post no feed, com todas as ações sociais.
