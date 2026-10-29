@@ -19,8 +19,9 @@ vi.mock("@rede-enois/design-system/ui", () => ({
   useToast: () => ({ toast: mocks.toast }),
 }));
 
-// Fiel ao AccountMenu do design system: a seção "Identidade" existe só quando o app manda, e cada
-// opção devolve a escolha pela callback. O que está sob teste é o contrato que o app cumpre.
+// Fiel ao AccountMenu do design system: a seção "Identidade" existe só quando o app manda, a opção
+// profissional respeita o enabled e cada opção devolve a escolha pela callback. O que está sob
+// teste é o contrato que o app cumpre.
 vi.mock("@rede-enois/design-system/domain", () => ({
   AccountMenu: ({
     open,
@@ -70,6 +71,8 @@ const perfil = {
   email: "eu@exemplo.test",
   avatar: null,
 } as Profile;
+
+const CHAVE = "connect-grow-active-identity";
 
 function empresa(overrides: Partial<CorporateProfileView> = {}): CorporateProfileView {
   return {
@@ -131,26 +134,74 @@ describe("menu da conta: identidade social x profissional", () => {
     await flush();
   };
 
+  const abrirMenu = async () => {
+    act(() => botao("Abrir menu")?.click());
+    await flush();
+    expect(host.querySelector("[data-open]")?.getAttribute("data-open")).toBe("true");
+  };
+
   it("não oferece a troca enquanto o perfil profissional é rascunho", async () => {
     mocks.me.mockResolvedValue(empresa({ status: "DRAFT" }));
     await montar();
-    act(() => botao("Abrir menu")?.click());
-    await flush();
+    await abrirMenu();
 
+    expect(mocks.me).toHaveBeenCalled();
     expect(host.textContent).not.toContain("Identidade");
   });
 
-  it("troca para a identidade profissional, fecha o menu e confirma", async () => {
-    mocks.me.mockResolvedValue(empresa({ status: "ACTIVE" }));
+  it("com preferência profissional salva, perfil em rascunho continua social", async () => {
+    window.localStorage.setItem(CHAVE, "CORPORATE");
+    mocks.me.mockResolvedValue(empresa({ status: "DRAFT" }));
     await montar();
-    act(() => botao("Abrir menu")?.click());
-    await flush();
+    await abrirMenu();
+
+    expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("SOCIAL");
+    expect(host.textContent).not.toContain("Identidade");
+  });
+
+  it("com perfil ativo, mostra as duas identidades", async () => {
+    mocks.me.mockResolvedValue(empresa());
+    await montar();
+    await abrirMenu();
+
+    expect(host.textContent).toContain("Identidade");
+    expect(botao("Social")).toBeDefined();
+    expect(botao("Profissional")).toBeDefined();
+  });
+
+  it("troca para a identidade profissional, fecha o menu e confirma", async () => {
+    mocks.me.mockResolvedValue(empresa());
+    await montar();
+    await abrirMenu();
     act(() => botao("Profissional")?.click());
     await flush();
 
-    expect(window.localStorage.getItem("connect-grow-active-identity")).toBe("CORPORATE");
+    expect(window.localStorage.getItem(CHAVE)).toBe("CORPORATE");
     expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("CORPORATE");
     expect(host.querySelector("[data-open]")?.getAttribute("data-open")).toBe("false");
     expect(mocks.toast).toHaveBeenCalledWith(expect.stringContaining("profissional"), "success");
+  });
+
+  it("volta para a identidade social, fecha o menu e confirma", async () => {
+    window.localStorage.setItem(CHAVE, "CORPORATE");
+    mocks.me.mockResolvedValue(empresa());
+    await montar();
+    await abrirMenu();
+    act(() => botao("Social")?.click());
+    await flush();
+
+    expect(window.localStorage.getItem(CHAVE)).toBe("SOCIAL");
+    expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("SOCIAL");
+    expect(host.querySelector("[data-open]")?.getAttribute("data-open")).toBe("false");
+    expect(mocks.toast).toHaveBeenCalledWith(expect.stringContaining("social"), "success");
+  });
+
+  it("falha ao carregar o perfil não oferece a troca nem derruba o menu", async () => {
+    mocks.me.mockRejectedValue(new Error("offline"));
+    await montar();
+    await abrirMenu();
+
+    expect(host.textContent).not.toContain("Identidade");
+    expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("SOCIAL");
   });
 });
