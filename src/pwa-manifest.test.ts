@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -55,9 +56,12 @@ describe("manifesto do PWA", () => {
   });
 
   it("nao deixa o manifesto para tras da cor de fundo do app", () => {
-    // O fundo da pagina e o token --background (src/styles.css). O splash do app tem que abrir
+    // O fundo da pagina e o token --background (styles.css do design system). O splash do app tem que abrir
     // na mesma cor, senao o PWAInstalled pisca branco na hora de abrir.
-    const estilo = readFileSync(fileURLToPath(new URL("./styles.css", import.meta.url)), "utf8");
+    const estilo = readFileSync(
+      createRequire(import.meta.url).resolve("@rede-enois/design-system/styles.css"),
+      "utf8",
+    );
     const fundo = estilo.match(/--background:\s*(#[0-9a-f]{6})/i)?.[1];
     expect(fundo).toBeTruthy();
     expect(String(manifest().background_color).toLowerCase()).toBe(fundo?.toLowerCase());

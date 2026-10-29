@@ -1,0 +1,23 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Énois API",
+    "version": "0.0.0-esqueleto",
+    "description": "ESQUELETO — NÃO É O DOCUMENTO DA API. O backend não publica documento OpenAPI (o springdoc saiu do pom.xml no lote de segurança: incompatível com o Boot 4 e a UI dele expunha a superfície inteira da API). Não existe /openapi.json: esse caminho responde como qualquer rota desconhecida (200 sem corpo). O contrato da API está na página /developers do app (legível) e no índice GET /api/v1 (legível por máquina, montado a partir do roteador de verdade). Este arquivo existe só para a geração de cliente (orval) ter onde ler; a geração recusa um esqueleto — veja scripts/generate-api.ts."
+  },
+  "x-enois": {
+    "documento-real": false,
+    "motivo": "O backend nao publica documento OpenAPI.",
+    "contrato-legivel": "/developers",
+    "contrato-por-maquina": "GET /api/v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081/api"
+    }
+  ],
+  "paths": {},
+  "components": {
+    "schemas": {}
+  }
+}

@@ -1,4 +1,5 @@
 import { texts } from "@/texts";
+import type { CommunityTopic } from "@/types/application/community/community-topic";
 
 /**
  * Os assuntos da plataforma, num lugar só — comunidades, compositor e personalização leem daqui.
@@ -88,3 +89,27 @@ export const TOPIC_LABELS: Record<(typeof TOPICS)[number], string> = {
   POLITICA: texts.communities.topics.POLITICA,
   RELIGIAO: texts.communities.topics.RELIGIAO,
 };
+
+/**
+ * Rótulo do assunto: a API devolve o **código** ("TECNOLOGIA") e a tela mostra a **palavra**
+ * ("Tecnologia") — como o filtro de assuntos e o card do post já faziam.
+ *
+ * Assunto desconhecido (a API ganhou um assunto novo e o front ainda não sabe) cai no próprio
+ * código, que é melhor do que um rótulo vazio. Comunidade **sem assunto** não devolve nada
+ * (a API manda `null`).
+ */
+export function topicLabel(topic: CommunityTopic | null | undefined): string | null {
+  if (!topic) return null;
+  return TOPIC_LABELS[topic as keyof typeof TOPIC_LABELS] ?? topic;
+}
+
+/**
+ * Assuntos oferecidos ao **publicar** no feed. "Todas" é filtro de vitrine, não assunto, e
+ * `RELACIONAMENTOS` saiu da publicação por decisão de produto.
+ *
+ * O assunto continua válido na taxonomia (comunidades, interesses e posts antigos), então quem já
+ * publicou com ele não perde o rótulo — só deixa de ser oferecido no compositor.
+ */
+export const POST_TOPICS = TOPICS.filter(
+  (topic) => topic !== "Todas" && topic !== "RELACIONAMENTOS",
+);

@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { PIX_KEY, pixCopiaECola } from "@rede-enois/design-system/domain";
+import { Button, useToast } from "@rede-enois/design-system/ui";
+import { GithubIcon } from "@rede-enois/design-system/ui";
 import {
   Check,
   Copy,
@@ -16,13 +19,7 @@ import {
 } from "lucide-react";
 import QRCode from "qrcode";
 
-import { PIX_KEY, pixCopiaECola } from "@/lib/pix";
-
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
-import { GithubIcon } from "@/components/icons/github";
 
 export const Route = createFileRoute("/apoiar")({
   head: () => ({

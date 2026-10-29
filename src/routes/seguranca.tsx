@@ -5,16 +5,14 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { SectionProps } from "@/types/routes/security/section-props";
+import { Button, Input, Label } from "@rede-enois/design-system/ui";
 import { AlertTriangle, CheckCircle2, Copy, Loader2, ShieldCheck } from "lucide-react";
 
 import { ApiError, authApi } from "@/lib/api";
 import { requireAuth } from "@/lib/require-auth";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 import { AppContainer } from "@/components/app-container";
+import { GitHubLinkCard } from "@/components/security/github-link-card";
 import { IdentitySection } from "@/components/security/identity-display-section";
 import { IdentityVerificationSection } from "@/components/security/identity-verification-section";
 
@@ -71,6 +69,7 @@ function Seguranca() {
         </div>
 
         <IdentitySection />
+        <GitHubLinkCard />
 
         {isLoading && (
           <div className="flex justify-center py-8 text-muted-foreground">
@@ -194,17 +193,18 @@ function TotpSection({ status, onError, onDone }: SectionProps) {
   const [password, setPassword] = useState("");
 
   const start = useMutation({
-    mutationFn: () => authApi.startTotpSetup(),
+    mutationFn: () => authApi.startTotpSetup(password),
     onSuccess: (data) => setSetup(data),
     onError: (err) => onError(err, texts.auth.twoFactor.error),
   });
 
   const enable = useMutation({
-    mutationFn: () => authApi.enableTotp(code.trim()),
+    mutationFn: () => authApi.enableTotp(code.trim(), password),
     onSuccess: (data) => {
       setBackupCodes(data.backupCodes);
       setSetup(null);
       setCode("");
+      setPassword("");
       onDone();
     },
     onError: (err) => onError(err, texts.auth.twoFactor.error),
@@ -263,10 +263,33 @@ function TotpSection({ status, onError, onDone }: SectionProps) {
         </div>
       )}
 
+      <p className="text-xs text-muted-foreground">{texts.auth.twoFactor.otherDevicesNotice}</p>
+
       {status.totpAvailable && !status.totpEnabled && !setup && !backupCodes && (
-        <Button className="rounded-full" disabled={start.isPending} onClick={() => start.mutate()}>
-          {texts.auth.twoFactor.totpStart}
-        </Button>
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">
+            {texts.auth.twoFactor.passwordRequired}
+          </Label>
+
+          <div className="flex flex-wrap gap-2">
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={texts.auth.twoFactor.passwordHelp}
+              autoComplete="current-password"
+              className="min-w-0 flex-1"
+            />
+
+            <Button
+              className="shrink-0 rounded-full"
+              disabled={!password || start.isPending}
+              onClick={() => start.mutate()}
+            >
+              {texts.auth.twoFactor.totpStart}
+            </Button>
+          </div>
+        </div>
       )}
 
       {setup && (
@@ -326,9 +349,22 @@ function TotpSection({ status, onError, onDone }: SectionProps) {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">
+              {texts.auth.twoFactor.passwordRequired}
+            </Label>
+
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={texts.auth.twoFactor.passwordHelp}
+            />
+          </div>
+
           <Button
             className="w-full rounded-full"
-            disabled={code.trim().length !== 6 || enable.isPending}
+            disabled={code.trim().length !== 6 || !password || enable.isPending}
             onClick={() => enable.mutate()}
           >
             {texts.auth.twoFactor.totpEnable}
@@ -399,6 +435,8 @@ function EmailOtpSection({ status, onError, onDone }: SectionProps) {
   return (
     <section className="surface-card space-y-3 p-4">
       <h2 className="text-base font-medium">{texts.auth.twoFactor.email2faSection}</h2>
+
+      <p className="text-xs text-muted-foreground">{texts.auth.twoFactor.otherDevicesNotice}</p>
 
       <p className="text-sm text-muted-foreground">
         {status.emailOtpEnabled

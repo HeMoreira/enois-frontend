@@ -5,7 +5,11 @@ export type Community = {
   name: string;
   /** Opcional: uma comunidade pode nascer só com o nome e ganhar descrição depois. */
   description: string | null;
-  topic: CommunityTopic;
+  /**
+   * O assunto é **anulável**: o backend devolve `null` para a comunidade que não tem assunto
+   * escolhido (medido na QA em 2026-10-24: `topic: null` na lista de comunidades).
+   */
+  topic: CommunityTopic | null;
   members: number;
   joined: boolean;
   cover: string | null;

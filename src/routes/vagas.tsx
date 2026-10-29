@@ -23,6 +23,30 @@ import type { JobApplicationFieldInput } from "@/types/application/job/job-appli
 import type { JobReportReason } from "@/types/application/job/job-report-reason";
 import type { CreateJobDialogProps } from "@/types/routes/jobs/create-job-dialog-props";
 import type { ReportJobDialogProps } from "@/types/routes/jobs/report-job-dialog-props";
+import { JobCardSkeletons } from "@rede-enois/design-system/domain";
+import { InfiniteScroll } from "@rede-enois/design-system/patterns";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  EmptyState,
+  Input,
+  Label,
+  LoadingState,
+  Pill,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import {
   AlertTriangle,
   Bookmark,
@@ -41,34 +65,16 @@ import {
 import { jobsApi, reportsApi } from "@/lib/api";
 import { CURRENCIES, currencySymbol, formatSalary } from "@/lib/currency";
 import { useCurrentUser } from "@/lib/current-user";
+import { dataCurta } from "@/lib/date/format";
 import { canCreateJob, missingReputationToCreateJob } from "@/lib/job-permissions";
 import { requireAuth } from "@/lib/require-auth";
+import { safeHref } from "@/lib/safe-url";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Pill } from "@/components/ui/pill";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { CreateExternalJobDialog } from "@/components/create-external-job-dialog";
-import { InfiniteScroll } from "@/components/infinite-scroll";
-import { JobCardSkeletons } from "@/components/skeletons/job-card-skeletons";
+import { SaciSpot } from "@/components/events/saci-spot";
 
 const MAX_CARD_SKILLS = 8;
 
@@ -88,7 +94,7 @@ function formatPostedAt(dateStr: string | null | undefined): string {
   const diffD = Math.floor((now.getTime() - date.getTime()) / 86400000);
   if (diffD < 1) return texts.jobs.today;
   if (diffD < 30) return texts.jobs.daysAgo(diffD);
-  return date.toLocaleDateString("pt-BR");
+  return dataCurta(date);
 }
 
 function Vagas() {
@@ -314,6 +320,8 @@ export function JobsListPage({
                   </Button>
                 </>
               )}
+
+              <SaciSpot spot="vagas" />
             </div>
           </div>
 
@@ -639,6 +647,7 @@ export function JobsListPage({
                         <button
                           type="button"
                           aria-label={j.saved ? "Remover das salvas" : "Salvar vaga"}
+                          title={j.saved ? "Remover das salvas" : "Salvar vaga"}
                           className={cn(
                             "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-soft transition",
                             j.saved
@@ -667,7 +676,9 @@ export function JobsListPage({
 
                       {j.sourceType === "EXTERNAL" ? (
                         <a
-                          href={j.applyEmail ? `mailto:${j.applyEmail}` : (j.sourceUrl ?? "#")}
+                          href={
+                            j.applyEmail ? `mailto:${j.applyEmail}` : (safeHref(j.sourceUrl) ?? "#")
+                          }
                           target={j.applyEmail ? undefined : "_blank"}
                           rel={j.applyEmail ? undefined : "noopener noreferrer"}
                           // text-primary-foreground e obrigatorio aqui: o bloco pai usa text-muted-foreground
@@ -1089,6 +1100,7 @@ function CreateJobDialog({
                     }
                     className="shrink-0 rounded-full p-1.5 text-destructive transition hover:bg-destructive/10"
                     aria-label={texts.jobs.applicationForm.remove}
+                    title={texts.jobs.applicationForm.remove}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>

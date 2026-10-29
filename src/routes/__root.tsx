@@ -14,22 +14,26 @@ import {
 
 import { texts } from "@/texts";
 import type { WithRequiredChildren } from "@/types/components/with-required-children";
+import type { PushNavigateMessage } from "@/types/push/push-navigate-message";
 import type { ErrorComponentProps } from "@/types/routes/root/error-component-props";
 import type { RootRouteContext } from "@/types/routes/root/root-route-context";
+import { navigateToHref } from "@/utils/navigation";
+import { ToastProvider, buttonVariants } from "@rede-enois/design-system/ui";
 
+import { hrefDoPush } from "@/lib/push-navigation";
 import { registerServiceWorker } from "@/lib/pwa";
 import { hasSession, isProtectedPath } from "@/lib/require-auth";
 import { useThemeSync } from "@/lib/theme/use-theme-sync";
 
-import { buttonVariants } from "@/components/ui/button-variants";
-import { ToastProvider } from "@/components/ui/toast";
-
 import { AgeGate } from "@/components/age-gate";
 import { AppContainer } from "@/components/app-container";
+import { ChatDock } from "@/components/chat-dock/chat-dock";
+import { DesignSystemProvider } from "@/components/design-system-provider";
 import { HealthyUsageGuard } from "@/components/healthy-usage/healthy-usage-guard";
 import { InstallPwaBanner } from "@/components/install-pwa-banner";
 import { LiteModeEffects } from "@/components/lite-mode-effects";
 import { ModuleDisabledGate } from "@/components/module-disabled-gate";
+import { AdminNoticeDialog } from "@/components/notices/admin-notice";
 
 import appCss from "../styles.css?url";
 
@@ -43,25 +47,29 @@ function NotFoundComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContainer>
-        <div className="flex min-h-[60vh] items-center justify-center px-4">
-          <div className="max-w-md text-center">
-            <p className="text-7xl font-bold text-primary">{texts.root.notFound.code}</p>
+      <DesignSystemProvider>
+        <AppContainer>
+          <div className="flex min-h-[60vh] items-center justify-center px-4">
+            <div className="max-w-md text-center">
+              <p className="text-7xl font-bold text-primary">{texts.root.notFound.code}</p>
 
-            <h1 className="mt-4 text-xl font-semibold text-foreground">
-              {texts.root.notFound.title}
-            </h1>
+              <h1 className="mt-4 text-xl font-semibold text-foreground">
+                {texts.root.notFound.title}
+              </h1>
 
-            <p className="mt-2 text-sm text-muted-foreground">{texts.root.notFound.description}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {texts.root.notFound.description}
+              </p>
 
-            <div className="mt-6">
-              <Link to="/" className={buttonVariants({ size: "lg" })}>
-                {texts.root.notFound.home}
-              </Link>
+              <div className="mt-6">
+                <Link to="/" className={buttonVariants({ size: "lg" })}>
+                  {texts.root.notFound.home}
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </AppContainer>
+        </AppContainer>
+      </DesignSystemProvider>
     </QueryClientProvider>
   );
 }
@@ -140,7 +148,7 @@ export const Route = createRootRouteWithContext<RootRouteContext>()({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Press+Start+2P&family=UnifrakturCook:wght@700&family=Creepster&family=Mountains+of+Christmas:wght@700&family=Pacifico&family=Rye&family=Gochi+Hand&display=swap",
       },
     ],
   }),
@@ -174,11 +182,17 @@ if(css){var style=document.createElement("style");style.id="app-theme";style.tex
 }catch(error){}})();`;
 
 function RootShell({ children }: WithRequiredChildren) {
+  // Browsers blank the nonce attribute after parsing, so hydration would see a mismatch.
+  const nonce = useRouter().options.ssr?.nonce;
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }}
+        />
       </head>
 
       <body>
@@ -197,7 +211,9 @@ function RootComponent() {
   // ("No QueryClient set" — o RootComponent roda FORA do proprio provider).
   return (
     <QueryClientProvider client={queryClient}>
-      <RootInsideProvider />
+      <DesignSystemProvider>
+        <RootInsideProvider />
+      </DesignSystemProvider>
     </QueryClientProvider>
   );
 }
@@ -211,6 +227,21 @@ function RootInsideProvider() {
   useEffect(() => {
     registerServiceWorker();
   }, []);
+
+  useEffect(() => {
+    // Clique na notificacao PUSH: o service worker nao conhece as rotas do app (a tabela esta em
+    // src/utils/navigation.ts), entao ele devolve o href para a aba traduzir. Sem isso, o worker
+    // navegaria direto para o caminho de API que o backend manda ("/api/feed/posts/xxx") e o
+    // clique abriria a API em vez do post.
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      const href = hrefDoPush(event.data as PushNavigateMessage | null);
+      if (!href) return;
+      navigateToHref(href, (opts) => void router.navigate(opts));
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [router]);
 
   useEffect(() => {
     // Fallback de autenticacao: o `beforeLoad` das rotas roda no SSR (sem acesso ao
@@ -228,10 +259,12 @@ function RootInsideProvider() {
         <Outlet />
       </ModuleDisabledGate>
 
+      <ChatDock />
       <InstallPwaBanner />
       <LiteModeEffects />
       <HealthyUsageGuard />
       <AgeGate />
+      <AdminNoticeDialog />
     </ToastProvider>
   );
 }

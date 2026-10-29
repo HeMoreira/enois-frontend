@@ -3,7 +3,7 @@ export type SanctionView = {
   id: string;
   userId: string;
   reportId: string | null;
-  type: "RESTRICTION" | "BAN";
+  type: "RESTRICTION" | "SUSPENDED" | "BAN";
   reason: string | null;
   status: "ACTIVE" | "REMOVED";
   createdAt: string;

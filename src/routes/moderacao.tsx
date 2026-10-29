@@ -4,21 +4,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { GamePlayer } from "@rede-enois/design-system/domain";
+import { Button, EmptyState, Input, LoadingState, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft } from "lucide-react";
 import { Ban, Gamepad2, Gavel, ShieldAlert, ShieldOff, Trash2 } from "lucide-react";
 
 import { gamesApi, moderationApi, sanctionsApi, walletApi } from "@/lib/api";
+import { dataCurta, dataHora } from "@/lib/date/format";
 import { formatFaisca } from "@/lib/faisca";
 import { requireAuth } from "@/lib/require-auth";
 
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
-import { GamePlayer } from "@/components/games/game-player";
 import { SuspiciousPostsSection } from "@/components/moderation/suspicious-posts-section";
 
 /**
@@ -105,9 +101,7 @@ function Moderacao() {
               >
                 <p className="text-sm">{item.message}</p>
 
-                <p className="text-xs text-text-subtle">
-                  {new Date(item.createdAt).toLocaleString("pt-BR")}
-                </p>
+                <p className="text-xs text-text-subtle">{dataHora(item.createdAt)}</p>
 
                 <div className="flex flex-wrap gap-2 pt-1">
                   <Button
@@ -202,7 +196,7 @@ function DisputasSection() {
               </p>
 
               <p className="text-xs text-text-subtle">
-                {new Date(d.createdAt).toLocaleString("pt-BR")} · ref {d.entryRef.slice(0, 16)}…
+                {dataHora(d.createdAt)} · ref {d.entryRef.slice(0, 16)}…
               </p>
 
               <div className="flex flex-wrap gap-2 pt-1">
@@ -542,9 +536,8 @@ function JogosSection() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{g.title}</p>
 
-                  <p className="text-xs text-text-subtle">
-                    @{g.username ?? g.userId} ·{" "}
-                    {new Date(g.submittedAt).toLocaleDateString("pt-BR")}
+                  <p className="break-words text-xs text-text-subtle">
+                    @{g.username ?? g.userId} · {dataCurta(g.submittedAt)}
                     {g.tags ? ` · ${g.tags}` : ""}
                   </p>
                 </div>

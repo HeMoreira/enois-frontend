@@ -4,15 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
-import { ArrowLeft, Globe, MapPin, Users } from "lucide-react";
+import { CompanyWebsiteLink } from "@rede-enois/design-system/domain";
+import { Button, Textarea, useToast } from "@rede-enois/design-system/ui";
+import { ArrowLeft, MapPin, Users } from "lucide-react";
 
 import { companiesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { getCurrentUser } from "@/lib/current-user";
-
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
+import { dataCurta } from "@/lib/date/format";
 
 import { AppContainer } from "@/components/app-container";
 import { CompanyEditDialog } from "@/components/company-edit-dialog";
@@ -171,7 +170,11 @@ function Empresa() {
             )}
           </div>
 
-          <div className="px-4 pb-5 sm:px-6">
+          {/* A capa é position:relative. Sem z-index, um posicionado pinta por cima do
+              fluxo normal — a logo, puxada para cima com -mt-10, ficava por baixo dela.
+              O mesmo bloco relativo do avatar no perfil. Fonte:
+              https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_without_z-index */}
+          <div className="relative px-4 pb-5 sm:px-6">
             <div className="-mt-10 flex items-end gap-4">
               {company.logo ? (
                 <img
@@ -223,17 +226,7 @@ function Empresa() {
                   {company.location}
                 </span>
               )}
-              {company.website && (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  {company.website.replace(/^https?:\/\//, "")}
-                </a>
-              )}
+              <CompanyWebsiteLink website={company.website} />
             </div>
 
             {company.description && (
@@ -267,7 +260,7 @@ function Empresa() {
                   <StatusChip status={project.status} />
 
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {new Date(project.createdAt).toLocaleDateString("pt-BR")}
+                    {dataCurta(project.createdAt)}
                   </span>
                 </div>
 
@@ -283,9 +276,10 @@ function Empresa() {
                   {project.deadline && (
                     <span>
                       <strong className="text-text-strong">{texts.empresa.deadline}:</strong>{" "}
-                      {texts.empresa.deadlineBy(
-                        new Date(project.deadline).toLocaleDateString("pt-BR"),
-                      )}
+                      {/* O prazo vem como data pura ("2026-10-30"). `new Date` lê isso como
+                          meia-noite UTC, que no Brasil ainda é o dia anterior: o prazo aparecia
+                          um dia antes. Meio-dia local, como em /freelances, mantém o dia. */}
+                      {texts.empresa.deadlineBy(dataCurta(project.deadline))}
                     </span>
                   )}
                 </div>
@@ -449,6 +443,7 @@ function Empresa() {
             <div className="mt-3 space-y-3 text-sm">
               <input
                 value={projectForm.title}
+                maxLength={200}
                 onChange={(event) => setProjectForm({ ...projectForm, title: event.target.value })}
                 placeholder={texts.empresa.projectTitle}
                 className="h-10 w-full rounded-lg border border-border-soft bg-surface-1 px-3 outline-none"

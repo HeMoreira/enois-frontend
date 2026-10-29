@@ -2,18 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { GameIcon, UserAvatar, UserBadges } from "@rede-enois/design-system/domain";
+import { Button } from "@rede-enois/design-system/ui";
 import { ExternalLink, Gamepad2, Users } from "lucide-react";
 
 import { gamesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
+import { safeHref } from "@/lib/safe-url";
 import { useAuth } from "@/lib/use-auth";
 
-import { Button } from "@/components/ui/button";
-
 import { AppContainer } from "@/components/app-container";
-import { GameIcon } from "@/components/game-icon";
-import { UserAvatar } from "@/components/user-avatar";
-import { UserBadges } from "@/components/user-badge";
 
 export const Route = createFileRoute("/games/$username")({
   head: ({ params }) => ({ meta: [{ title: `${params.username} · Jogos · Énóis` }] }),
@@ -114,7 +112,7 @@ function CreatorPage() {
                 <UserBadges badges={dev.badges} badge={dev.badge} />
               </h1>
 
-              <p className="text-sm text-text-subtle">
+              <p className="break-words text-sm text-text-subtle">
                 @{dev.username} · {texts.games.developer.games(dev.games.length)} ·{" "}
                 {texts.games.developer.followers(dev.followers)}
               </p>
@@ -158,19 +156,22 @@ function CreatorPage() {
 
           {dev.links.length > 0 && (
             <div className="flex flex-wrap gap-1.5 border-t border-border-soft px-4 py-3 sm:px-5">
-              {dev.links.map((link) => (
-                <a
-                  key={link}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border-soft px-2.5 py-1 text-xs font-normal text-text-subtle transition hover:border-primary/40 hover:text-primary"
-                >
-                  <ExternalLink className="h-3 w-3" aria-hidden />
+              {dev.links
+                .map(safeHref)
+                .filter((link): link is string => link !== null)
+                .map((link) => (
+                  <a
+                    key={link}
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border-soft px-2.5 py-1 text-xs font-normal text-text-subtle transition hover:border-primary/40 hover:text-primary"
+                  >
+                    <ExternalLink className="h-3 w-3" aria-hidden />
 
-                  <>{link.replace(/^https?:\/\//, "").replace(/\/$/, "")}</>
-                </a>
-              ))}
+                    <>{link.replace(/^https?:\/\//, "").replace(/\/$/, "")}</>
+                  </a>
+                ))}
             </div>
           )}
         </div>

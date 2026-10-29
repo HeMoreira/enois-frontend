@@ -3,13 +3,13 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { hydratePreferences, usePreferencesStore } from "@/stores/preferences.store";
+import { isGalleryCollectionId } from "@rede-enois/design-system/domain";
 
 import { preferencesApi } from "@/lib/api";
-import { getSessionToken } from "@/lib/api-client";
+import { hasSessionFlag } from "@/lib/session";
 
 import { applyThemeSettings } from "./apply-theme";
-import { resolveThemeCollection } from "./build-collection-css";
-import { isGalleryCollectionId } from "./gallery-collections";
+import { resolveThemeCollection } from "./resolve-theme-collection";
 import { syncThemeCollection } from "./sync-theme-collection";
 
 /**
@@ -70,7 +70,7 @@ export function useThemeSync(): void {
  * Convidado não chega aqui: sem sessão, a preferência é só local mesmo.
  */
 function useThemeAccountSync(): void {
-  const token = getSessionToken();
+  const token = hasSessionFlag();
   const themeCollection = usePreferencesStore((state) => state.themeCollection);
   const themeCollectionUpdatedAt = usePreferencesStore((state) => state.themeCollectionUpdatedAt);
   const setThemeCollection = usePreferencesStore((state) => state.setThemeCollection);

@@ -1,9 +1,21 @@
-FROM node:22-alpine AS builder
+# syntax=docker/dockerfile:1
+# Base image pinned by digest (node:22-alpine, multi-arch index); bump it deliberately.
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json package-lock.json .npmrc ./
+
+# A TOKEN IS REQUIRED HERE. @rede-enois/design-system comes from GitHub Packages, which needs a
+# token with `read:packages` even for public packages. It arrives as a BuildKit secret, never as a
+# build arg (build args stay in the image history):
+#   docker build --secret id=npm_token,env=NODE_AUTH_TOKEN .
+RUN --mount=type=secret,id=npm_token \
+    if [ ! -s /run/secrets/npm_token ]; then \
+      echo "ERROR: missing build secret 'npm_token'. Installing @rede-enois/design-system from GitHub Packages requires a token with read:packages: docker build --secret id=npm_token,env=NODE_AUTH_TOKEN ." >&2; \
+      exit 1; \
+    fi \
+    && NODE_AUTH_TOKEN="$(cat /run/secrets/npm_token)" npm ci
 
 COPY . .
 
@@ -21,7 +33,7 @@ ENV VITE_SITE_URL=$VITE_SITE_URL
 
 RUN NITRO_PRESET=node-server npm run build
 
-FROM node:22-alpine AS runner
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS runner
 
 WORKDIR /app
 
@@ -30,6 +42,13 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 
 COPY --from=builder /app/.output ./.output
+
+# Processo sem privilégios (E-17): o runtime não precisa de root para servir o SSR.
+# Remove o npm/npx do runtime: o app só precisa do Node, e o npm da imagem-base carrega
+# dependências (pacote/sigstore/brace-expansion) que só existem no build.
+RUN addgroup -S app && adduser -S app -G app \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+USER app
 
 EXPOSE 3000
 

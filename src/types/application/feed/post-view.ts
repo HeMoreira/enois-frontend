@@ -1,4 +1,8 @@
 import type { PostCommunity } from "@/types/application/community/post-community";
+import type { MyPostNote } from "@/types/application/feed/my-post-note";
+import type { PostNote } from "@/types/application/feed/post-note";
+import type { AuthorContributorTag } from "@/types/application/profile/author-contributor-tag";
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
 import type { ReactionSummary } from "@/types/application/reaction/reaction-summary";
 import type { ReactionType } from "@/types/application/reaction/reaction-type";
 
@@ -8,6 +12,14 @@ export type PostView = {
   authorUsername: string;
   authorName: string;
   authorBadge?: string | null;
+  /** Personalização do nome do autor (tema/fonte/cor); ausente = padrão. */
+  authorStyle?: AuthorNameStyle | null;
+  /** Tag "Contribuinte" quando o autor tem selo ativo; ausente = não é contribuinte. */
+  authorContributor?: AuthorContributorTag | null;
+  /** Notas de rodapé aprovadas (verificação da comunidade); vazio = nenhuma. */
+  communityNotes?: PostNote[] | null;
+  /** Nota do próprio leitor neste post (em análise/negada/aprovada). */
+  myNote?: MyPostNote | null;
   /** Todos os emblemas (até 5), na ordem escolhida: acompanham o nome em todo lugar. */
   authorBadges?: string[] | null;
   authorAvatar: string | null;

@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { texts } from "@/texts";
 import type { ApplyByEmailButtonProps } from "@/types/components/job/apply-by-email-button-props";
-import { Mail } from "lucide-react";
+import { ApplyByEmailButton as ApplyByEmailButtonView } from "@rede-enois/design-system/domain";
+import { useToast } from "@rede-enois/design-system/ui";
 
 import { resolveCdnUrl } from "@/lib/api/media";
 import {
@@ -12,9 +13,6 @@ import {
   shareResume,
 } from "@/lib/apply-email";
 import { useCurrentUser } from "@/lib/current-user";
-
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
 
 /**
  * "Agilizar envio": escreve o e-mail de candidatura e abre o app de e-mail da pessoa.
@@ -72,17 +70,5 @@ export function ApplyByEmailButton({ job, email }: ApplyByEmailButtonProps) {
     }
   };
 
-  return (
-    <Button
-      variant="outline"
-      className="rounded-full gap-2"
-      disabled={busy}
-      title={texts.jobs.applyByEmail.hint}
-      onClick={() => void start()}
-    >
-      <Mail className="h-4 w-4" />
-
-      <>{texts.jobs.applyByEmail.action}</>
-    </Button>
-  );
+  return <ApplyByEmailButtonView busy={busy} onClick={() => void start()} />;
 }

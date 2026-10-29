@@ -1,3 +1,4 @@
+import type { AdminAccountView } from "@/types/application/moderation/admin-account-view";
 import type { BulkBanResult } from "@/types/application/moderation/bulk-ban-result";
 import type { BulkDeletePostsResult } from "@/types/application/moderation/bulk-delete-posts-result";
 import type { EmailLogView } from "@/types/application/moderation/email-log-view";
@@ -24,6 +25,11 @@ import { api } from "../api-client";
  */
 export const moderationApi = {
   me: () => api.get<ModeratorMeView>("/moderation/me"),
+
+  admins: () => api.get<AdminAccountView[]>("/admin/admins"),
+  promoteAdmin: (username: string) => api.post<AdminAccountView>("/admin/admins", { username }),
+  revokeAdmin: (username: string) =>
+    api.post<AdminAccountView>(`/admin/admins/${encodeURIComponent(username)}/revoke`, {}),
 
   apply: (data: { motivation: string; experience?: string; availability?: string }) =>
     api.post<ModeratorApplicationView>("/moderation/applications", data),
@@ -60,6 +66,13 @@ export const moderationApi = {
     api.post<ModeratorApplicationView>(`/admin/moderators/${userId}/revoke`, { note }),
 
   /** Punição por votação: só existe com 10+ moderadores; o limiar é >50% dos ativos. */
+  /** Modo pânico: bloqueia toda escrita da aplicação com 429. */
+  panicStatus: () =>
+    api.get<{ active: boolean; envLocked: boolean; message: string }>("/admin/panic"),
+
+  setPanic: (active: boolean) =>
+    api.post<{ active: boolean; envLocked: boolean; message: string }>("/admin/panic", { active }),
+
   sanctionProposals: (limit = 50) =>
     api.get<SanctionProposalView[]>(`/moderation/sanction-proposals?limit=${limit}`),
 

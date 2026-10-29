@@ -7,6 +7,8 @@ import { GAME_GENRES, GAME_STAGES } from "@/constants/game-options";
 import { texts } from "@/texts";
 import type { GameView } from "@/types/application/games/game-view";
 import type { GamesCategory } from "@/types/routes/games/games-category";
+import { GameIcon } from "@rede-enois/design-system/domain";
+import { Button, Input, PageHeader, Textarea } from "@rede-enois/design-system/ui";
 import { ExternalLink, Gamepad2, Pencil, Rocket, Send, Star } from "lucide-react";
 
 import { gamesApi } from "@/lib/api";
@@ -14,14 +16,8 @@ import { formatFaisca } from "@/lib/faisca";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/page-header";
-import { Textarea } from "@/components/ui/textarea";
-
 import { AppContainer } from "@/components/app-container";
 import { DailyGamesPanel } from "@/components/daily-games-panel";
-import { GameIcon } from "@/components/game-icon";
 import { GameEditorDialog } from "@/components/games/game-editor-dialog";
 
 export const Route = createFileRoute("/games")({
@@ -528,6 +524,7 @@ function SubmitButton() {
 
                 <Input
                   value={form.title}
+                  maxLength={200}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                 />
               </label>
@@ -555,6 +552,7 @@ function SubmitButton() {
                 <Input
                   placeholder="https://meujogo.itch.io/…"
                   value={form.url}
+                  maxLength={500}
                   onChange={(e) => setForm({ ...form, url: e.target.value })}
                 />
               </label>
@@ -563,6 +561,7 @@ function SubmitButton() {
                 <span className="mb-1 block font-medium">Descrição</span>
 
                 <Textarea
+                  maxLength={4000}
                   rows={3}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -574,6 +573,7 @@ function SubmitButton() {
 
                 <Input
                   value={form.tags}
+                  maxLength={500}
                   onChange={(e) => setForm({ ...form, tags: e.target.value })}
                 />
               </label>

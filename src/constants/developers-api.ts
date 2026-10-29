@@ -11,7 +11,7 @@ import type { ApiUseCase } from "@/types/application/developers/api-use-case";
  * Manter em sincronia com os controllers do backend: cada bloco novo de API entra aqui.
  */
 
-const P = "https://enois.ia.br/api";
+const P = "https://enois-api-qa.b7cloud.tech/api";
 
 export const API_BASE_URL = P;
 
@@ -736,7 +736,7 @@ export const apiSections: ApiSection[] = [
     id: "faisca",
     title: "Faísca (carteira e cotação)",
     description:
-      "A moeda interna é FRACIONADA: o ledger inteiro conta milésimos — 1 faísca = 1.000 mf (como os centavos do real). A cotação de REFERÊNCIA em BRL é publicada pela plataforma e financia a remuneração de criadores; não é câmbio — comprar faísca com dinheiro não existe. Transferências são estilo Pix: por username, instantâneas e irreversíveis, com Idempotency-Key obrigatória.",
+      "A moeda interna é FRACIONADA: o ledger inteiro conta milésimos — 1 faísca = 1.000 mf (como os centavos do real). A cotação de REFERÊNCIA em BRL é recalculada pela plataforma a partir do uso da moeda e financia a remuneração de criadores; não é câmbio — comprar faísca com dinheiro não existe. Transferências são estilo Pix: por username, instantâneas e irreversíveis, com Idempotency-Key obrigatória.",
     endpoints: [
       {
         method: "GET",
@@ -744,16 +744,17 @@ export const apiSections: ApiSection[] = [
         access: "public",
         description:
           "A cotação de referência vigente + histórico (alimenta a mini bolsa). O total em circulação não é público.",
-        response: `{"brlCents":1,"escala":1000,"atualizadaEm":"2026-10-18T10:00:00Z",
- "historico":[{"brlCents":1,"em":"2026-10-18T10:00:00Z"}]}`,
+        response: `{"brlCents":1,"brlMicros":10000,"escala":1000,"atualizadaEm":"2026-10-18T10:00:00Z",
+ "historico":[{"brlCents":1,"brlMicros":10000,"em":"2026-10-18T10:00:00Z"}]}`,
       },
       {
         method: "POST",
         path: "/coin/cotacao",
         access: "admin",
-        description: "Publica nova cotação de referência (em centavos por 1 faísca).",
-        request: `{"brlCents":2,"note":"reajuste de referência"}`,
-        response: `{"brlCents":2,"em":"2026-10-18T10:05:00Z"}`,
+        description:
+          "Publica nova cotação de referência. `brlMicros` (micro-reais por faísca) é a precisão; `brlCents` continua aceito.",
+        request: `{"brlMicros":20000,"note":"reajuste de referência"}`,
+        response: `{"brlCents":2,"brlMicros":20000,"em":"2026-10-18T10:05:00Z"}`,
       },
       {
         method: "GET",
@@ -761,7 +762,7 @@ export const apiSections: ApiSection[] = [
         access: "auth",
         description:
           "Saldo, chave (username) e extrato. A primeira abertura executa o genesis idempotente (100 faíscas) e marca a presença do dia.",
-        response: `{"balance":105000,"escala":1000,"cotacaoBrlCents":1,"chave":"ada-silva",
+        response: `{"balance":105000,"escala":1000,"cotacaoBrlCents":1,"cotacaoBrlMicros":10000,"chave":"ada-silva",
  "entries":[{"amount":5000,"kind":"REWARD","message":"Presença diária","createdAt":"2026-10-18T10:00:00Z"},
  {"amount":100000,"kind":"AIRDROP","message":"Distribuição inicial","createdAt":"2026-10-18T09:59:59Z"}]}`,
       },
@@ -1178,7 +1179,7 @@ export const apiSections: ApiSection[] = [
       {
         method: "GET",
         path: "/daily-games/blocks/today",
-        access: "public",
+        access: "auth",
         description:
           "O estado do jogo de Blocos de hoje (com sessão, inclui o progresso do jogador).",
       },
@@ -1203,8 +1204,51 @@ export const apiSections: ApiSection[] = [
       {
         method: "GET",
         path: "/daily-games/words/today",
+        access: "auth",
+        description:
+          "Estado do jogo de Palavras de hoje (com sessão, inclui o progresso do jogador).",
+      },
+      {
+        method: "GET",
+        path: "/daily-games/words/leaderboard",
         access: "public",
-        description: "Estado do jogo de Palavras de hoje.",
+        description: "Ranking de Palavras do dia (e histórico).",
+      },
+      {
+        method: "POST",
+        path: "/daily-games/words/today/start",
+        access: "auth",
+        description: "Inicia a partida de Palavras de hoje.",
+      },
+      {
+        method: "POST",
+        path: "/daily-games/words/today/guesses",
+        access: "auth",
+        description: "Envia um palpite da partida de Palavras em andamento.",
+      },
+      {
+        method: "GET",
+        path: "/daily-games/maze/today",
+        access: "auth",
+        description: "O estado do Labirinto de hoje (com sessão, inclui o progresso do jogador).",
+      },
+      {
+        method: "POST",
+        path: "/daily-games/maze/today/start",
+        access: "auth",
+        description: "Inicia a partida de Labirinto de hoje.",
+      },
+      {
+        method: "POST",
+        path: "/daily-games/maze/today/moves",
+        access: "auth",
+        description: "Move o cursor no Labirinto da partida em andamento.",
+      },
+      {
+        method: "GET",
+        path: "/daily-games/maze/leaderboard",
+        access: "public",
+        description: "Ranking do Labirinto do dia (e histórico).",
       },
       {
         method: "GET",

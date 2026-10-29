@@ -1,0 +1,34 @@
+import type { MonitoringCount } from "./monitoring-count";
+import type { MonitoringEvent } from "./monitoring-event";
+import type { MonitoringJvm } from "./monitoring-jvm";
+import type { MonitoringMinutePoint } from "./monitoring-minute-point";
+import type { MonitoringResource } from "./monitoring-resource";
+
+export type MonitoringOverview = {
+  generatedAt: string;
+  uptimeSeconds: number;
+  requestsLastMinute: number;
+  errors4xxLastMinute: number;
+  errors5xxLastMinute: number;
+  errorRate: number;
+  p95Ms: number;
+  droppedEvents: number;
+  series: MonitoringMinutePoint[];
+  levels24h: MonitoringCount[];
+  types24h: MonitoringCount[];
+  topRoutes: MonitoringCount[];
+  recent: MonitoringEvent[];
+  jvm: MonitoringJvm;
+  requestsPerSecond: number;
+  inFlight: number;
+  peakInFlight: number;
+  requestsTotal: number;
+  p50Ms: number;
+  p99Ms: number;
+  maxMs: number;
+  slowLastMinute: number;
+  rateLimitedLastMinute: number;
+  statusCounts: MonitoringCount[];
+  methodCounts: MonitoringCount[];
+  resources: MonitoringResource;
+};

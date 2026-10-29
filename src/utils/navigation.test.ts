@@ -47,7 +47,18 @@ describe("navigateToHref", () => {
     });
   });
 
-  it("não navega para href desconhecido nem incompleto", () => {
+  it("leva ao marketplace no pedido de desculpa da comunidade", () => {
+    expect(resolve("/marketplace")).toHaveBeenCalledWith({ to: "/marketplace" });
+  });
+
+  it("leva a seguranca quando a sessao foi mexida (novo dispositivo, 2FA redefinido)", () => {
+    // O backend manda "/seguranca" e "/configuracoes/seguranca"; sem estas entradas o clique
+    // na notificacao nao levava a lugar nenhum.
+    expect(resolve("/seguranca")).toHaveBeenCalledWith({ to: "/seguranca" });
+    expect(resolve("/configuracoes/seguranca")).toHaveBeenCalledWith({ to: "/seguranca" });
+  });
+
+  it("nao navega para href desconhecido nem incompleto", () => {
     expect(resolve("/desconhecido")).not.toHaveBeenCalled();
     expect(resolve("/games/so-username")).not.toHaveBeenCalled();
   });

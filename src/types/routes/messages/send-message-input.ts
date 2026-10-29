@@ -6,4 +6,5 @@ export type SendMessageInput = {
   text: Message["text"];
   mediaIds: Message["mediaIds"];
   mediaSpoiler?: boolean;
+  e2e?: { ciphertext: string; iv: string };
 };

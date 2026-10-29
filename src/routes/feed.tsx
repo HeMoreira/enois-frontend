@@ -3,7 +3,7 @@ import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useSt
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TOPICS, TOPIC_LABELS } from "@/constants/community-topics";
+import { POST_TOPICS, TOPIC_LABELS } from "@/constants/community-topics";
 import { postContentLimit } from "@/constants/post-content-limits";
 import { PAGE_HTML_MAX_LENGTH } from "@/constants/post-page";
 import { ARTICLE_BODY_MAX_LENGTH, POST_TYPES } from "@/constants/post-types";
@@ -15,6 +15,24 @@ import type { ActiveIdentity } from "@/types/lib/active-identity";
 import type { ComposerActionProps } from "@/types/routes/feed/composer-action-props";
 import type { HomeTab } from "@/types/routes/feed/home-tab";
 import type { MediaItem } from "@/types/routes/feed/media-item";
+import {
+  ApoieCard,
+  PostCardSkeletons,
+  SpoilerPreview,
+  StyledName,
+  UserAvatar,
+} from "@rede-enois/design-system/domain";
+import { InfiniteScroll } from "@rede-enois/design-system/patterns";
+import {
+  Button,
+  EmptyState,
+  Input,
+  LoadingState,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import {
   ArrowUp,
   BarChart3,
@@ -42,66 +60,62 @@ import {
   subscribeActiveIdentity,
 } from "@/lib/active-identity";
 import { authApi, corporateApi, eventsApi, feedApi, networkApi, profileApi } from "@/lib/api";
+import { dataHora, valorDeDataLocal } from "@/lib/date/format";
 import { clearFeedScroll, readFeedScroll } from "@/lib/feed-scroll-restoration";
 import { litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
+import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/components/ui/toast";
-
-import { ApoieCard } from "@/components/apoie-card";
 import { AppContainer } from "@/components/app-container";
+import { SaciDuelBanner } from "@/components/events/saci-duel-banner";
+import { SaciSpot } from "@/components/events/saci-spot";
 import { TodayGamesCard } from "@/components/games/today-games-card";
 import { HtmlEditor } from "@/components/html-editor";
-import { InfiniteScroll } from "@/components/infinite-scroll";
 import { LinkedInSyncPrompt } from "@/components/linkedin-sync-prompt";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { NightRestReminder } from "@/components/night-rest-reminder";
 import { PlatformSpacesCard } from "@/components/platform-spaces-card";
 import { PostCard } from "@/components/post-card";
-import { SpoilerPreview } from "@/components/post/spoiler-preview";
-import { PostCardSkeletons } from "@/components/skeletons/post-card-skeletons";
-import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 /** Abas válidas da tela inicial (a URL carrega a escolhida). */
-const HOME_TABS: HomeTab[] = [
-  "FOR_YOU",
-  "ALL",
-  "FOLLOWING",
-  "RECENT",
-  "UNSEEN",
-  "PROJECTS",
-  "NEWS",
-  "TUTORIALS",
-  "OPPORTUNITIES",
-  "REVIEWS",
-  "FUN",
-  "CORPORATE",
-];
+const HOME_TABS: HomeTab[] = ["ALL", "FOR_YOU", "UNSEEN", "TRENDING", "INTERACTED", "CORPORATE"];
 
-/** O rotulo de cada tipo de feed (a lista colapsada mostra o que esta escolhido). */
 const TAB_LABELS: Record<HomeTab, string> = {
-  FOR_YOU: texts.feed.tabs.forYou,
   ALL: texts.feed.tabs.all,
+  FOR_YOU: texts.feed.tabs.forYou,
+  UNSEEN: texts.feed.tabs.unseen,
+  TRENDING: texts.feed.tabs.trending,
+  INTERACTED: texts.feed.tabs.interacted,
+  CORPORATE: texts.feed.tabs.corporate,
+  // Legado (backend aceita mas frontend não mostra).
   FOLLOWING: texts.feed.tabs.following,
   RECENT: texts.feed.tabs.discussions,
-  UNSEEN: texts.feed.tabs.unseen,
   PROJECTS: texts.feed.tabs.projects,
   NEWS: texts.feed.tabs.news,
   TUTORIALS: texts.feed.tabs.tutorials,
   OPPORTUNITIES: texts.feed.tabs.opportunities,
   REVIEWS: texts.feed.tabs.reviews,
   FUN: texts.feed.tabs.fun,
-  CORPORATE: texts.feed.tabs.corporate,
 };
+
+/** Tipos de post para o filtro do feed "Tudo". */
+const POST_TYPE_FILTERS = [
+  { value: "", label: texts.feed.tabs.allTypes },
+  { value: "INSIGHT", label: "Insights" },
+  { value: "QUESTION", label: "Discussões" },
+  { value: "PROJECT", label: "Projetos" },
+  { value: "NEWS", label: "Notícias" },
+  { value: "TUTORIAL", label: "Tutoriais" },
+  { value: "OPPORTUNITY", label: "Oportunidades" },
+  { value: "REVIEW", label: "Avaliações" },
+  { value: "DIVERTIDO", label: "Diversão" },
+  { value: "ARTICLE", label: "Artigos" },
+] as const;
 
 export const Route = createFileRoute("/feed")({
   beforeLoad: requireAuth,
@@ -141,7 +155,8 @@ function readLastTopic(): string {
   if (typeof localStorage === "undefined") return "";
   try {
     const saved = localStorage.getItem(LAST_TOPIC_KEY);
-    return saved && (TOPICS as readonly string[]).includes(saved) ? saved : "";
+    // Vale só o que o compositor ainda oferece: assunto que saiu da lista não volta selecionado.
+    return saved && (POST_TOPICS as readonly string[]).includes(saved) ? saved : "";
   } catch {
     return "";
   }
@@ -156,68 +171,78 @@ function rememberTopic(value: string): void {
   }
 }
 
-function useFeed(tab: HomeTab) {
-  // Em modo lite cada página vem maior: rolar o mesmo tanto custa menos idas ao servidor.
+function useFeed(tab: HomeTab, typeFilter?: string) {
+  const authenticated = useIsAuthenticated();
   const lite = useLiteMode();
   const pageSize = litePageSize(FEED_PAGE_SIZE, lite);
-  // Pagina por cursor: o backend devolve nextCursor e o scroll infinito busca a proxima pagina.
   return useInfiniteQuery({
-    queryKey: ["feed", tab],
+    queryKey: ["feed", tab, typeFilter ?? ""],
     queryFn: ({ pageParam }) =>
       tab === "CORPORATE"
         ? feedApi.corporate(pageParam ?? null, pageSize)
-        : feedApi.list(pageParam ?? null, pageSize, tab),
+        : feedApi.list(pageParam ?? null, pageSize, tab, typeFilter || undefined),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: authenticated,
+    staleTime: 20_000,
   });
 }
 
 function useProfile() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["me"],
     queryFn: () => profileApi.me(),
+    enabled: authenticated,
+    staleTime: 60_000,
   });
 }
 
 function useSuggestions() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["network", "suggestions"],
     // Busca um lote maior: o "ver outras" gira entre os 4 primeiros sem pedir de novo.
     queryFn: () => networkApi.suggestions(12),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
 }
 
 function useEvents() {
+  const authenticated = useIsAuthenticated();
   return useQuery({
     queryKey: ["events"],
     queryFn: () => eventsApi.list(),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
 }
 
 function Home() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const authenticated = useIsAuthenticated();
   // A aba vem da URL; trocar de aba REPLACES o histórico (o "voltar" continua voltando para a
   // página anterior, e não passeando pelas abas).
   const { aba } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const tab: HomeTab = aba ?? "FOR_YOU";
+  const tab: HomeTab = aba ?? "ALL";
   const setTab = (next: HomeTab) => {
     if (next === tab) return;
     void navigate({ search: { aba: next }, replace: true });
   };
-  // A lista de tipos de feed fica recolhida: o botao mostra o escolhido e abre a lista.
   const [menuTipoFeed, setMenuTipoFeed] = useState(false);
   const [menuTopic, setMenuTopic] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("");
   const {
     data: feedData,
-    // Somente a PRIMEIRA carga mostra o esqueleto. `isFetching` tambem fica true ao paginar, e
-    // como o feed trocava a lista inteira pelo LoadingState a cada pagina, a tela voltava ao topo.
     isLoading: feedLoading,
+    isFetching: feedFetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFeed(tab);
+  } = useFeed(tab, tab === "ALL" ? typeFilter : undefined);
   const { data: profile } = useProfile();
   const { data: suggestions } = useSuggestions();
   const { data: eventsData } = useEvents();
@@ -226,6 +251,8 @@ function Home() {
   const { data: corporate } = useQuery({
     queryKey: ["business-profile"],
     queryFn: () => corporateApi.me(),
+    enabled: authenticated,
+    staleTime: 120_000,
   });
   const identity = effectiveIdentity(chosenIdentity, corporate);
 
@@ -279,16 +306,15 @@ function Home() {
   const scheduledQuery = useQuery({
     queryKey: ["feed", "scheduled"],
     queryFn: () => feedApi.scheduled(),
+    enabled: authenticated,
+    staleTime: 60_000,
   });
   const scheduledList = scheduledQuery.data ?? [];
 
   const schedulePost = useMutation({
     mutationFn: (data: Parameters<typeof feedApi.schedule>[0]) => feedApi.schedule(data),
     onSuccess: (agendado) => {
-      toast(
-        texts.feed.composer.scheduleDone(new Date(agendado.scheduledAt).toLocaleString("pt-BR")),
-        "success",
-      );
+      toast(texts.feed.composer.scheduleDone(dataHora(agendado.scheduledAt)), "success");
       void queryClient.invalidateQueries({ queryKey: ["feed", "scheduled"] });
     },
     onError: (error) => setPublishError(error.message),
@@ -352,9 +378,7 @@ function Home() {
   };
 
   // O mínimo do input datetime-local é AGORA+1min (o backend recusa mais perto que isso).
-  const minScheduleAt = new Date(Date.now() + 60_000 - new Date().getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 16);
+  const minScheduleAt = valorDeDataLocal(new Date(Date.now() + 60_000));
 
   const publishPost = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -508,11 +532,15 @@ function Home() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
+          <SaciDuelBanner />
+
           {/* Composer */}
           <form
             onSubmit={publishPost}
-            className="rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
+            className="relative rounded-2xl border border-border-soft bg-surface-card p-4 sm:p-5"
           >
+            {/* Na borda de cima do compositor, dentro da folga: não cobre o campo nem botões. */}
+            <SaciSpot spot="feed" className="absolute -top-4 right-4" />
             <input
               type="text"
               name="website"
@@ -630,6 +658,8 @@ function Home() {
                         <button
                           type="button"
                           onClick={() => removeMedia(i)}
+                          aria-label={texts.feed.composer.removeMedia}
+                          title={texts.feed.composer.removeMedia}
                           className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-surface-card/80 text-text-strong shadow hover:bg-surface-card"
                         >
                           <X className="h-4 w-4" />
@@ -650,6 +680,8 @@ function Home() {
                     <button
                       type="button"
                       onClick={() => removeMedia(0)}
+                      aria-label={texts.feed.composer.removeMedia}
+                      title={texts.feed.composer.removeMedia}
                       className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-surface-card/80 text-text-strong shadow hover:bg-surface-card"
                     >
                       <X className="h-4 w-4" />
@@ -713,7 +745,7 @@ function Home() {
                         {texts.feed.composer.topicNone}
                       </button>
 
-                      {TOPICS.filter((option) => option !== "Todas").map((option) => (
+                      {POST_TOPICS.map((option) => (
                         <button
                           key={option}
                           type="button"
@@ -769,7 +801,7 @@ function Home() {
                   )}
 
                   {typePickerOpen && (
-                    <div className="absolute bottom-full left-0 z-40 mb-1 w-[min(22rem,80vw)] rounded-2xl border border-border-soft bg-popover p-2 shadow-lg">
+                    <div className="absolute bottom-full right-0 z-40 mb-1 max-h-[60vh] w-[min(22rem,80vw)] overflow-y-auto rounded-2xl border border-border-soft bg-popover p-2 shadow-lg sm:left-0 sm:right-auto">
                       <div className="flex flex-wrap gap-1.5">
                         {availableTypes.map((option) => (
                           <ComposerAction
@@ -957,9 +989,7 @@ function Home() {
                       </p>
 
                       <p className="text-xs text-text-subtle">
-                        {texts.feed.composer.scheduledFor(
-                          new Date(agendado.scheduledAt).toLocaleString("pt-BR"),
-                        )}
+                        {texts.feed.composer.scheduledFor(dataHora(agendado.scheduledAt))}
                         {agendado.lastError ? ` · ${agendado.lastError}` : ""}
                       </p>
                     </div>
@@ -970,6 +1000,7 @@ function Home() {
                       variant="ghost"
                       className="rounded-full"
                       title={texts.feed.composer.scheduleCancel}
+                      aria-label={texts.feed.composer.scheduleCancel}
                       disabled={cancelScheduled.isPending}
                       onClick={() => cancelScheduled.mutate(agendado.id)}
                     >
@@ -1029,8 +1060,37 @@ function Home() {
             </Popover>
           </div>
 
+          {tab === "ALL" && (
+            <div className="flex flex-wrap gap-2 pb-2">
+              {POST_TYPE_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setTypeFilter(f.value)}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium transition",
+                    typeFilter === f.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-2 text-text-subtle hover:bg-surface-3 hover:text-text-strong",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="space-y-4">
             {feedLoading && <PostCardSkeletons />}
+
+            {!feedLoading && feedFetching && !isFetchingNextPage && (
+              <div className="flex items-center justify-center gap-2 py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+
+                <span className="text-sm text-text-subtle">{texts.feed.refreshing}</span>
+              </div>
+            )}
+
             {!feedLoading && feedPosts.map((p) => <PostCard key={p.id} post={p} feedTab={tab} />)}
 
             {!feedLoading && feedPosts.length === 0 && <EmptyState title={texts.feed.empty} />}
@@ -1123,21 +1183,23 @@ function Home() {
               <ul className="mt-4 space-y-3">
                 {visibleSuggestions.map((u) => (
                   <li key={u.id} className="flex items-center gap-3">
-                    <UserAvatar
-                      src={u.avatar}
-                      frame={u.avatarFrame}
-                      alt={u.name}
-                      className="h-10 w-10"
-                    />
+                    <ProfilePeek username={u.username} name={u.name} className="shrink-0">
+                      <UserAvatar
+                        src={u.avatar}
+                        frame={u.avatarFrame}
+                        alt={u.name}
+                        className="h-10 w-10"
+                      />
+                    </ProfilePeek>
 
                     <div className="min-w-0 flex-1">
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: u.username }}
-                        className="block truncate text-sm font-normal text-text-strong hover:underline"
+                      <ProfilePeek
+                        username={u.username}
+                        name={u.name}
+                        className="block max-w-full truncate text-sm font-normal text-text-strong hover:underline"
                       >
-                        {u.name}
-                      </Link>
+                        <StyledName name={u.name} style={u.nameStyle} />
+                      </ProfilePeek>
 
                       <p className="truncate text-xs font-normal text-text-subtle">{u.headline}</p>
                     </div>

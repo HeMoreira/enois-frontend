@@ -1,25 +1,23 @@
 import { useEffect, useState } from "react";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { BlogPost } from "@/types/application/blog/blog-post";
-import type { BlogPostFormat } from "@/types/application/blog/blog-post-format";
-import { ArrowLeft, Eye, PenLine } from "lucide-react";
+import {
+  type BlogPostEditorValues,
+  BlogPostEditor as BlogPostEditorView,
+} from "@rede-enois/design-system/domain";
+import { useToast } from "@rede-enois/design-system/ui";
 
 import { blogsApi } from "@/lib/api/blogs";
 import { getCurrentUserId } from "@/lib/current-user";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Pill } from "@/components/ui/pill";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
-import { HtmlEditor } from "@/components/html-editor";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { RichText } from "@/components/post/rich-text";
+import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
 
 /**
  * Escrever ou editar um post do blog, em tela cheia (`/blog/post/new` e `/blog/post/{id}`).
@@ -30,11 +28,6 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [title, setTitle] = useState(post?.title ?? "");
-  const [body, setBody] = useState(post?.body ?? "");
-  const [format, setFormat] = useState<BlogPostFormat>(post?.bodyFormat ?? "MARKDOWN");
-  const [preview, setPreview] = useState(false);
-  const [avisar, setAvisar] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [draftKey, setDraftKey] = useState<string | null>(null);
   const [draftSaved, setDraftSaved] = useState<boolean | null>(null);
@@ -101,6 +94,11 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
           // A publicação já foi concluída mesmo se o navegador bloquear o armazenamento.
         }
       }
+    mutationFn: ({ title, body, format, notifySubscribers }: BlogPostEditorValues) =>
+      post
+        ? blogsApi.editPost(post.id, { title, body, format })
+        : blogsApi.publish({ title, body, format, notifySubscribers }),
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["blog"] });
       queryClient.invalidateQueries({ queryKey: ["blogs"] });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
@@ -114,8 +112,6 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
     },
     onError: (err) => setError(err instanceof Error ? err.message : texts.blog.editor.error),
   });
-
-  const canPublish = title.trim().length > 0 && body.trim().length > 0 && !publish.isPending;
 
   return (
     <AppContainer>
@@ -252,6 +248,16 @@ export function BlogPostEditor({ post }: { post?: BlogPost | null }) {
           </div>
         </div>
       </div>
+      <BlogPostEditorView
+        post={post}
+        backHref="/blogs"
+        pending={publish.isPending}
+        error={error}
+        onSubmit={(values) => publish.mutate(values)}
+        renderMentionTextarea={(props) => <MentionTextarea {...props} />}
+        renderRichText={(props) => <RichText {...props} />}
+        renderHtmlFrame={(props) => <SandboxedHtmlFrame {...props} />}
+      />
     </AppContainer>
   );
 }

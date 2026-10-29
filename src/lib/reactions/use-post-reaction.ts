@@ -1,136 +1,178 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
 
 import { usePostCardStore } from "@/stores/post-card.store";
 import { texts } from "@/texts";
+import type { PostView } from "@/types/application/feed/post-view";
 import type { ReactionType } from "@/types/application/reaction/reaction-type";
 import type { ReactionsListResponse } from "@/types/application/reaction/reactions-list-response";
-import type { ReactionVariables } from "@/types/lib/reactions/reaction-variables";
 import type { UsePostReactionResult } from "@/types/lib/reactions/use-post-reaction-result";
+import {
+  applyReactionToSummary,
+  removeReactionFromSummary,
+} from "@rede-enois/design-system/domain";
+import { useToast } from "@rede-enois/design-system/ui";
 
 import { ApiError, reactionsApi } from "@/lib/api";
+import { updatePostInQueryCache } from "@/lib/feed/post-query-cache";
 import { useAuth } from "@/lib/use-auth";
 
-import { useToast } from "@/components/ui/toast";
-
 import { reactionsQueryOptions } from "./query-options";
-import { applyReactionToSummary, removeReactionFromSummary } from "./summary";
 
 /**
- * Alterna a reação do post de forma otimista.
- *
- * O backend guarda no máximo UMA reação por pessoa: clicar num tipo diferente troca; clicar no
- * mesmo remove. O clique pinta na hora (cache do React Query + store do card) e só depois
- * fala com o servidor; a falha devolve o que estava antes e avisa.
+ * Janela curta contra duplo toque. Fica fora do React de propósito: as duas instâncias do hook
+ * (a barra do post e as pílulas do resumo) precisam enxergar a mesma janela.
  */
-export function usePostReaction(postId: string): UsePostReactionResult {
+const RAPID_CLICK_WINDOW_MS = 200;
+const lastSentAt = new Map<string, number>();
+const inFlight = new Set<string>();
+
+/** Só para teste: zera a janela entre casos (o estado do módulo sobrevive a cada um). */
+export function resetReactionGuards(): void {
+  lastSentAt.clear();
+  inFlight.clear();
+}
+
+/**
+ * Alterna a reação do post: clicar no tipo atual remove, clicar em outro troca, clicar sem reação
+ * adiciona.
+ *
+ * <p>A ordem importa: o estado otimista é enfeite, a requisição é o que vale. Por isso a
+ * atualização do cache roda dentro de um try/catch próprio — se ela falhar (cache parcial, campo
+ * ausente), a chamada ao servidor acontece do mesmo jeito. Antes, uma exceção no otimismo abortava
+ * a mutação antes do `fetch`, e a pessoa via "não foi possível reagir" sem nenhuma requisição sair
+ * do navegador.</p>
+ */
+export function usePostReaction(postId: string, post: PostView): UsePostReactionResult {
   const queryClient = useQueryClient();
   const { requireAuth, user } = useAuth();
   const { toast } = useToast();
-  const card = usePostCardStore((state) => state.cards[postId]);
-  const setReactionStatus = usePostCardStore((state) => state.setReactionStatus);
-  const setPostCounters = usePostCardStore((state) => state.setPostCounters);
   const setReactionPending = usePostCardStore((state) => state.setReactionPending);
+  const [isPending, setIsPending] = useState(false);
 
-  const reactionStatus = card?.reactionStatus ?? null;
+  const reactionStatus = post.currentUserReaction ?? null;
   const queryKey = reactionsQueryOptions(postId).queryKey;
 
-  const mutation = useMutation({
-    mutationFn: ({ type, remove }: ReactionVariables) =>
-      remove ? reactionsApi.removeReaction(postId) : reactionsApi.react(postId, type),
-    onMutate: async ({ type, remove }) => {
-      // Cancela leituras em andamento para uma resposta antiga não sobrescrever o otimismo.
-      await queryClient.cancelQueries({ queryKey });
+  const currentPost = (): PostView => queryClient.getQueryData<PostView>(["post", postId]) ?? post;
 
-      const previousSummary = queryClient.getQueryData<ReactionsListResponse>(queryKey);
-      const previousReaction = reactionStatus;
-      const previousCounters = card?.postCounters ?? null;
+  const toggle = async (type: ReactionType) => {
+    if (!requireAuth()) return;
+    const now = Date.now();
+    if (inFlight.has(postId)) return;
+    const previous = lastSentAt.get(postId);
+    // Relógio para trás (troca de fuso, teste, aba suspensa) não pode travar o botão.
+    if (previous !== undefined && now >= previous && now - previous < RAPID_CLICK_WINDOW_MS) return;
+    if (lastSentAt.size > 500) lastSentAt.clear();
+    inFlight.add(postId);
+    lastSentAt.set(postId, now);
+    setIsPending(true);
+    setReactionPending(postId, true);
 
-      setReactionPending(postId, true);
-      setReactionStatus(postId, remove ? null : type);
+    const before = currentPost();
+    const mine = before.currentUserReaction ?? null;
+    const remove = mine !== null && mine === type;
+    const previousSummary = queryClient.getQueryData<ReactionsListResponse>(queryKey);
 
-      // Contagem total otimista: trocar de tipo não muda o total; reagir soma; remover subtrai.
-      if (previousCounters) {
-        const delta = remove ? -1 : previousReaction && previousReaction !== type ? 0 : 1;
-        setPostCounters(postId, {
-          ...previousCounters,
-          reactions: Math.max(0, previousCounters.reactions + delta),
-        });
-      }
-
-      // A lista do diálogo recebe a minha entrada na hora; o refetch do fim troca pela do servidor.
+    // Otimismo é melhor esforço: qualquer falha aqui é descartada sem impedir a requisição.
+    try {
+      updatePostInQueryCache(queryClient, postId, (current) => {
+        const baseSummary = current.reactionSummary ?? {};
+        const withoutMine =
+          mine && mine !== type ? removeReactionFromSummary(baseSummary, mine) : baseSummary;
+        return {
+          ...current,
+          currentUserReaction: remove ? null : type,
+          counters: {
+            ...current.counters,
+            reactions: Math.max(
+              0,
+              (current.counters?.reactions ?? 0) + (remove ? -1 : mine && mine !== type ? 0 : 1),
+            ),
+          },
+          reactionSummary: remove
+            ? removeReactionFromSummary(baseSummary, mine ?? type)
+            : applyReactionToSummary(withoutMine, type),
+        };
+      });
       queryClient.setQueryData<ReactionsListResponse>(queryKey, (current) => {
-        // Sem cache (o card leu o resumo do próprio post), parte das contagens do feed, não de zero.
         const base = current ?? {
-          summary: card?.reactionSummary ?? {},
+          summary: post.reactionSummary ?? {},
           reactions: [],
           partial: true,
         };
         const myId = user?.id;
         const others = myId ? base.reactions.filter((r) => r.userId !== myId) : base.reactions;
         const withoutMine =
-          previousReaction && previousReaction !== type
-            ? removeReactionFromSummary(base.summary, previousReaction)
-            : base.summary;
-        const summary = remove
-          ? removeReactionFromSummary(base.summary, previousReaction ?? type)
-          : applyReactionToSummary(withoutMine, type);
-        const reactions =
-          myId && !remove
-            ? [{ userId: myId, type, createdAt: new Date().toISOString() }, ...others]
-            : others;
-
-        return { ...base, summary, reactions };
+          mine && mine !== type ? removeReactionFromSummary(base.summary, mine) : base.summary;
+        return {
+          ...base,
+          summary: remove
+            ? removeReactionFromSummary(base.summary, mine ?? type)
+            : applyReactionToSummary(withoutMine, type),
+          reactions:
+            myId && !remove
+              ? [{ userId: myId, type, createdAt: new Date().toISOString() }, ...others]
+              : others,
+        };
       });
+    } catch {
+      // Cache em formato inesperado não pode derrubar a ação.
+    }
 
-      return { previousSummary, previousReaction, previousCounters };
-    },
-    onError: (error, _variables, context) => {
-      // Desfaz o otimismo e explica. 403 é PERMISSÃO (não derruba a sessão); 401 já é tratado
-      // pelo api-client (renova o token ou manda para o login).
-      if (context) {
-        if (context.previousSummary !== undefined) {
-          queryClient.setQueryData(queryKey, context.previousSummary);
+    try {
+      const result = remove
+        ? await reactionsApi.removeReaction(postId)
+        : await reactionsApi.react(postId, type);
+      if (result && "counters" in result && result.counters) {
+        try {
+          updatePostInQueryCache(queryClient, postId, (current) => ({
+            ...current,
+            counters: result.counters ?? current.counters,
+          }));
+        } catch {
+          // Idem: a resposta do servidor já é a verdade; o cache se corrige no refetch.
+        }
+      }
+    } catch (error) {
+      // Desfaz o que foi pintado e explica o que de fato aconteceu.
+      try {
+        if (previousSummary !== undefined) {
+          queryClient.setQueryData(queryKey, previousSummary);
         } else {
-          // Sem cache anterior não há o que restaurar: remove para a reação otimista não ficar
-          // "fantasma" no resumo até o próximo refetch.
           queryClient.removeQueries({ queryKey });
         }
-
-        setReactionStatus(postId, context.previousReaction);
-
-        if (context.previousCounters) setPostCounters(postId, context.previousCounters);
+        updatePostInQueryCache(queryClient, postId, (current) => ({
+          ...current,
+          currentUserReaction: before.currentUserReaction ?? null,
+          counters: before.counters ?? current.counters,
+        }));
+      } catch {
+        // Sem cache para restaurar: o refetch abaixo alinha com o servidor.
       }
-
-      if (error instanceof ApiError && error.status === 403) {
-        toast(texts.posts.reactions.permissionError, "error");
-      } else if (!(error instanceof ApiError && error.status === 401)) {
-        // 401 já é tratado pelo api-client (renova o token ou redireciona para o login): um toast
-        // genérico aqui só duplicaria o feedback (o api-client é o dono do 401).
-        toast(texts.posts.reactions.error, "error");
-      }
-    },
-    onSuccess: (result) => {
-      // A resposta traz as contagens exatas do servidor — melhor que o palpite otimista.
-      if (result && "counters" in result && result.counters) {
-        setPostCounters(postId, result.counters);
-      }
-    },
-    onSettled: () => {
-      // Uma única revalidação no fim: o cache volta a refletir o servidor (some a entrada otimista).
-      queryClient.invalidateQueries({ queryKey });
+      toast(messageFor(error), "error");
+    } finally {
+      // Revalidação única, DEPOIS da resposta do servidor — inclusive no sucesso: o resumo e a
+      // lista passam a refletir o que o servidor gravou, e o otimismo não fica valendo sozinho.
+      inFlight.delete(postId);
+      setIsPending(false);
       setReactionPending(postId, false);
-    },
-  });
-
-  const toggle = (type: ReactionType) => {
-    if (!requireAuth()) return;
-    // O hook roda em DUAS instâncias por post (PostActions e ReactionsSummary) e
-    // `mutation.isPending` só enxerga a própria instância. Consultamos também o flag
-    // compartilhado do store (getState lê o valor mais fresco, sem depender do re-render) para
-    // não disparar duas mutações concorrentes no mesmo post.
-    if (mutation.isPending || usePostCardStore.getState().cards[postId]?.reactionPending) return;
-    mutation.mutate({ type, remove: reactionStatus === type });
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["post", postId] });
+    }
   };
 
-  return { toggle, isPending: mutation.isPending, reactionStatus };
+  return { toggle: (type) => void toggle(type), isPending, reactionStatus };
+}
+
+/** Uma frase por motivo real: recusa de permissão, limite, sessão, rede ou falha desconhecida. */
+function messageFor(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) return texts.posts.reactions.restrictedError;
+    if (error.status === 429) return texts.posts.reactions.rateLimitError;
+    if (error.status === 401) return texts.posts.reactions.sessionError;
+    if (error.status === 0) return texts.posts.reactions.networkError;
+  }
+  return texts.posts.reactions.error;
 }

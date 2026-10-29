@@ -2,12 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { EmptyState, LoadingState } from "@rede-enois/design-system/ui";
 import { FolderKanban } from "lucide-react";
 
 import { communityProjectsApi } from "@/lib/api";
-
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
 
 import { AppContainer } from "@/components/app-container";
 

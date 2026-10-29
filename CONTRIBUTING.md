@@ -16,13 +16,16 @@ issue — o canal está no [`SECURITY.md`](SECURITY.md).
 git fetch upstream && git checkout -b feat/minha-mudanca upstream/main
 ```
 
-A PR é sempre contra `main`, nunca contra `develop` ou outra branch. Uma PR com o histórico inteiro do
-fork (centenas de commits e arquivos) não é revisável: ninguém consegue saber o que mudou de fato.
-Parta sempre de `upstream/main`.
+A PR é sempre contra `qa`: o fluxo é `feature` → `qa` → `main` (o merge `qa` → `main` acontece
+depois que a mudança é validada na qa). Uma PR com o histórico inteiro do fork (centenas de commits
+e arquivos) não é revisável: ninguém consegue saber o que mudou de fato. Parta sempre da `qa`
+atualizada (`upstream/qa`).
 
 ## Rodando
 
 ```bash
+# Required: a GitHub token with read:packages (see "npm install requires a GitHub token" in the README)
+export NODE_AUTH_TOKEN=ghp_your_token
 npm install
 npm run dev
 ```
@@ -38,6 +41,17 @@ npm run typecheck    # tsc --noEmit
 npx vitest run       # testes de lógica pura
 npm run build        # build de produção
 ```
+
+### Cliente OpenAPI
+
+O contrato usado pelo Orval fica em `specs/openapi.json` como um ponto de partida local. Os arquivos
+gerados em `src/lib/api/generated/` e `src/types/generated/` não são versionados. Com o backend
+rodando, `npm run generate:api` busca `GET /api/openapi.json`, valida que o documento tem pelo menos
+um caminho e só então gera o cliente Zod. Se o backend estiver indisponível ou o contrato estiver
+vazio, o comando falha para não produzir um cliente falso.
+
+`npm run generate:api:watch` observa apenas o contrato já salvo e não faz chamadas ao backend; use-o
+depois de uma execução bem-sucedida de `npm run generate:api`.
 
 **Nada disso vê a tela.** Se a mudança aparece para quem usa, abra o navegador e olhe — e conte na PR
 o que você viu. Build verde com tela quebrada é o jeito mais fácil de publicar um bug.
@@ -103,3 +117,22 @@ Se você trabalha na mesma cópia do repositório que outra pessoa (ou outro age
 `eslint --fix`, `prettier --write` nem `git checkout` no repositório inteiro, e não commite arquivos
 que não são seus. Rode as ferramentas no arquivo que você tocou e olhe `git status` antes de
 `git add`.
+
+## Contribuições com IA
+
+Este projeto aceita e usa código escrito com ajuda de IA — com as mesmas regras de sempre e mais
+algumas próprias:
+
+1. **Declare o uso.** Mencione na PR que a mudança foi feita com auxílio de IA e qual ferramenta.
+2. **Quem submete responde pelo código.** Entenda cada linha antes de abrir a PR; saída de IA colada
+   sem revisão é a forma mais rápida de introduzir regressão sutil.
+3. **Prova, não promessa.** "Deveria funcionar" não é verificação: rode lint, typecheck, testes e
+   build, e descreva o resultado na PR.
+4. **Zero slop.** Sem comentário narrando o óbvio, sem arquivo gerado em massa, sem dependência nova
+   sem justificativa, sem refatoração que a tarefa não pediu.
+5. **Segurança vem primeiro.** As regras do [`AGENTS.md`](AGENTS.md) valem integralmente — em
+   especial: mensagem de commit neutra, nenhum detalhe de correção de segurança no texto público,
+   nenhum segredo ou dado pessoal em qualquer artefato.
+6. **Revisão humana antes do merge continua sendo a regra**, com aprovação de quem não empurrou.
+
+O contrato completo para agentes está no [`AGENTS.md`](AGENTS.md).

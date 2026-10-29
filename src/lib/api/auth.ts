@@ -53,11 +53,12 @@ export const authApi = {
   /** Estado do segundo fator e da verificação da conta. */
   twoFactorStatus: () => api.get<TwoFactorStatus>("/auth/2fa/status"),
 
-  /** Inicia a configuração do aplicativo authenticator. */
-  startTotpSetup: () => api.post<TotpSetup>("/auth/2fa/totp/setup"),
+  /** Inicia a configuração do aplicativo authenticator (exige a senha atual). */
+  startTotpSetup: (password: string) => api.post<TotpSetup>("/auth/2fa/totp/setup", { password }),
 
   /** Confirma o código do app e devolve os códigos de recuperação. */
-  enableTotp: (code: string) => api.post<TwoFactorEnableResult>("/auth/2fa/totp/enable", { code }),
+  enableTotp: (code: string, password: string) =>
+    api.post<TwoFactorEnableResult>("/auth/2fa/totp/enable", { code, password }),
 
   disableTotp: (password: string) =>
     api.post<StatusResponse>("/auth/2fa/totp/disable", { password }),
@@ -69,8 +70,6 @@ export const authApi = {
 
   disableEmailOtp: (password: string) =>
     api.post<StatusResponse>("/auth/2fa/email/disable", { password }),
-
-  refresh: (refreshToken: string) => api.post<AuthResponse>("/auth/refresh", { refreshToken }),
 
   logout: () => api.post<void>("/auth/logout"),
 
@@ -99,6 +98,10 @@ export const authApi = {
   /** Inicia a vinculação do provedor à conta logada (o callback conclui). */
   oauthLinkStart: (provider: OAuthStartResponse["provider"]) =>
     api.post<OAuthStartResponse>(`/auth/oauth/${provider.toLowerCase()}/link`),
+
+  /** Vínculo com escrita (GitHub `repo`): revisar PRs/responder issues em nome da pessoa. */
+  oauthWriteLinkStart: (provider: OAuthStartResponse["provider"]) =>
+    api.post<OAuthStartResponse>(`/auth/oauth/${provider.toLowerCase()}/write-link`),
 
   oauthUnlink: (provider: string) =>
     api.delete<StatusResponse>(`/auth/oauth/${provider.toLowerCase()}/link`),

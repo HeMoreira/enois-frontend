@@ -4,16 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { Button, EmptyState, LoadingState, Textarea, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
 
 import { sanctionsApi } from "@/lib/api";
+import { formatarData } from "@/lib/date/format";
 import { requireAuth } from "@/lib/require-auth";
-
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 
@@ -24,7 +20,7 @@ export const Route = createFileRoute("/penalidades")({
 });
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", {
+  return formatarData(value, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -54,6 +50,7 @@ function Penalidades() {
   const sanctions = data?.sanctions ?? [];
   const appeals = data?.appeals ?? [];
   const active = sanctions.find((s) => s.status === "ACTIVE" && s.type === "RESTRICTION");
+  const suspended = sanctions.find((s) => s.status === "ACTIVE" && s.type === "SUSPENDED");
   const banned = sanctions.find((s) => s.status === "ACTIVE" && s.type === "BAN");
   const pendingAppeal = appeals.find((a) => a.status === "PENDING");
 
@@ -81,10 +78,16 @@ function Penalidades() {
           </div>
         )}
 
-        {active && !pendingAppeal && (
+        {suspended && (
+          <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+            {texts.sanctions.suspendedNotice}
+          </div>
+        )}
+
+        {(active ?? suspended) && !pendingAppeal && (
           <div className="space-y-3 rounded-2xl border border-border-soft bg-surface-card p-4">
             <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-              {texts.sanctions.restrictedNotice}
+              {suspended ? texts.sanctions.suspendedNotice : texts.sanctions.restrictedNotice}
             </p>
 
             <h2 className="text-sm font-semibold">{texts.sanctions.appealTitle}</h2>
@@ -109,7 +112,7 @@ function Penalidades() {
           </div>
         )}
 
-        {active && pendingAppeal && (
+        {(active ?? suspended) && pendingAppeal && (
           <div className="rounded-2xl border border-border-soft bg-surface-card p-4 text-sm text-amber-700 dark:text-amber-400">
             {texts.sanctions.appealPending}
           </div>

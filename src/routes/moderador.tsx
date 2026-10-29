@@ -10,6 +10,16 @@ import type { SanctionProposalDecision } from "@/types/application/moderation/sa
 import type { SanctionProposalView } from "@/types/application/moderation/sanction-proposal-view";
 import type { ModeratorTabId } from "@/types/routes/moderador/moderator-tab-id";
 import {
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  Input,
+  LoadingState,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
+import {
+  Activity,
   ArrowLeft,
   Bug,
   Check,
@@ -17,38 +27,42 @@ import {
   FolderKanban,
   Gamepad2,
   Gavel,
+  GitPullRequest,
   History,
   LifeBuoy,
   Mail,
+  Megaphone,
   Scale,
   ScanEye,
   Shield,
   ShieldAlert,
   ShieldCheck,
+  StickyNote,
   Trash2,
   UserCheck,
+  Users,
   X,
 } from "lucide-react";
 
 import { moderationApi } from "@/lib/api";
 import { reportsAdminApi } from "@/lib/api/reports-admin";
+import { dataHora } from "@/lib/date/format";
 import { requireAuth } from "@/lib/require-auth";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { AppealsSection } from "@/components/moderation/appeals-section";
+import { ContributionsSection } from "@/components/moderation/contributions-section";
+import { ContributorsSection } from "@/components/moderation/contributors-section";
 import { DisputesSection } from "@/components/moderation/disputes-section";
 import { EmailLogSection } from "@/components/moderation/email-log-section";
 import { GamesReviewSection } from "@/components/moderation/games-review-section";
+import { MonitoringSection } from "@/components/moderation/monitoring-section";
+import { NotesSection } from "@/components/moderation/notes-section";
+import { NoticesSection } from "@/components/moderation/notices-section";
+import { PanicModeSection } from "@/components/moderation/panic-mode-section";
 import { ProjectsReviewSection } from "@/components/moderation/projects-review-section";
+import { PullRequestsSection } from "@/components/moderation/pull-requests-section";
 import { SupportTicketsSection } from "@/components/moderation/support-tickets-section";
 import { SuspiciousPostsSection } from "@/components/moderation/suspicious-posts-section";
 import { SuspiciousUsersSection } from "@/components/moderation/suspicious-users-section";
@@ -64,11 +78,13 @@ const ALL_TABS: { id: ModeratorTabId; label: string; icon: typeof Flag; adminOnl
   { id: "reports", label: texts.moderator.tabs.reports, icon: Flag, adminOnly: false },
   { id: "games", label: texts.moderator.tabs.games, icon: Gamepad2, adminOnly: false },
   { id: "projects", label: texts.moderator.tabs.projects, icon: FolderKanban, adminOnly: false },
-  { id: "support", label: texts.moderator.tabs.support, icon: LifeBuoy, adminOnly: true },
-  { id: "issues", label: texts.moderator.tabs.issues, icon: Bug, adminOnly: true },
-  { id: "history", label: texts.moderator.tabs.history, icon: History, adminOnly: true },
-  { id: "appeals", label: texts.moderator.tabs.appeals, icon: ShieldAlert, adminOnly: true },
-  { id: "disputes", label: texts.moderator.tabs.disputes, icon: Scale, adminOnly: true },
+  { id: "support", label: texts.moderator.tabs.support, icon: LifeBuoy, adminOnly: false },
+  { id: "issues", label: texts.moderator.tabs.issues, icon: Bug, adminOnly: false },
+  { id: "pulls", label: texts.moderator.tabs.pulls, icon: GitPullRequest, adminOnly: false },
+  { id: "notes", label: texts.moderator.tabs.notes, icon: StickyNote, adminOnly: false },
+  { id: "history", label: texts.moderator.tabs.history, icon: History, adminOnly: false },
+  { id: "appeals", label: texts.moderator.tabs.appeals, icon: ShieldAlert, adminOnly: false },
+  { id: "disputes", label: texts.moderator.tabs.disputes, icon: Scale, adminOnly: false },
   {
     id: "applications",
     label: texts.moderator.tabs.applications,
@@ -78,6 +94,12 @@ const ALL_TABS: { id: ModeratorTabId; label: string; icon: typeof Flag; adminOnl
   { id: "users", label: texts.moderator.tabs.users, icon: Gavel, adminOnly: false },
   // Triagem de contas em série é trabalho do time inteiro (decisão da dona): qualquer moderador
   // aprovado vê a fila e pode banir em lote.
+  {
+    id: "notices",
+    label: texts.moderator.tabs.notices,
+    icon: Megaphone,
+    adminOnly: true,
+  },
   {
     id: "suspicious",
     label: texts.moderator.tabs.suspicious,
@@ -91,15 +113,34 @@ const ALL_TABS: { id: ModeratorTabId; label: string; icon: typeof Flag; adminOnl
     icon: Trash2,
     adminOnly: false,
   },
-  { id: "emails", label: texts.moderator.tabs.emails, icon: Mail, adminOnly: true },
+  { id: "emails", label: texts.moderator.tabs.emails, icon: Mail, adminOnly: false },
+  {
+    id: "monitoring",
+    label: texts.moderator.tabs.monitoring,
+    icon: Activity,
+    adminOnly: false,
+  },
+  {
+    id: "contributors",
+    label: texts.moderator.tabs.contributors,
+    icon: Users,
+    adminOnly: true,
+  },
+  {
+    id: "githubContributions",
+    label: texts.moderator.tabs.githubContributions,
+    icon: GitPullRequest,
+    adminOnly: true,
+  },
 ];
 
 /**
  * Painel de moderador.
  *
  * - Sem papel: mostra a credibilidade e, se elegível (>= 200), o formulário de candidatura.
- * - Moderador aprovado: denúncias e fila de jogos.
- * - Admin: todas as filas, candidaturas, punição direta e log de e-mails.
+ * - Moderador aprovado: todas as filas do painel (denúncias, jogos, suporte e histórico,
+ *   recursos, disputas, usuários, contas suspostas, e-mails e monitoramento).
+ * - Admin: o mesmo, mais as candidaturas e a gestão de moderadores.
  *
  * Quem decide o papel é o backend; esta tela só reflete `/moderation/me`.
  */
@@ -176,45 +217,58 @@ function Moderador() {
           <p className="text-sm text-muted-foreground">{texts.moderator.description}</p>
         </header>
 
+        {me.admin && <PanicModeSection />}
+
         {canModerate ? (
           <div className="space-y-4">
-            <div className="flex gap-1 overflow-x-auto pb-1" role="tablist">
-              {visibleTabs.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === item.id}
-                  onClick={() => setTab(item.id)}
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition",
-                    activeTab === item.id
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border-soft text-text-subtle hover:border-primary/50 hover:text-primary",
-                  )}
-                >
-                  <item.icon className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2" role="tablist">
+              <select
+                value={activeTab}
+                onChange={(event) => setTab(event.target.value as ModeratorTabId)}
+                aria-label={texts.moderator.tabSelector}
+                className="h-9 w-full max-w-72 rounded-lg border border-border-soft bg-surface-card px-3 text-sm text-text-strong sm:w-auto sm:flex-1"
+              >
+                {visibleTabs.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
 
-                  <>{item.label}</>
-                </button>
-              ))}
+              <div
+                className={cn(
+                  "hidden h-9 items-center gap-1.5 rounded-lg px-3 text-xs sm:flex",
+                  "bg-surface-2 text-text-subtle",
+                )}
+              >
+                {(() => {
+                  const Current = visibleTabs.find((item) => item.id === activeTab)?.icon;
+                  return Current ? <Current className="h-4 w-4 text-primary" /> : null;
+                })()}
+              </div>
             </div>
 
             {activeTab === "reports" && <ReportsSection admin={me.admin} />}
             {activeTab === "games" && <GamesReviewSection />}
             {activeTab === "projects" && <ProjectsReviewSection />}
-            {me.admin && activeTab === "support" && <SupportTicketsSection mode="active" />}
-            {me.admin && activeTab === "issues" && (
+            {canModerate && activeTab === "support" && <SupportTicketsSection mode="active" />}
+            {canModerate && activeTab === "issues" && (
               <SupportTicketsSection lockedCategory="BUG" mode="active" />
             )}
-            {me.admin && activeTab === "history" && <SupportTicketsSection mode="history" />}
-            {me.admin && activeTab === "appeals" && <AppealsSection />}
-            {me.admin && activeTab === "disputes" && <DisputesSection />}
+            {canModerate && activeTab === "history" && <SupportTicketsSection mode="history" />}
+            {canModerate && activeTab === "appeals" && <AppealsSection />}
+            {canModerate && activeTab === "disputes" && <DisputesSection />}
             {me.admin && activeTab === "applications" && <ApplicationsSection />}
             {activeTab === "users" && <SanctionSection me={me} />}
             {canModerate && activeTab === "suspicious" && <SuspiciousUsersSection />}
             {canModerate && activeTab === "suspiciousPosts" && <SuspiciousPostsSection />}
-            {me.admin && activeTab === "emails" && <EmailLogSection />}
+            {canModerate && activeTab === "emails" && <EmailLogSection />}
+            {canModerate && activeTab === "monitoring" && <MonitoringSection />}
+            {me.admin && activeTab === "contributors" && <ContributorsSection />}
+            {me.admin && activeTab === "githubContributions" && <ContributionsSection />}
+            {canModerate && activeTab === "pulls" && <PullRequestsSection />}
+            {canModerate && activeTab === "notes" && <NotesSection />}
+            {me.admin && activeTab === "notices" && <NoticesSection />}
           </div>
         ) : (
           <ApplicationSection me={me} />
@@ -526,7 +580,7 @@ function ReportsSection({ admin }: { admin: boolean }) {
                       {texts.moderator.reports.targets[report.targetType] ?? report.targetType}
                     </span>
 
-                    <span>{new Date(report.createdAt).toLocaleString("pt-BR")}</span>
+                    <span>{dataHora(report.createdAt)}</span>
                   </div>
 
                   <div className="grid gap-1 text-sm sm:grid-cols-2">
@@ -696,6 +750,110 @@ function ReportsSection({ admin }: { admin: boolean }) {
   );
 }
 
+function AdminsSection({ onChanged }: { onChanged: () => void }) {
+  const { toast } = useToast();
+  const [username, setUsername] = useState("");
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const { data: admins, isLoading } = useQuery({
+    queryKey: ["moderator", "admins"],
+    queryFn: () => moderationApi.admins(),
+    retry: false,
+  });
+
+  const promover = useMutation({
+    mutationFn: () => moderationApi.promoteAdmin(username.trim()),
+    onSuccess: (_result, _vars) => {
+      toast(texts.moderator.admin.adminsPromoted(username.trim()), "success");
+      setUsername("");
+      onChanged();
+    },
+    onError: () => toast(texts.moderator.admin.adminsRevokeError, "error"),
+  });
+
+  const revogar = useMutation({
+    mutationFn: (target: string) => moderationApi.revokeAdmin(target),
+    onSuccess: () => {
+      setRevoking(null);
+      onChanged();
+    },
+    onError: () => {
+      setRevoking(null);
+      toast(texts.moderator.admin.adminsRevokeError, "error");
+    },
+  });
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-text-subtle">
+        {texts.moderator.admin.adminsTitle}
+      </h2>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder={texts.moderator.admin.adminsAddPlaceholder}
+          aria-label={texts.moderator.admin.adminsAddLabel}
+          className="max-w-xs"
+        />
+
+        <Button
+          size="sm"
+          disabled={promover.isPending || username.trim().length === 0}
+          onClick={() => promover.mutate()}
+        >
+          {texts.moderator.admin.adminsAdd}
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <LoadingState />
+      ) : (admins?.length ?? 0) === 0 ? (
+        <p className="rounded-2xl border border-border-soft bg-surface-card p-4 text-sm text-text-subtle">
+          {texts.moderator.admin.adminsEmpty}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {admins!.map((admin) => (
+            <li
+              key={admin.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border-soft bg-surface-card p-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm text-text-strong">{admin.name ?? admin.username}</p>
+
+                <p className="truncate text-xs text-text-subtle">@{admin.username}</p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="destructive"
+                className="rounded-full"
+                disabled={revogar.isPending}
+                onClick={() => setRevoking(admin.username)}
+              >
+                {texts.moderator.admin.adminsRevoke}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ConfirmDialog
+        open={revoking !== null}
+        onOpenChange={(open) => !open && setRevoking(null)}
+        title={texts.moderator.admin.adminsRevokeTitle}
+        description={texts.moderator.admin.adminsRevokeBody(revoking ?? "")}
+        confirmLabel={texts.moderator.admin.adminsRevoke}
+        destructive
+        pending={revogar.isPending}
+        onConfirm={() => revoking && revogar.mutate(revoking)}
+      />
+    </section>
+  );
+}
+
 function ApplicationsSection() {
   const queryClient = useQueryClient();
 
@@ -719,6 +877,7 @@ function ApplicationsSection() {
 
   return (
     <div className="space-y-5">
+      <AdminsSection onChanged={invalidate} />
       <AddModeratorForm onChanged={invalidate} />
 
       <section className="space-y-3">
@@ -799,7 +958,7 @@ function ApplicationCard({
         </span>
         {application.username && <span> (@{application.username})</span>}
         {" · "}
-        {new Date(application.createdAt).toLocaleString("pt-BR")}
+        {dataHora(application.createdAt)}
       </p>
 
       <div>
@@ -994,7 +1153,7 @@ function SanctionSection({ me }: { me: ModeratorMeView }) {
 
   return (
     <div className="space-y-4">
-      {me.admin && <DirectSanctionForm />}
+      {(me.moderator || me.admin) && <DirectSanctionForm />}
 
       {me.moderator &&
         (votingEnabled ? (

@@ -26,6 +26,13 @@ const routeDefinitions = [
   { source: "grupos", to: "/grupos/$slug", params: ["slug"] },
   // Notificações de moderação ("Abrir painel") e de jogo ("Ver") apontam para estas rotas.
   { source: "moderador", to: "/moderador" },
+  // Marketplace: o pedido de desculpa de uma comunidade banida por engano.
+  { source: "marketplace", to: "/marketplace" },
+  // Seguranca: novo dispositivo e 2FA redefinido. O backend manda "/seguranca" e
+  // "/configuracoes/seguranca" — sem estas entradas o clique na notificacao era MUdo (a pessoa
+  // tocava e nada acontecia).
+  { source: "seguranca", to: "/seguranca" },
+  { source: "configuracoes", to: "/seguranca" },
   { source: "suporte", to: "/suporte" },
   { source: "diretrizes", to: "/diretrizes" },
   { source: "carteira", to: "/carteira" },

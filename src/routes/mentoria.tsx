@@ -7,31 +7,31 @@ import { texts } from "@/texts";
 import type { CreateMentorInput } from "@/types/application/mentor/create-mentor-input";
 import type { MentorCardProps } from "@/types/routes/mentoring/mentor-card-props";
 import type { RegisterMentorFormProps } from "@/types/routes/mentoring/register-mentor-form-props";
-import { Calendar, CheckCircle2, Image as ImageIcon, Sparkles, Star, Trash2 } from "lucide-react";
-
-import { ApiError, mentorsApi, profileApi } from "@/lib/api";
-import { resolveCdnUrl } from "@/lib/api/media";
-import { useCurrentUser } from "@/lib/current-user";
-import { requireAuth } from "@/lib/require-auth";
-import { useMediaUpload } from "@/lib/use-media-upload";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@rede-enois/design-system/domain";
+import { ListRowSkeletons } from "@rede-enois/design-system/patterns";
 import {
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  EmptyState,
+  Input,
+  Label,
+  Textarea,
+} from "@rede-enois/design-system/ui";
+import { Calendar, CheckCircle2, Image as ImageIcon, Sparkles, Star, Trash2 } from "lucide-react";
+
+import { ApiError, mentorsApi, profileApi } from "@/lib/api";
+import { resolveCdnUrl } from "@/lib/api/media";
+import { useCurrentUser } from "@/lib/current-user";
+import { formatarData } from "@/lib/date/format";
+import { requireAuth } from "@/lib/require-auth";
+import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
-import { ListRowSkeletons } from "@/components/skeletons/list-row-skeletons";
-import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/mentoria")({
   head: () => ({ meta: [{ title: texts.mentoring.seoTitle }] }),
@@ -238,6 +238,7 @@ function RegisterMentorForm({
               onClick={() => setBanner("")}
               className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-background/90 text-destructive shadow"
               aria-label={texts.mentoring.bannerRemove}
+              title={texts.mentoring.bannerRemove}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -772,7 +773,7 @@ function formatSlot(value: string | null): string {
   if (!value) return texts.mentoring.noSlot;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return texts.mentoring.noSlot;
-  return date.toLocaleString("pt-BR", {
+  return formatarData(date, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

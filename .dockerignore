@@ -1,0 +1,11 @@
+# Não manda segredo, histórico nem artefato local para o contexto de build (E-17).
+.git
+.gitignore
+.env
+.env.*
+node_modules
+.output
+.vercel
+coverage
+*.log
+.DS_Store

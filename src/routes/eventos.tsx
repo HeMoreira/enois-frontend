@@ -9,27 +9,27 @@ import type { CreateEventRequest } from "@/types/application/event/create-event-
 import type { Event } from "@/types/application/event/event";
 import type { CreateEventFormProps } from "@/types/routes/events/create-event-form-props";
 import type { FieldProps } from "@/types/routes/events/field-props";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  Label,
+  PageHeader,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import { Calendar, Check, ImagePlus, MapPin, Plus, Users, Video, X } from "lucide-react";
 
 import { eventsApi } from "@/lib/api";
 import { ApiError } from "@/lib/api-client";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
+import { safeHref } from "@/lib/safe-url";
 import { useMediaUpload } from "@/lib/use-media-upload";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/ui/page-header";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 
@@ -261,7 +261,7 @@ function Eventos() {
 
                   {e.streamUrl && !e.expired && (
                     <a
-                      href={e.streamUrl}
+                      href={safeHref(e.streamUrl) ?? undefined}
                       target="_blank"
                       rel="noreferrer"
                       className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
@@ -345,8 +345,11 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
   return (
     <div className="space-y-4 pt-2">
       <Field label={texts.events.form.title}>
+        {/* O limite e o mesmo da coluna (`events.title varchar(255)`) e que a API recusa com 400
+            dizendo o campo: sem ele no campo, a pessoa tomava 409 sem entender o motivo. */}
         <Input
           value={title}
+          maxLength={255}
           onChange={(e) => setTitle(e.target.value)}
           className="h-10 border-transparent bg-muted"
         />
@@ -391,6 +394,7 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
                 type="button"
                 onClick={() => setCover(null)}
                 aria-label={texts.events.form.removeCover}
+                title={texts.events.form.removeCover}
                 className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-card/85 text-text-strong shadow transition hover:bg-card"
               >
                 <X className="h-3.5 w-3.5" />

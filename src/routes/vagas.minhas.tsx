@@ -5,6 +5,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { Job } from "@/types/application/job/job";
+import { Button, ConfirmDialog, useToast } from "@rede-enois/design-system/ui";
 import {
   ArrowLeft,
   Briefcase,
@@ -19,10 +20,7 @@ import {
 import { ApiError, jobsApi } from "@/lib/api";
 import { applicationStatusLabel, statusTone } from "@/lib/job-application-status";
 import { requireAuth } from "@/lib/require-auth";
-
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useToast } from "@/components/ui/toast";
+import { safeHref } from "@/lib/safe-url";
 
 import { AppContainer } from "@/components/app-container";
 import { JobEditDialog } from "@/components/job-edit-dialog";
@@ -235,7 +233,7 @@ function MyJobs() {
 
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <a
-                          href={job.sourceUrl ?? "#"}
+                          href={safeHref(job.sourceUrl) ?? "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border-soft px-3 text-sm font-medium transition hover:bg-muted"

@@ -5,6 +5,8 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { GameView } from "@/types/application/games/game-view";
+import { GameIcon } from "@rede-enois/design-system/domain";
+import { Button, Input, Textarea, useToast } from "@rede-enois/design-system/ui";
 import { BarChart3, Newspaper, Pencil, X } from "lucide-react";
 
 import { gamesApi } from "@/lib/api";
@@ -12,13 +14,7 @@ import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
-import { GameIcon } from "@/components/game-icon";
 import { GameAnalyticsCard } from "@/components/games/game-analytics-card";
 import { GameEditorDialog } from "@/components/games/game-editor-dialog";
 import { GameUpdateDialog } from "@/components/games/game-update-dialog";
@@ -133,6 +129,7 @@ function StudioPanel() {
                 <button
                   type="button"
                   aria-label={texts.games.panel.removeAvatar}
+                  title={texts.games.panel.removeAvatar}
                   onClick={() => setAvatar(null)}
                   className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-destructive text-destructive-foreground"
                 >
@@ -173,6 +170,7 @@ function StudioPanel() {
                 <button
                   type="button"
                   aria-label={texts.games.panel.removeCover}
+                  title={texts.games.panel.removeCover}
                   onClick={() => setCover(null)}
                   className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-destructive text-destructive-foreground"
                 >

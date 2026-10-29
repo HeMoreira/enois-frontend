@@ -11,4 +11,10 @@ export type ModeratorTabId =
   | "users"
   | "suspicious"
   | "suspiciousPosts"
-  | "emails";
+  | "emails"
+  | "monitoring"
+  | "contributors"
+  | "githubContributions"
+  | "pulls"
+  | "notes"
+  | "notices";

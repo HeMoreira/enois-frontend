@@ -1,3 +1,5 @@
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
+
 import type { BlogPost } from "./blog-post";
 
 export type Blog = {
@@ -11,6 +13,8 @@ export type Blog = {
   authorUsername: string;
   authorAvatar: string | null;
   authorBadge: string | null;
+  /** Personalização do nome do autor (tema/fonte/cor). */
+  authorStyle?: AuthorNameStyle | null;
   /** Todos os emblemas do autor (até 5), junto ao nome no cabeçalho. */
   authorBadges?: string[] | null;
   posts: number;

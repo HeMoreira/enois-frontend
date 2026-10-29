@@ -2,8 +2,9 @@
  * Service worker do Énóis.
  *
  * Estratégia para não servir bundle antigo depois de um deploy:
- * - navegação: network-first **com `cache: "no-store"`** (HTML sempre fresco; o cache HTTP do
- *   navegador não pode segurar o index e forçar os assets antigos);
+ * - navegação: network-only **com `cache: "no-store"`**; sem rede cai na página offline. HTML
+ *   nunca é guardado: páginas logadas não podem ser servidas do cache (aparelho compartilhado,
+ *   sessão já encerrada) e cada HTML leva um nonce de CSP de uso único;
  * - estáticos (script/style/imagem/fonte): stale-while-revalidate — são versionados por hash no
  *   nome, então o cache não fica velho por muito tempo;
  * - API (/api e requisições não-GET): nunca passa pelo cache.
@@ -12,9 +13,8 @@
  * cliente recarrega sozinho quando o novo SW assume (ver src/lib/pwa.ts).
  */
 
-const VERSION = "enois-v7";
+const VERSION = "enois-v9";
 const STATIC_CACHE = `${VERSION}-static`;
-const PAGES_CACHE = `${VERSION}-pages`;
 
 const PRECACHE = [
   "/offline.html",
@@ -85,17 +85,28 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification.data?.url || "/notificacoes";
 
+  // O href que o backend manda na notificacao e um caminho de API ("/api/feed/posts/xxx"), e a
+  // rota do APP esta na tabela do front (src/utils/navigation.ts), que o service worker nao
+  // conhece. Navegar direto para o href abriria a API em vez do post. Entao o worker pergunta a
+  // aba: quem tem a tabela de rotas e traduz.
+  const ehCaminhoDeApi = url.startsWith("/api/");
+
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       // Se o app ja esta aberto, so foca e navega (evita abrir outra aba).
       for (const client of clients) {
         if ("focus" in client) {
           client.focus();
-          if ("navigate" in client) client.navigate(url).catch(() => {});
+          if (ehCaminhoDeApi && "postMessage" in client) {
+            client.postMessage({ type: "enois:navigate", href: url });
+          } else if ("navigate" in client) {
+            client.navigate(url).catch(() => {});
+          }
           return undefined;
         }
       }
-      return self.clients.openWindow(url);
+      // Sem aba aberta: o caminho de API nao abre nada de util — abre as notificacoes do app.
+      return self.clients.openWindow(ehCaminhoDeApi ? "/notificacoes" : url);
     }),
   );
 });
@@ -114,22 +125,15 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       // no-store: ignora o cache HTTP para o documento, garantindo o HTML do deploy atual.
-      fetch(request, { cache: "no-store" })
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(PAGES_CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() =>
-          caches
-            .match(request)
-            .then((cached) => cached || caches.match("/offline.html"))
-            .then(
-              (fallback) =>
-                fallback ||
-                new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } }),
-            ),
-        ),
+      fetch(request, { cache: "no-store" }).catch(() =>
+        caches
+          .match("/offline.html")
+          .then(
+            (fallback) =>
+              fallback ||
+              new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } }),
+          ),
+      ),
     );
     return;
   }

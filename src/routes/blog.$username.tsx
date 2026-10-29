@@ -2,22 +2,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { StyledName, UserAvatar, UserBadges } from "@rede-enois/design-system/domain";
+import { Button, useToast } from "@rede-enois/design-system/ui";
 import { ArrowLeft, PenLine, Plus, Rss } from "lucide-react";
 
 import { blogsApi } from "@/lib/api/blogs";
 import { resolveCdnUrl } from "@/lib/api/media";
+import { formatarData } from "@/lib/date/format";
 import { buildShareTags } from "@/lib/open-graph";
 import { plainPreview } from "@/lib/rich-text/preview";
 import { useAuth } from "@/lib/use-auth";
 
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
-import { UserAvatar } from "@/components/user-avatar";
-import { UserBadges } from "@/components/user-badge";
 
 export const Route = createFileRoute("/blog/$username")({
   loader: async ({ params }) => {
@@ -131,8 +129,7 @@ function BlogPage() {
 
               <div>
                 <p className="flex items-center gap-1 text-sm font-semibold text-text-strong">
-                  <>{blog.authorName}</>
-
+                  <StyledName name={blog.authorName} style={blog.authorStyle} />
                   <UserBadges badges={blog.authorBadges} badge={blog.authorBadge} />
                 </p>
 
@@ -226,7 +223,7 @@ function BlogPage() {
                   ) : null}
 
                   <p className="mt-1 text-xs font-normal text-text-subtle">
-                    {new Date(post.publishedAt).toLocaleDateString("pt-BR", {
+                    {formatarData(post.publishedAt, {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",

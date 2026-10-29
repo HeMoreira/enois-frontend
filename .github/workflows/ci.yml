@@ -2,12 +2,17 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    # A linha do dia a dia e a `qa`: sem ela, os PRs da equipe entravam sem rodar teste nenhum.
+    branches: [main, qa]
   push:
-    branches: [main]
+    branches: [main, qa]
 
 permissions:
   contents: read
+  # A TOKEN IS REQUIRED to install @rede-enois/design-system from GitHub Packages (even public
+  # packages need one). `npm ci` gets this run's GITHUB_TOKEN; the package must grant this
+  # repository read access in its settings ("Manage Actions access"), or it fails with E401.
+  packages: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -18,20 +23,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar o código
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Configurar o Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
 
       - name: Instalar dependências
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Lint e typecheck entram aqui quando a main passar neles (hoje: ~300
-      # erros de lint, quase todos local/type-boundaries em src/types, e ~60
-      # erros de TypeScript).
+      # A divida que travava estes passos foi paga (o lint e o typecheck passam limpos
+      # nas duas linhas), entao eles rodam aqui de verdade: sem o typecheck, um campo que a
+      # API devolve nulo passa e quebra no navegador.
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Testes unitários
         run: npm test
 

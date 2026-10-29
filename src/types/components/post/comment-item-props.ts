@@ -7,4 +7,6 @@ export type CommentItemProps = {
   postAuthorId: string;
   /** Recarrega a primeira página depois de fixar/desafixar. */
   onPinChanged?: () => void;
+  /** Remove o comentário da lista local depois de confirmação do backend. */
+  onDeleted?: (commentId: string) => void;
 };

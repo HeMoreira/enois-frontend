@@ -3,7 +3,7 @@ import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useSt
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 
-import { TOPICS, TOPIC_LABELS } from "@/constants/community-topics";
+import { TOPICS, TOPIC_LABELS, topicLabel } from "@/constants/community-topics";
 import { postContentLimit } from "@/constants/post-content-limits";
 import { PAGE_HTML_MAX_LENGTH } from "@/constants/post-page";
 import { ARTICLE_BODY_MAX_LENGTH, POST_TYPES } from "@/constants/post-types";
@@ -15,6 +15,23 @@ import type { PostView } from "@/types/application/feed/post-view";
 import type { CommunityCropPurpose } from "@/types/routes/communities/community-crop-purpose";
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
+import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
+import { ImageCropDialog } from "@rede-enois/design-system/patterns";
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  Label,
+  Pill,
+  Textarea,
+  useToast,
+} from "@rede-enois/design-system/ui";
 import {
   ArrowLeft,
   Camera,
@@ -35,33 +52,15 @@ import { buildShareTags } from "@/lib/open-graph";
 import { useAuth } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Pill } from "@/components/ui/pill";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-
 import { AppContainer } from "@/components/app-container";
 import { CommunityChannels } from "@/components/communities/community-channels";
 import { CommunityFavoriteButton } from "@/components/community-favorite-button";
 import { HtmlEditor } from "@/components/html-editor";
-import { ImageCropDialog } from "@/components/image-crop-dialog";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { PostCard } from "@/components/post-card";
 import { RichText } from "@/components/post/rich-text";
 import { SandboxedHtmlFrame } from "@/components/post/sandboxed-html-frame";
-import { SpoilerPreview } from "@/components/post/spoiler-preview";
-import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePeek } from "@/components/profile/profile-peek";
 
 export const Route = createFileRoute("/comunidades/$communityId")({
   loader: async ({ params }) => {
@@ -331,9 +330,11 @@ function CommunityDetail() {
                   />
                 )}
                 <div className="min-w-0">
-                  <Badge className="rounded-full bg-primary-soft text-primary hover:bg-primary-soft">
-                    {live.topic}
-                  </Badge>
+                  {live.topic && (
+                    <Badge className="rounded-full bg-primary-soft text-primary hover:bg-primary-soft">
+                      {topicLabel(live.topic)}
+                    </Badge>
+                  )}
 
                   <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight">
                     {live.name}
@@ -398,6 +399,8 @@ function CommunityDetail() {
                     <Button
                       variant="outline"
                       className="w-auto rounded-full gap-1.5"
+                      aria-label={texts.communities.transfer.action}
+                      title={texts.communities.transfer.action}
                       onClick={() => setTransferOpen(true)}
                     >
                       <Crown className="h-4 w-4" />
@@ -408,6 +411,8 @@ function CommunityDetail() {
                     <Button
                       variant="outline"
                       className="w-auto rounded-full gap-1.5 text-destructive"
+                      aria-label={texts.communities.delete.action}
+                      title={texts.communities.delete.action}
                       onClick={() => setDeleteOpen(true)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -470,9 +475,9 @@ function CommunityDetail() {
                 .filter((m) => m.userId !== currentUser?.id)
                 .map((m) => (
                   <button
-                    key={m.userId}
-                    disabled={transfer.isPending}
-                    onClick={() => transfer.mutate(m.userId)}
+                    key={m.username}
+                    disabled={transfer.isPending || !m.userId}
+                    onClick={() => m.userId && transfer.mutate(m.userId)}
                     className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-muted disabled:opacity-60"
                   >
                     <UserAvatar src={resolveCdnUrl(m.avatar)} alt={m.name} className="h-8 w-8" />
@@ -586,7 +591,7 @@ function CommunityDetail() {
                   </button>
 
                   {typePickerOpen && (
-                    <div className="absolute bottom-full left-0 z-40 mb-1 w-[min(22rem,80vw)] rounded-2xl border border-border-soft bg-popover p-2 shadow-lg">
+                    <div className="absolute bottom-full right-0 z-40 mb-1 max-h-[60vh] w-[min(22rem,80vw)] overflow-y-auto rounded-2xl border border-border-soft bg-popover p-2 shadow-lg sm:left-0 sm:right-auto">
                       <div className="flex flex-wrap gap-1.5">
                         {POST_TYPES.map((option) => (
                           <button
@@ -638,7 +643,11 @@ function CommunityDetail() {
                   <button
                     type="button"
                     onClick={() => setMediaSpoiler((active) => !active)}
-                    title={mediaSpoiler ? texts.feed.composer.mediaSpoilerActive : texts.feed.composer.mediaSpoiler}
+                    title={
+                      mediaSpoiler
+                        ? texts.feed.composer.mediaSpoilerActive
+                        : texts.feed.composer.mediaSpoiler
+                    }
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-normal transition ${
                       mediaSpoiler
                         ? "bg-primary text-primary-foreground"
@@ -646,7 +655,9 @@ function CommunityDetail() {
                     }`}
                   >
                     <EyeOff className="h-3.5 w-3.5" />
-                    {mediaSpoiler ? texts.feed.composer.mediaSpoilerActive : texts.feed.composer.mediaSpoiler}
+                    {mediaSpoiler
+                      ? texts.feed.composer.mediaSpoilerActive
+                      : texts.feed.composer.mediaSpoiler}
                   </button>
                 )}
 
@@ -707,6 +718,8 @@ function CommunityDetail() {
                           return next;
                         })
                       }
+                      aria-label={texts.common.remove}
+                      title={texts.common.remove}
                       className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-surface-card/80 text-text-strong"
                     >
                       <X className="h-3 w-3" />
@@ -754,21 +767,21 @@ function CommunityDetail() {
 
               <div className="space-y-3">
                 {members.map((m) => (
-                  <div key={m.userId} className="flex items-center gap-3">
-                    <Link to="/perfil/$username" params={{ username: m.username }}>
+                  <div key={m.username} className="flex items-center gap-3">
+                    <ProfilePeek username={m.username} name={m.name} className="shrink-0">
                       <UserAvatar src={m.avatar} alt={m.name} className="h-9 w-9 shrink-0" />
-                    </Link>
+                    </ProfilePeek>
 
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      {/* `block` é necessário: truncate não pega em elemento inline (o <a> era inline
-                          e nomes longos vazavam para fora do card). */}
-                      <Link
-                        to="/perfil/$username"
-                        params={{ username: m.username }}
+                      {/* `block` é necessário: truncate não pega em elemento inline (nomes longos
+                          vazavam para fora do card). */}
+                      <ProfilePeek
+                        username={m.username}
+                        name={m.name}
                         className="block min-w-0 truncate text-sm font-medium hover:underline"
                       >
-                        {m.name}
-                      </Link>
+                        <StyledName name={m.name} style={m.nameStyle} />
+                      </ProfilePeek>
                       {m.role === "ADMIN" && (
                         <Badge
                           variant="outline"
@@ -808,7 +821,8 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
   const [bannerHtml, setBannerHtml] = useState(community.bannerHtml ?? "");
   // O tópico muda depois de criada: a comunidade cresce e muda de assunto, e antes não havia
   // como corrigir — o valor ficava congelado no que foi escolhido no dia da criação.
-  const [topic, setTopic] = useState<CommunityTopic>(community.topic);
+  // A comunidade pode nao ter assunto (a API manda `null`): o campo fica vazio ate escolher.
+  const [topic, setTopic] = useState<CommunityTopic | null>(community.topic);
 
   const handleCropComplete = useCallback(
     async (blob: Blob) => {
@@ -868,7 +882,7 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
         <Label className="text-xs text-muted-foreground">{texts.communities.create.topic}</Label>
 
         <select
-          value={topic}
+          value={topic ?? ""}
           onChange={(e) => setTopic(e.target.value as CommunityTopic)}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm border-transparent bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

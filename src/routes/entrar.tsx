@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { SIGNUP_OPEN } from "@/constants/account";
+import { OAUTH_PROVIDER_LABELS, availableSocialProviders } from "@/constants/auth-providers";
 import { texts } from "@/texts";
 import type { OAuthProvider } from "@/types/application/auth/oauth-provider";
 import type { TwoFactorChallenge } from "@/types/application/auth/two-factor-challenge";
@@ -14,20 +15,26 @@ import type { LoginFormProps } from "@/types/routes/auth/login-form-props";
 import type { SocialButtonsProps } from "@/types/routes/auth/social-buttons-props";
 import type { TabBtnProps } from "@/types/routes/auth/tab-btn-props";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import {
+  Button,
+  DateTextInput,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  PasswordInput,
+} from "@rede-enois/design-system/ui";
 import { ArrowRight, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
-import { ApiError, authApi } from "@/lib/api";
+import { ApiError, authApi, clearSession } from "@/lib/api";
+import { anoAtual } from "@/lib/date/format";
 import { ogMetas } from "@/lib/seo";
 import { storeSession } from "@/lib/session";
-import { useCaptchaConfig } from "@/lib/use-captcha-config";
-
-import { Button } from "@/components/ui/button";
-import { DateTextInput } from "@/components/ui/date-text-input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
+import { twoFactorLockedMessage } from "@/lib/two-factor-locked";
+import { useAuthConfig } from "@/lib/use-auth-config";
 
 import { AuthHero } from "@/components/auth-hero";
 import { ErrorBanner } from "@/components/error-banner";
@@ -198,10 +205,15 @@ function TabBtn({ active, children, onClick }: TabBtnProps) {
   );
 }
 
-/** Entrada social: os provedores habilitados em ENABLED_OAUTH_PROVIDERS (Google, LinkedIn). */
+/**
+ * Entrada social: os provedores habilitados em ENABLED_OAUTH_PROVIDERS menos os que o ambiente
+ * desligou (o Google pode estar desligado — a API avisa em `/auth/config` e recusa o start).
+ */
 function SocialButtons({ mode }: SocialButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const config = useAuthConfig();
+  const providers = availableSocialProviders(config.data?.googleLoginEnabled);
 
   const start = async (provider: OAuthProvider) => {
     setLoading(provider);
@@ -212,9 +224,7 @@ function SocialButtons({ mode }: SocialButtonsProps) {
       const start = await authApi.oauthStart(provider, mode);
       window.location.href = start.authorizationUrl;
     } catch (err) {
-      // Sem o aplicativo aprovado no provedor o start falha: explicamos em vez de vazar o erro cru.
-      const detail = err instanceof ApiError && import.meta.env.DEV ? ` (${err.message})` : "";
-      setError(`${texts.auth.social.pendingApproval}${detail}`);
+      setError(mensagemDeFalhaSocial(err, provider));
       setLoading(null);
     }
   };
@@ -231,23 +241,53 @@ function SocialButtons({ mode }: SocialButtonsProps) {
     </button>
   );
 
+  /** Ícone e rótulo de cada provedor conhecido. Provedor sem par visual não vira botão. */
+  const visualDoProvedor = (provider: OAuthProvider): { icon: ReactNode; label: string } | null => {
+    if (provider === "GOOGLE") {
+      return {
+        icon: <GoogleIcon />,
+        label: mode === "signup" ? texts.auth.social.googleSignup : texts.auth.social.google,
+      };
+    }
+    if (provider === "LINKEDIN") {
+      return {
+        icon: <LinkedinIcon />,
+        label: mode === "signup" ? texts.auth.social.linkedinSignup : texts.auth.social.linkedin,
+      };
+    }
+    return null;
+  };
+
   return (
     <div className="grid grid-cols-1 gap-2">
-      {providerButton(
-        "GOOGLE",
-        <GoogleIcon />,
-        mode === "signup" ? texts.auth.social.googleSignup : texts.auth.social.google,
-      )}
-      {providerButton(
-        "LINKEDIN",
-        <LinkedinIcon />,
-        mode === "signup" ? texts.auth.social.linkedinSignup : texts.auth.social.linkedin,
-      )}
+      {providers.map((provider) => {
+        const visual = visualDoProvedor(provider);
+        if (!visual) return null;
+        return providerButton(provider, visual.icon, visual.label);
+      })}
       {error && (
         <p className="rounded-xl bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>
       )}
     </div>
   );
+}
+
+/**
+ * Mensagem de falha da entrada social.
+ *
+ * A API sabe por que recusou: `OAUTH_PROVIDER_DISABLED` quer dizer que o provedor está desligado
+ * neste ambiente, e a mensagem dela diz melhor que qualquer texto genérico. O resto (aplicativo do
+ * OAuth ainda em aprovação) mantém o texto de sempre — mas citando o provedor certo: antes ele
+ * dizia "Google" mesmo quando a falha era do LinkedIn.
+ */
+function mensagemDeFalhaSocial(err: unknown, provider: OAuthProvider): string {
+  const nome = OAUTH_PROVIDER_LABELS[provider];
+  if (err instanceof ApiError && err.code === "OAUTH_PROVIDER_DISABLED") {
+    return texts.auth.social.providerDisabled(nome);
+  }
+  // Sem o aplicativo aprovado no provedor o start falha: explicamos em vez de vazar o erro cru.
+  const detail = err instanceof ApiError && import.meta.env.DEV ? ` (${err.message})` : "";
+  return `${texts.auth.social.pendingApproval(nome)}${detail}`;
 }
 
 function LinkedinIcon() {
@@ -280,9 +320,9 @@ function SignupForm(_props: AuthFormProps) {
   const turnstileRef = useRef<TurnstileInstance>(null);
   /** Conta criada e pendente de confirmação: o formulário dá lugar à tela "confirme seu e-mail". */
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const captcha = useCaptchaConfig();
-  const captchaMode = captcha.data?.captchaMode;
-  const turnstileSiteKey = captcha.data?.turnstileSiteKey ?? TURNSTILE_SITE_KEY;
+  const config = useAuthConfig();
+  const captchaMode = config.data?.captchaMode;
+  const turnstileSiteKey = config.data?.turnstileSiteKey ?? TURNSTILE_SITE_KEY;
   const challenge = useQuery({
     queryKey: ["auth", "signup-challenge"],
     queryFn: () => authApi.signupChallenge(),
@@ -309,9 +349,7 @@ function SignupForm(_props: AuthFormProps) {
       return;
     }
     setLoading(true);
-    localStorage.removeItem("session_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("current_user");
+    clearSession();
     try {
       // O cadastro não abre sessão: a conta nasce pendente até confirmar o e-mail.
       const result = await authApi.signup({
@@ -383,7 +421,7 @@ function SignupForm(_props: AuthFormProps) {
             name="birthDate"
             required
             autoComplete="bday"
-            min={`${new Date().getFullYear() - 120}-01-01`}
+            min={`${anoAtual() - 120}-01-01`}
             max={new Date().toISOString().slice(0, 10)}
           />
         </Field>
@@ -451,7 +489,13 @@ function SignupForm(_props: AuthFormProps) {
           <Turnstile
             ref={turnstileRef}
             siteKey={turnstileSiteKey}
-            options={{ size: "flexible", theme: "dark" }}
+            options={{
+              // Invisible na maior parte do tempo: o widget so aparece se o Cloudflare
+              // pedir interacao. Protecao continua, caixa na tela nao.
+              size: "flexible",
+              theme: "dark",
+              appearance: "interaction-only",
+            }}
           />
         )}
         {captchaMode === "CHALLENGE" && (
@@ -586,12 +630,14 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState(false);
   const loginTurnstileRef = useRef<TurnstileInstance>(null);
-  const captcha = useCaptchaConfig();
-  const turnstileSiteKey = captcha.data?.turnstileSiteKey ?? TURNSTILE_SITE_KEY;
+  const config = useAuthConfig();
+  const turnstileSiteKey = config.data?.turnstileSiteKey ?? TURNSTILE_SITE_KEY;
   /** Conta pendente de confirmação: em vez de "erro", a tela explica e oferece reenviar. */
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   /** Segundo fator pedido pelo backend depois da senha correta. */
   const [challenge, setChallenge] = useState<TwoFactorChallenge | null>(null);
+  /** Senha expirada: backend retornou token de reset. */
+  const [expiredResetToken, setExpiredResetToken] = useState<string | null>(null);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -606,15 +652,19 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
     setErrors({});
     setFormError(null);
     setLoading(true);
-    localStorage.removeItem("session_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("current_user");
+    clearSession();
     try {
       const result = await authApi.login({
         email: parsed.data.email,
         password: parsed.data.password,
         turnstileToken: loginTurnstileRef.current?.getResponse() ?? undefined,
       });
+
+      // Senha expirada: backend retorna token de reset pra trocar direto.
+      if ("passwordExpired" in result && result.passwordExpired) {
+        setExpiredResetToken((result as unknown as { resetToken: string }).resetToken);
+        return;
+      }
 
       // Conta com segundo fator: a senha levou ao desafio, não à sessão.
       if ("twoFactorRequired" in result) {
@@ -623,6 +673,19 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
       }
 
       storeSession(result);
+      // E2E: se não tem keypair local, tenta setup ou restore (fire-and-forget).
+      import("@/lib/e2e/key-manager").then(
+        async ({ hasLocalKeys, generateAndUpload, restoreFromBackup }) => {
+          try {
+            if (await hasLocalKeys()) return;
+            await restoreFromBackup(parsed.data.password).catch(() =>
+              generateAndUpload(parsed.data.password),
+            );
+          } catch {
+            // E2E setup falhou — não impede o login.
+          }
+        },
+      );
       onDone();
     } catch (err) {
       if (err instanceof ApiError && err.code === "EMAIL_NOT_VERIFIED") {
@@ -641,6 +704,17 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
 
   if (challenge) {
     return <TwoFactorForm challenge={challenge} onDone={onDone} />;
+  }
+
+  if (expiredResetToken) {
+    return (
+      <PasswordExpiredForm
+        resetToken={expiredResetToken}
+        onDone={() => {
+          setExpiredResetToken(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -691,11 +765,17 @@ function LoginForm({ onDone, onForgot }: LoginFormProps) {
         </Field>
 
         {!!formError && <ErrorBanner error={formError} showDetails={false} />}
-        {captcha.data?.captchaMode === "TURNSTILE" && turnstileSiteKey && (
+        {config.data?.captchaMode === "TURNSTILE" && turnstileSiteKey && (
           <Turnstile
             ref={loginTurnstileRef}
             siteKey={turnstileSiteKey}
-            options={{ size: "flexible", theme: "dark" }}
+            options={{
+              // Invisible na maior parte do tempo: o widget so aparece se o Cloudflare
+              // pedir interacao. Protecao continua, caixa na tela nao.
+              size: "flexible",
+              theme: "dark",
+              appearance: "interaction-only",
+            }}
           />
         )}
         <Button type="submit" className="w-full rounded-full gap-2" disabled={loading}>
@@ -741,6 +821,10 @@ function TwoFactorForm({
       storeSession(result);
       onDone();
     } catch (err) {
+      if (err instanceof ApiError && err.code === "TOO_MANY_ATTEMPTS") {
+        setError(new Error(twoFactorLockedMessage(challenge.method)));
+        return;
+      }
       setError(err instanceof Error ? err : new Error(texts.auth.twoFactor.error));
     } finally {
       setLoading(false);
@@ -812,6 +896,107 @@ function TwoFactorForm({
         <p className="text-center text-xs text-muted-foreground">
           {texts.auth.twoFactor.recoveryHint}
         </p>
+      </form>
+    </div>
+  );
+}
+
+function PasswordExpiredForm({ resetToken, onDone }: { resetToken: string; onDone: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const t = {
+    title: "Atualize sua senha",
+    description:
+      "De acordo com a nossa nova política de segurança, selecione uma nova senha para continuar.",
+    newPassword: "Nova senha",
+    confirm: "Confirmar nova senha",
+    action: "Salvar nova senha",
+    mismatch: "As senhas não coincidem.",
+    success: "Senha atualizada. Faça login com a nova senha.",
+    error: "Não foi possível atualizar a senha. Tente novamente.",
+  };
+
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const password = (fd.get("password") as string)?.trim();
+    const confirm = (fd.get("confirm") as string)?.trim();
+    if (!password || password.length < 8) {
+      setError("Mínimo de 8 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError(t.mismatch);
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await authApi.resetPassword(resetToken, password);
+      // Backend retorna sessao quando o reset veio de senha expirada (auto-login).
+      if ("user" in result) {
+        storeSession(result as never);
+        window.location.href = "/feed";
+        return;
+      }
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t.error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div>
+        <ShieldCheck className="h-7 w-7 text-primary" />
+
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t.title}</h1>
+
+        <p className="mt-2 text-sm text-muted-foreground">{t.success}</p>
+
+        <Button className="mt-6 w-full" onClick={onDone}>
+          Entrar
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <ShieldCheck className="h-7 w-7 text-primary" />
+
+      <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t.title}</h1>
+
+      <p className="mt-2 text-sm text-muted-foreground">{t.description}</p>
+
+      <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+        <Field label={t.newPassword}>
+          <Input
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            autoFocus
+            minLength={8}
+            required
+          />
+        </Field>
+
+        <Field label={t.confirm}>
+          <Input
+            name="confirm"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </Field>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t.action}
+        </Button>
       </form>
     </div>
   );

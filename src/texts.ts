@@ -1,27 +1,9 @@
-/**
- * Data do evento ("2026-10-23") em português curto. Lida em UTC de propósito: a data vem sem fuso
- * e, lida no fuso local, "2026-10-23" virava 22 de outubro para quem está a oeste de Greenwich.
- */
-function formatEventDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) return date;
-  const sameYear = parsed.getUTCFullYear() === new Date().getFullYear();
-  return parsed
-    .toLocaleDateString("pt-BR", {
-      day: "numeric",
-      month: "short",
-      year: sameYear ? undefined : "numeric",
-      timeZone: "UTC",
-    })
-    .replace(/\./g, "")
-    .replace(/ de /g, " ");
-}
+import { dataCurta, dataDeEvento } from "@/lib/date/format";
 
 const common = {
   enter: "Entrar",
   createAccount: "Criar conta",
   cancel: "Cancelar",
-  confirm: "Confirmar",
   save: "Salvar",
   saving: "Salvando...",
   create: "Criar",
@@ -33,20 +15,49 @@ const common = {
   close: "Fechar",
   remove: "Remover",
   edit: "Editar",
-  add: "Adicionar",
-  back: "Voltar",
-  profile: "Perfil",
-  charactersProgress: (used: number, max: number) =>
-    `${used.toLocaleString("pt-BR")} / ${max.toLocaleString("pt-BR")} caracteres`,
-  charactersLeft: (count: number) =>
-    count === 1 ? "falta 1 caractere" : `faltam ${count} caracteres`,
-  charactersLimitReached: "limite de caracteres atingido",
-  readMore: "Ler mais",
-  readLess: "Mostrar menos",
 } as const;
 
 export const texts = {
   common,
+
+  emotes: {
+    title: "Figurinhas",
+    button: "Figurinhas",
+    searchPlaceholder: "Buscar figurinha",
+    all: "Todas",
+    popular: "Populares",
+    loading: "Carregando figurinhas...",
+    empty: "Nenhuma figurinha com esse nome.",
+    error: "Não foi possível carregar as figurinhas agora.",
+    hint: "Populares primeiro, depois as coleções globais do BTTV e do FrankerFaceZ. O código entra no texto — quem lê vê a figurinha.",
+    count: (total: number) => `${total} ${total === 1 ? "figurinha" : "figurinhas"}`,
+    page: (page: number, totalPages: number) => `Página ${page} de ${totalPages}`,
+    previous: "Página anterior",
+    next: "Próxima página",
+  },
+
+  coinEconomy: {
+    title: "Economia da faísca",
+    hint: "A cotação é recalculada no máximo uma vez por dia, às 03:10 (America/Sao_Paulo), e anda um passo conforme a movimentação dos últimos 30 dias. O botão roda a mesma conta: se o período já fechou, publica; se não, nada muda.",
+    cofre: "No cofre",
+    retorno: "Voltou ao cofre (30d)",
+    emissao: "Emissão (30d)",
+    giro: "Giro (30d)",
+    escassez: "Escassez",
+    indice: "Índice",
+    cotacao: "Cotação",
+    periodo: "Período decorrido",
+    proxima: "Próxima avaliação",
+    janela: "Janela do período",
+    janelaAberta: "Aberta — publica agora",
+    janelaFechada: "Fechada",
+    recalculate: "Recalcular agora",
+    calculating: "Recalculando...",
+    published: "Cotação recalculada e publicada.",
+    unchanged:
+      "O período diário ainda não fechou: nada foi publicado. Veja a próxima avaliação no cartão.",
+    error: "Não foi possível recalcular a cotação.",
+  },
 
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
@@ -71,10 +82,6 @@ export const texts = {
       events: "Eventos",
       groups: "Grupos",
     },
-    openMenu: "Abrir menu",
-    expandMenu: "Expandir menu",
-    collapseMenu: "Recolher menu",
-    drawerTitle: "Menu de navegação",
   },
 
   groups: {
@@ -124,10 +131,6 @@ export const texts = {
     shareError: "Não foi possível compartilhar o grupo.",
     notFound: "Grupo não encontrado.",
     loadError: "Não foi possível carregar os grupos.",
-    postMeta: (reactions: number, comments: number) =>
-      `${reactions} ${reactions === 1 ? "reação" : "reações"} · ${comments} ${
-        comments === 1 ? "comentário" : "comentários"
-      }`,
     topics: "Tópicos",
     allTopics: "Tudo",
     noTopics: "Nenhum tópico ainda.",
@@ -144,7 +147,6 @@ export const texts = {
     membersOnly: "Entre no grupo para ver o feed privado.",
     edit: "Editar",
     editTitle: "Editar grupo",
-    editDescription: "Nome, descrição e como as pessoas entram.",
     save: "Salvar",
     saving: "Salvando...",
     saveError: "Não foi possível salvar.",
@@ -180,228 +182,48 @@ export const texts = {
     removeAction: "Remover",
     removePostTitle: "Remover publicação?",
     removePostDescription: "Ela some do feed do grupo; a ação fica registrada na auditoria.",
-    removeCommentTitle: "Remover comentário?",
     removePostError: "Não foi possível remover a publicação.",
-    reportPost: "Denunciar publicação do grupo",
-    reportComment: "Denunciar comentário do grupo",
-  },
-
-  accessibility: {
-    close: "Fechar",
-    closeAlert: "Fechar alerta",
-    systemAlerts: "Alertas do sistema",
-  },
-
-  theme: {
-    light: "Tema claro",
-    dark: "Tema escuro",
-    system: "Tema do sistema",
   },
 
   appearance: {
     action: "Aparência",
-    title: "Aparência",
-    description:
-      "Escolha o tema e as cores do app. O tema acompanha a sua conta entre dispositivos; as cores finas valem neste.",
-    mode: "Modo",
-    accentSection: "Cor de destaque",
-    accentHint: "Botões, links, selos e o gradiente da marca.",
-    hue: "Matiz",
-    hueValue: (degrees: number) => `${degrees}°`,
-    saturation: "Saturação",
-    brightness: "Brilho",
-    brightnessHint: "No modo escuro o tom sobe sozinho para continuar legível.",
-    backgroundSection: "Tom do fundo",
-    backgroundHint: "Um tingimento leve nas superfícies, discreto de propósito.",
-    backgroundIntensity: "Intensidade",
-    bgStyleTitle: "Cor de widget",
-    bgStyleHint: "O interno de cartões, painéis e menus — vale por cima de qualquer tema.",
-    bgStyleAuto: "Automático",
-    bgStyleSolid: "Cor",
-    bgStyleGradient: "Gradiente",
-    bgStyleFrom: "De",
-    bgStyleTo: "Para",
-    bgStyleDiagonal: "Diagonal",
-    bgStyleVertical: "Vertical",
-    bgStyleRadial: "Radial",
-    bgStyleSpread: "Extensão do degradê",
-    bgStyleSpreadHint: "Quanto o fim se afasta do começo em brilho — o degradê fica num matiz só.",
-    bgStyleContrastNote: "O texto do widget se adapta sozinho para continuar legível.",
-    bgStyleAlpha: "Transparência",
-    bgStyleAlphaHint: "100% é opaco; quanto menor, mais o fundo de trás aparece.",
-    bgStyleFromAlpha: "Transparência inicial",
-    bgStyleToAlpha: "Transparência final",
-    bgStyleAlphaRampHint: "Diferente um do outro, o vidro ganha um degradê de transparência.",
-    bgStyleAngle: "Ângulo do degradê",
-    bgStyleHorizontal: "Horizontal",
-    bgStyleHueFrom: "Matiz inicial",
-    bgStyleHueTo: "Matiz final",
-    bgStyleBrightnessFrom: "Brilho inicial",
-    bgStyleBrightnessTo: "Brilho final",
-    pageBgTitle: "Plano de fundo",
-    pageBgHint: "O fundo da página, atrás de tudo — a parte que fica exposta em volta dos widgets.",
-    presets: "Paletas prontas",
-    presetNames: {
-      uva: "Uva",
-      oceano: "Oceano",
-      menta: "Menta",
-      porDoSol: "Pôr do sol",
-      rosa: "Rosa",
-      grafite: "Grafite",
-    },
-    presetLabels: {
-      uva: "A padrão do Énóis",
-      oceano: "Frio e sóbrio",
-      menta: "Fresco",
-      porDoSol: "Quente",
-      rosa: "Vibrante",
-      grafite: "Sem cor, só contraste",
-    },
-    themeSearchPlaceholder: "Buscar tema...",
-    themeSearchEmpty: "Nenhum tema com esse nome.",
-    categoryAll: "Todas",
-    categoryCasa: "Coleções da casa",
-    categoryJogos: "Pontos de save",
-    categoryMaquinas: "Máquinas antigas",
-    categoryPapel: "Papel e tinta",
-    categoryRetro: "Sistema retrô",
-    collectionsTitle: "Temas",
-    collectionsHint:
-      "Coleções com identidade visual completa — cores, superfícies, fontes e efeitos.",
-    defaultThemeName: "Padrão Énóis",
-    defaultThemeDescription: "A identidade da rede, com a sua cor livre.",
-    activeLabel: "Ativo",
-    colorsNote: (name: string) =>
-      `O tema "${name}" está ativo — as cores livres valem no Padrão Énóis.`,
-    nameStyleTitle: "Estilo do nome do perfil",
-    nameStyleHint: "Escolha uma fonte segura e uma cor para o seu nome exibido.",
-    nameStyleFonts: {
-      SYSTEM: "Sistema",
-      SERIF: "Serifada",
-      MONO: "Monoespaçada",
-      ROUNDED: "Arredondada",
-      DISPLAY: "Display",
-      PIXEL: "8-bit",
-      GOTHIC: "Gótica",
-    },
-    nameStyleThemesTitle: "Temas do nome",
-    nameStyleThemesHint: "Misture fonte, cores e movimento com presets seguros.",
-    nameStyleThemes: {
-      DEFAULT: "Clássico",
-      PIXEL: "8-bit",
-      GOTHIC: "Gothic",
-      NEON: "Neon",
-      GLITCH: "Glitch",
-      CANDY: "Candy",
-    },
-    nameStyleOtherColor: "Outra cor",
-    nameStylePreview: "Prévia",
-    nameStylePreviewName: "Seu nome",
-    nameStyleUseColor: (color: string) => `Usar cor ${color}`,
-    preview: "Como vai ficar",
-    previewPost: "Esse detalhe do cache mudou minha semana.",
-    previewBadge: "Projeto",
-    previewAvatar: "MR",
-    previewAvatarName: "Marina Rocha",
-    contrast: {
-      label: "Contraste",
-      AAA: "Excelente",
-      AA: "Bom",
-      AA_LARGE: "No limite",
-      FAIL: "Difícil de ler",
-      worstPair: (pair: string) => `Ponto mais frágil: ${pair}.`,
-      hint: "Aumente o brilho ou reduza a saturação para melhorar.",
-    },
-    fileSection: "Tema em arquivo",
-    fileHint:
-      "Baixe o seu tema num arquivo .enois-theme para guardar ou mandar para alguém — é o mesmo arquivo que o marketplace vende. Importar aplica o arquivo aqui.",
-    fileImported: "Tema importado.",
-    fileErrors: {
-      json: "O arquivo não é um tema do Énóis (não é um JSON válido).",
-      format: "O arquivo não é um tema do Énóis.",
-      version:
-        "Este tema foi feito numa versão mais nova do Énóis — atualize o app para importá-lo.",
-      collection: "Este tema usa uma coleção que este app não tem.",
-      settings: "As cores deste tema estão inválidas.",
-      background: "O fundo deste tema está inválido.",
-    },
-    reset: "Restaurar padrão",
-    done: "Pronto",
-  },
-
-  search: {
-    action: "Buscar",
-    placeholder: "Buscar pessoas, comunidades, vagas...",
-    noResults: (query: string) => `Nenhum resultado para "${query}"`,
-  },
-
-  mentions: {
-    username: (username: string) => `@${username}`,
-  },
-
-  notifications: {
-    title: "Notificações",
-    markAllRead: "Ler tudo",
-    overflowCount: "9+",
-    tabs: {
-      new: "Novas",
-      history: "Histórico",
-      requests: "Solicitações",
-      chat: "Chat",
-    },
-    emptyNew: "Nenhuma notificação nova.",
-    emptyHistory: "Nenhum histórico ainda.",
-    emptyChat: "Nenhuma mensagem nova no chat.",
-    emptyRequests: "Nenhuma solicitação pendente.",
-    markRead: "Lida",
-    accept: "Aceitar",
-    reject: "Recusar",
-    unreadLabel: (count: number) =>
-      `${count} ${count === 1 ? "notificação não lida" : "notificações não lidas"}`,
-    openActorProfile: (name: string) => `Abrir o perfil de ${name || "quem interagiu"}`,
+    purchasedThemeApplied: "Tema aplicado.",
+    purchasedThemeError: "Não foi possível aplicar o tema agora.",
   },
 
   errors: {
     unexpected: "Erro inesperado. Tente novamente.",
     details: {
-      show: "Mostrar detalhes",
-      hide: "Ocultar detalhes",
-      copied: "Copiado!",
-      copy: "Copiar detalhes",
-      error: (message: string) => `Erro: ${message}`,
-      suggestion: (hint: string) => `Sugestão: ${hint}`,
       http: (status: number) => `HTTP ${status}`,
       postPath: (path: string) => `POST ${path}`,
     },
+    /** Replaces the API message for codes whose raw text is not fit for the screen. */
+    apiMessages: {
+      /** Escrita com cookie de sessão sem o header anti-CSRF: só acontece com página desatualizada. */
+      CSRF_REQUIRED:
+        "Não foi possível confirmar que o pedido veio do Énóis. Recarregue a página e tente de novo.",
+      UNSAFE_LINK:
+        "Um dos links não é permitido. Use endereços que comecem com http://, https:// ou mailto:.",
+      /** O mesmo código de verificação chegou duas vezes (ex.: clique duplo); só o primeiro vale. */
+      TWO_FACTOR_CHALLENGE_ALREADY_USED:
+        "Este código já foi usado. Se você já entrou, recarregue a página; senão, comece o login de novo.",
+    } as Record<string, string>,
     knownCodes: {
       NETWORK_ERROR:
         "O navegador não conseguiu falar com a API. Se você estiver rodando localmente, verifique se o backend está em execução (ex.: `docker compose up` ou o servidor Java na porta 8081) e se a variável VITE_API_BACKEND no arquivo .env aponta para ele.",
       INVALID_CREDENTIALS:
         "E-mail ou senha incorretos. Confira os dados ou use 'Esqueci minha senha'.",
       SESSION_EXPIRED: "Sua sessão expirou. Entre novamente.",
+      MEDIA_TYPE_NOT_ALLOWED:
+        "Esse tipo de arquivo não é aceito aqui. Foto de perfil, capa, banner e ícones só aceitam imagem; currículo só aceita PDF.",
+      IMPORT_TOO_LARGE:
+        "Esse arquivo do LinkedIn é grande demais para importar. Baixe de novo só os dados do perfil (sem mensagens e conexões) e tente outra vez.",
       IDEMPOTENCY_KEY_REQUIRED:
         "O backend rejeitou a requisição por falta de Idempotency-Key. Recarregue a página; se o problema persistir, há um bug no front-end (src/lib/api-client.ts).",
     },
   },
 
   auth: {
-    hero: {
-      eyebrow: "Networking com propósito",
-      // A frase e a TESE do produto (a mesma da landing), nao um depoimento: antes era uma
-      // citacao atribuida a uma pessoa que nao existe, com o nome de uma empresa real.
-      quote: '"Uma rede social não precisa viver da sua atenção."',
-      // Numeros REAIS: vem de /stats/community (publico, cache de ~10 min no servidor). Antes
-      // eram fixos no texto ("120k+ profissionais", "2.8k mentores", "640 comunidades") — a rede
-      // tem 2.275 contas, entao o painel afirmava um numero que o produto nao tem. A landing ja
-      // usava o contador de verdade; aqui era o unico lugar que ainda mentia.
-      stats: (activeUsers: number, totalUsers: number, windowDays: number) => [
-        {
-          value: activeUsers.toLocaleString("pt-BR"),
-          label: `ativos nos últimos ${windowDays} dias`,
-        },
-        { value: totalUsers.toLocaleString("pt-BR"), label: "contas na plataforma" },
-      ],
-    },
     signupClosed: {
       title: "Cadastros fechados no momento",
       description:
@@ -430,8 +252,6 @@ export const texts = {
       termsRequired: "É preciso confirmar que você tem 18 anos ou mais e aceitar os termos.",
     },
     password: {
-      show: "Mostrar senha",
-      hide: "Ocultar senha",
       forgot: "Esqueci minha senha",
     },
     seo: {
@@ -467,8 +287,11 @@ export const texts = {
       linkedinSignup: "Criar conta com LinkedIn",
       divider: "ou com e-mail",
       /** Aplicativo OAuth ainda em aprovação/verificação, então a entrada por ele falha. */
-      pendingApproval:
-        "O login com Google está aguardando aprovação do OAuth e ainda não foi liberado. Entre com e-mail e senha por enquanto.",
+      pendingApproval: (provider: string) =>
+        `O login com ${provider} está aguardando aprovação do OAuth e ainda não foi liberado. Entre com e-mail e senha por enquanto.`,
+      /** O ambiente desligou o provedor: a API recusa o start com 403 `OAUTH_PROVIDER_DISABLED`. */
+      providerDisabled: (provider: string) =>
+        `O login com ${provider} não está disponível neste ambiente. Entre com e-mail e senha por enquanto.`,
       callbackError: "Não foi possível concluir o login social. Tente novamente.",
       /** O convite de login social expira em 15 min e é de uso único (voltar/reusar cai aqui). */
       stateExpired:
@@ -488,7 +311,7 @@ export const texts = {
     pending: {
       title: "Confirme seu e-mail",
       description: (email: string) =>
-        `Enviamos um link de confirmação para ${email}. Sua conta só é criada depois que você abrir o link.`,
+        `Se este e-mail puder ser usado, você vai receber uma mensagem em ${email} com o próximo passo. A conta só é criada depois que você abrir o link.`,
       step1: "O link vale por 24 horas e só pode ser usado uma vez.",
       step2: "Confira a caixa de spam se não encontrar em alguns minutos.",
       step3: "A conta nasce (e o acesso libera) assim que o e-mail for confirmado.",
@@ -552,7 +375,15 @@ export const texts = {
       email2faConfirm: "Confirmar código",
       email2faDisable: "Desativar",
       passwordRequired: "Senha atual",
-      passwordHelp: "Confirme sua senha para desativar.",
+      passwordHelp: "Confirme sua senha atual.",
+      /** Ligar ou desligar o segundo fator encerra a sessão nos outros aparelhos. */
+      otherDevicesNotice: "Ativar ou desativar encerra sua sessão nos outros aparelhos.",
+      /** Depois de 5 códigos errados o desafio é invalidado, mesmo para o código certo. */
+      tooManyAttempts:
+        "Muitas tentativas com código errado. Por segurança, comece o login de novo com e-mail e senha.",
+      /** No código por e-mail, reenviar gera um código novo e zera as tentativas. */
+      tooManyAttemptsEmail:
+        "Muitas tentativas com código errado. Peça um novo código por e-mail e tente de novo.",
       backupLeft: (count: number) =>
         `${count} código${count === 1 ? "" : "s"} de recuperação ainda válido${count === 1 ? "" : "s"}.`,
       error: "Não foi possível concluir agora. Tente novamente.",
@@ -562,8 +393,6 @@ export const texts = {
       notConfigured:
         "Falta configurar a chave de segurança no servidor (REDE_SECURITY_ENCRYPTION_KEY).",
       verifyIdentity: "Verificar identidade",
-      verifyIdentityHint:
-        "Sem verificação, sua reputação é multiplicada por zero e você não publica vagas.",
     },
     verify: {
       title: "Confirmando e-mail · Énóis",
@@ -588,13 +417,6 @@ export const texts = {
     },
     /** Vínculo de provedores na conta (só Google; Apple aparece apenas para desvincular). */
     links: {
-      title: "Contas vinculadas",
-      description:
-        "Vincule um provedor para entrar com um clique. Nunca vinculamos automaticamente: só a partir de uma conta que já é sua.",
-      linked: "Vinculado",
-      notLinked: "Não vinculado",
-      link: (provider: string) => `Vincular ${provider}`,
-      unlink: "Desvincular",
       lastMethod:
         "Este é o único jeito de entrar na sua conta. Defina uma senha (em “Trocar senha”) antes de desvincular.",
       unlinkError: "Não foi possível desvincular agora. Tente novamente.",
@@ -610,30 +432,7 @@ export const texts = {
       providerFallback: "provedor",
       /** Publicação automática no LinkedIn (produto "Share on LinkedIn"). */
       linkedinSync: {
-        title: "Publicar no LinkedIn",
-        description:
-          "Suas publicações no Énóis podem ir também para o seu feed do LinkedIn, com o link do post original.",
-        toggle: "Publicar minhas publicações no LinkedIn",
-        toggleHint: "Cada post novo vira um post no LinkedIn com o link do Énóis.",
-        lastShareOk: "Última tentativa: o LinkedIn aceitou · ",
-        lastShareFailed: (detail: string) =>
-          detail === "HTTP_401" || detail === "HTTP_403"
-            ? "A última tentativa não foi: o LinkedIn recusou a permissão — reconecte o LinkedIn e publique de novo. · "
-            : detail === "HTTP_422"
-              ? "A última tentativa não foi: o LinkedIn recusou o conteúdo do post. · "
-              : `A última tentativa não foi (${detail}) — reconecte o LinkedIn e publique de novo. · `,
-        notReady: "Reconecte o LinkedIn para autorizar a publicação em seu nome.",
-        serverKey:
-          "A publicação no LinkedIn ainda não está disponível nesta instalação. Avise o time de suporte.",
-        reconnect: "Reconectar LinkedIn",
-        reconnectHint:
-          'Se o LinkedIn mostrar “Ocorreu um erro”, o app do Énóis ainda não tem o produto "Share on LinkedIn" (w_member_social) aprovado. É uma aprovação do LinkedIn, não um problema da sua conta.',
         saved: "Preferência de sincronização salva.",
-        promptTitle: "Sincronizar publicações com o LinkedIn?",
-        promptBody:
-          "Suas próximas publicações no Énóis podem ser publicadas também no seu feed do LinkedIn, com o link para o post original. Você pode mudar isso depois em Contas vinculadas.",
-        yes: "Sim, sincronizar",
-        no: "Não, obrigado",
         unavailable: "Não foi possível ligar a sincronização agora.",
       },
     },
@@ -655,6 +454,7 @@ export const texts = {
     },
     reset: {
       invalidLink: "Link inválido ou expirado. Solicite uma nova redefinição de senha.",
+      usedLink: "Este link já foi usado. Solicite uma nova redefinição de senha.",
       successTitle: "Senha redefinida!",
       successDescription: "Sua senha foi atualizada com sucesso. Já pode entrar na sua conta.",
       enterNow: "Entrar agora ",
@@ -683,35 +483,27 @@ export const texts = {
     forbidden: "Sessão sem acesso de admin para esta fila.",
   },
   personalization: {
-    likeTitle: "O que quero ver",
-    likeHint:
-      "Escolha os assuntos que você gostaria de encontrar com mais frequência. Eles ganham prioridade nas recomendações — o resto do feed continua aí.",
-    dislikeTitle: "Assuntos que não gosto",
-    dislikeHint:
-      "Assuntos que você prefere evitar nos seus feeds personalizados. Publicações sem assunto nunca são escondidas, e o conteúdo continua no ar para as outras pessoas.",
-    modulesTitle: "O que não quero ver",
-    modulesHint:
-      "Desative as áreas do Énóis que não fazem parte da experiência que você deseja. Nada é apagado — some só da sua interface, e volta quando reativar.",
-    eventsDependency: "Desativar Eventos desativa também o Acontecendo agora.",
     saved: "Preferências salvas.",
     saveError: "Não foi possível salvar as preferências. Tente novamente.",
-    moduleOffTitle: "Esta área está desativada nas suas preferências",
-    moduleOffBody:
-      "Você desativou este módulo em Uso saudável. Nada foi apagado: os dados continuam guardados e voltam quando você reativar.",
-    reenable: "Reativar esta área",
-    backToFeed: "Voltar ao feed",
   },
   corporate: {
     seoTitle: "Perfil profissional · Énóis",
     title: "Perfil profissional",
     subtitle:
       "Uma versão profissional da mesma conta: a sua apresentação de trabalho, com @ próprio. Faixas, reputação e seguidores continuam sendo os da sua conta.",
-    loading: "Carregando...",
     notCreatedTitle: "Você ainda não tem um perfil profissional",
     notCreatedBody:
       "Crie para publicar no feed corporativo, se candidatar a vagas com a sua identidade de trabalho e ter um @ profissional próprio.",
     username: "@ profissional",
     usernameHint: "3 a 30 caracteres: letras, números, ponto, hífen ou underline.",
+    nametag: "Nametag (@ e fim da URL)",
+    nametagHint:
+      "É o @ do perfil e o endereço público dele. Não precisa ser igual ao do seu perfil social.",
+    nametagChange: "Alterar nametag",
+    nametagChanged: "Nametag alterado.",
+    nametagWarning:
+      "Ao alterar, o endereço antigo deixa de funcionar — quem salvou o link anterior não chega mais.",
+    nametagInvalid: "Use 3 a 30 caracteres, começando e terminando em letra ou número.",
     name: "Nome profissional",
     headline: "Headline",
     bio: "Sobre (profissional)",
@@ -740,7 +532,6 @@ export const texts = {
     importTitle: "Trazer do perfil social",
     importBody:
       "Escolha o que quer trazer. Nada é copiado sem a sua escolha: marque só o que fizer sentido publicar profissionalmente.",
-    importPreviewError: "Não foi possível carregar a prévia do perfil social.",
     importEmpty: "O seu perfil social não tem nada que possa ser trazido.",
     importConfirm: "Trazer selecionados",
     imported: "Campos trazidos do perfil social.",
@@ -750,6 +541,7 @@ export const texts = {
       bio: "Sobre",
       avatar: "Foto de perfil",
       banner: "Capa",
+      bannerHtml: "Capa em HTML/CSS",
       location: "Localização",
     },
     changeAvatar: "Trocar foto",
@@ -757,7 +549,6 @@ export const texts = {
     uploading: "Enviando...",
     uploadError: "Não foi possível enviar a imagem. Tente novamente.",
     publicProfile: {
-      title: "Perfil profissional",
       notFoundTitle: "Perfil profissional não encontrado",
       notFoundBody: "Este perfil pode não existir ou estar desativado.",
       postsTitle: "Publicações",
@@ -768,38 +559,11 @@ export const texts = {
   },
   account: {
     identity: {
-      title: "Nome e identidade",
-      hint: "O nome social substitui o seu nome de cadastro para todo mundo; o apelido entra entre parênteses depois do nome; os pronomes aparecem só no seu perfil. O nome de cadastro continua visível para você e para as empresas que recebem a sua candidatura.",
-      socialName: "Nome social",
-      nickname: "Apelido",
-      pronouns: "Pronomes",
-      placeholderOptional: "opcional",
-      save: "Salvar identidade",
       saved: "Identidade salva.",
-      badgesTitle: "Emblemas",
-      badgesHint: "Até 5 PNGs pequenos. O primeiro acompanha o seu nome em todo o app.",
-      badgesAdd: "Adicionar emblema",
-      badgesRemove: "Remover",
       badgesFull: "Você já tem 5 emblemas.",
       error: "Não foi possível salvar. Tente novamente.",
     },
     linkedinImport: {
-      semEstrutura: (lista: string) =>
-        `Também vieram no arquivo, mas ainda não têm um lugar no perfil do Énóis: ${lista}.`,
-      connectFirst: "Conecte o LinkedIn para importar seus dados.",
-      title: "Sincronizar com LinkedIn",
-      hint: "O vínculo confirma a identidade pelo login. Experiências, certificações e projetos o LinkedIn só entrega no arquivo de dados (pela API vem só o básico — nome e e-mail — salvo aprovação no programa de parceiros deles). Sem baixar nada: copie o texto do seu perfil e cole; ou use o ZIP da exportação. O app mostra a prévia de tudo antes de salvar.",
-      button: "Enviar o ZIP do LinkedIn",
-      getArchive: "Baixar meu arquivo no LinkedIn",
-      /** O serviço aceita até 5 MB; avisar antes evita subir um arquivo que será recusado. */
-      tooLarge: (mb: number) =>
-        `O arquivo passa de ${mb} MB. Use o arquivo BÁSICO da exportação do LinkedIn (o completo vem com senha e é enorme).`,
-      pasteToggle: "Colar o perfil",
-      pastePlaceholder:
-        "Abra seu perfil no LinkedIn, selecione tudo (Ctrl+A), copie e cole aqui — o app extrai experiências, formação, certificações e projetos.",
-      pasteRead: "Ler o perfil colado",
-      found: (count: number) => `${count} itens encontrados — marque o que quer importar:`,
-      save: "Importar selecionados",
       done: (created: number, updated: number) => {
         const partes: string[] = [];
         if (created > 0) partes.push(`${created} ${created === 1 ? "item novo" : "itens novos"}`);
@@ -812,131 +576,39 @@ export const texts = {
       /** O perfil tem teto por seção; o que não coube fica claro em vez de falhar pela metade. */
       capReached:
         "Alguns itens não couberam: o perfil aceita até 10 experiências, 10 formações e 10 certificações.",
-      resumeButton: "Enviar o currículo",
-      resumeHint:
-        "Sem LinkedIn? Suba o currículo: o app lê o arquivo e mostra a mesma prévia antes de salvar. Vale PDF (até 10 MB e 20 páginas) ou .txt/.md. Se for DOC/DOCX, exporte em PDF no seu editor.",
+    },
+    linkedinContacts: {
+      autoOn: "Convite automático ligado: a fila está sendo enviada.",
+      autoOff: "Convite automático desligado. Os contatos já importados ficam na fila.",
+      imported: (invited: number, queued: number) => {
+        const partes: string[] = [];
+        if (invited > 0)
+          partes.push(`${invited} ${invited === 1 ? "convite enviado" : "convites enviados"}`);
+        if (queued > 0) partes.push(`${queued} na fila`);
+        return partes.length > 0
+          ? `Contatos importados: ${partes.join(" e ")}.`
+          : "Contatos importados do LinkedIn.";
+      },
     },
     menu: {
-      trigger: "Menu da conta",
-      profile: "Ver perfil",
-      identity: "Identidade",
-      socialIdentity: "Social",
-      corporateIdentity: "Profissional",
-      corporateProfile: "Perfil profissional",
-      wallet: "Carteira",
-      changeEmail: "Alterar e-mail",
-      changePassword: "Trocar senha",
-      support: "Ajuda e suporte",
       blockedUsers: "Usuários bloqueados",
-      myReports: "Minhas denúncias",
-      moderator: "Painel de moderador",
-      sanctions: "Penalidades",
-      linkedAccounts: "Contas vinculadas",
-      healthyUsage: "Uso saudável",
-      guardian: "Supervisão parental",
-      security: "Segurança e verificação",
-      apoie: "Apoie o Énóis",
-      deleteAccount: "Excluir conta",
-      logout: "Sair",
-      loggingOut: "Saindo...",
-      pushOn: "Notificações no celular ativadas",
-      pushOff: "Ativar notificações no celular",
-      pushWorking: "Ativando...",
+      /** O backend não confirmou: os cookies da sessão continuariam valendo. */
+      logoutFailed: "Não foi possível sair agora. Sua sessão continua ativa neste aparelho.",
+      logoutRetry: "Tentar de novo",
       pushDenied: "Permissão de notificação negada. Libere nas configurações do navegador.",
       pushUnavailable: "Este dispositivo não suporta notificações no celular.",
       pushServerOff: "As notificações no celular ainda não estão disponíveis.",
       pushError: "Não foi possível ativar as notificações. Tente novamente.",
     },
-    healthyUsage: {
-      title: "Uso saudável",
-      description:
-        "Defina um limite de tempo para receber um lembrete gentil de pausa enquanto usa o Énóis.",
-      switchLabel: "Ativar lembrete de pausa",
-      switchHint: "O contador roda em segundo plano nesta sessão; fechar o app zera o tempo.",
-      minutesLabel: "Lembrar depois de",
-      minutesUnit: "minutos",
-      minutesHint: "Escolha entre 1 e 240 minutos. O tempo configurado continua salvo.",
-      save: "Salvar",
-      saved: "Preferência de uso saudável salva.",
-      reminderTitle: "Hora de uma pausa",
-      reminderBody:
-        "Ops, acho que já passou um tempo que você tá scrollando. Vamos dar uma parada?",
-      noise:
-        "Ei, respira! Bebe uma água, olha pela janela e volta quando quiser. Eu também preciso de uma pausa. 🌿",
-      reminderCta: "Vou dar uma pausa",
-      liteTitle: "Modo lite",
-      liteDescription:
-        "Aparelho antigo, bateria curta ou internet ruim? O Modo lite desliga as animações, busca tudo em blocos maiores e segura os dados por mais tempo em cache: menos requisições e menos trabalho pro seu celular. A interface é a mesma.",
-      liteWhy:
-        "A gente pensou em otimização de recursos: aparelho antigo não é aparelho de segunda classe. Em vez de pedir um celular novo, o Énóis se adapta ao que você tem.",
-      forceMotionTitle: "Manter as animações neste aparelho",
-      forceMotionDescription:
-        "Seu sistema está pedindo pra reduzir movimento e a gente respeita: as molduras animadas e os efeitos ficam parados. Ligue aqui pra ver as animações mesmo assim.",
-      nightRestTitle: "Lembrete de descanso durante a madrugada",
-      nightRestDescription:
-        "Receba uma mensagem de cuidado ao acessar o feed entre meia-noite e cinco da manhã.",
-      nightRest: {
-        title: "Tá com insônia?",
-        body: "Tenta cuidar melhor de ti, ouvir um ruído branco e tentar dormir. É bom ter você aqui pra fazer companhia, mas é melhor ainda ter você saudável.",
-        rest: "Vou tentar descansar",
-        keep: "Continuar no Énóis",
-      },
-    },
     changeEmail: {
-      title: "Alterar e-mail",
-      description: "Depois de trocar, use o novo e-mail para entrar na plataforma.",
-      current: (email: string) => `E-mail atual: ${email}`,
-      newEmail: "Novo e-mail",
-      newEmailPlaceholder: "novo@exemplo.com",
-      password: "Senha atual",
-      passwordHint: "Confirme sua senha para concluir a troca.",
-      action: "Salvar e-mail",
-      success: "E-mail atualizado com sucesso.",
-      invalidEmail: "Digite um e-mail válido.",
-      sameEmail: "Esse já é o seu e-mail atual.",
       error: "Não foi possível alterar o e-mail. Tente novamente.",
     },
     changePassword: {
-      title: "Trocar senha",
-      titleCreate: "Criar senha",
-      description: "Por segurança, você entrará de novo com a nova senha.",
-      descriptionCreate:
-        "Sua conta entrou por login social e ainda não tem senha. Crie uma para ligar o segundo fator e entrar sem o provedor.",
-      current: "Senha atual",
-      newPassword: "Nova senha",
-      confirm: "Confirmar nova senha",
-      action: "Salvar nova senha",
-      actionCreate: "Criar senha",
-      saving: "Salvando...",
-      tooShort: "A senha precisa ter pelo menos 8 caracteres.",
-      mismatch: "As senhas não conferem.",
       error: "Não foi possível trocar a senha. Confira a senha atual.",
       errorCreate: "Não foi possível criar a senha. Tente novamente.",
     },
     deleteAccount: {
-      title: "Excluir conta",
-      description: "Esta ação é permanente e não pode ser desfeita.",
-      consequences: [
-        "Seus dados de perfil (nome, e-mail, bio e links) são removidos.",
-        "Você perde o acesso à conta e precisa criar outra para voltar.",
-        "O conteúdo já publicado fica atribuído a um perfil anonimizado.",
-      ],
-      password: "Confirme com sua senha",
-      confirm: "Entendo que a exclusão é permanente.",
-      action: "Excluir minha conta",
-      deleting: "Excluindo...",
       error: "Não foi possível excluir a conta. Confira a senha.",
-    },
-    resetPassword: {
-      title: "Redefinir senha",
-      description: (email: string) => `Enviaremos um link de redefinição para ${email}.`,
-      action: "Enviar link",
-      sending: "Enviando...",
-      sentTitle: "Link enviado",
-      sentDescription: (email: string) =>
-        `Confira a caixa de entrada de ${email} e siga as instruções.`,
-      understood: "Entendi",
-      error: "Não foi possível enviar o link. Tente novamente.",
     },
   },
 
@@ -966,6 +638,7 @@ export const texts = {
       practice: "Na prática",
       exists: "O que existe",
       community: "Comunidade",
+      contribute: "Contribuir",
     },
     hero: {
       badge: "A rede é nossa",
@@ -1133,6 +806,75 @@ export const texts = {
         },
       },
     },
+    contribute: {
+      eyebrow: "Código aberto, processo combinado",
+      title: "Contribuir não é bagunça.",
+      description:
+        "O código do Énóis é aberto, mas o processo é combinado. Antes de abrir um PR, a gente quer saber quem você é, o que quer resolver e se você leu as regras. Isso não é burocracia: é o que mantém o projeto saudável para quem usa e para quem mantém.",
+      rulesTitle: "Como a gente trabalha",
+      rules: [
+        "Leia o guia de contribuição e o código de conduta antes de escrever código.",
+        "Abra ou assuma uma issue: mudanças grandes precisam de conversa antes do PR.",
+        "Mande mudanças pequenas, com teste e a descrição do problema que resolvem.",
+        "A revisão é conversa técnica, não concurso. O merge é decisão de quem mantém.",
+      ],
+      guide: "Ler o guia de contribuição",
+      guideUrl: "https://github.com/Rede-ENois/enois-backend/blob/main/CONTRIBUTING.md",
+      formTitle: "Quero contribuir",
+      formDescription:
+        "Deixe seus dados básicos. O GitHub é o canal do trabalho; o e-mail serve só para falar sobre a contribuição.",
+      fields: {
+        name: "Nome",
+        namePlaceholder: "Como podemos te chamar",
+        github: "GitHub",
+        githubPlaceholder: "@usuario ou https://github.com/usuario",
+        email: "E-mail",
+        emailPlaceholder: "voce@exemplo.com",
+        area: "Área",
+        areaPlaceholder: "Escolha uma área",
+        experience: "Experiência",
+        experiencePlaceholder: "Escolha uma faixa",
+        message: "O que você quer contribuir?",
+        messagePlaceholder:
+          "Conte o que você já fez, o que quer aprender ou qual problema do projeto quer atacar.",
+      },
+      areas: {
+        engineering: "Engenharia",
+        design: "Design",
+        product: "Produto",
+        data: "Dados",
+        infra: "Infraestrutura",
+        docs: "Documentação",
+        community: "Comunidade",
+        other: "Outro",
+      },
+      experiences: {
+        beginner: "Iniciante",
+        intermediate: "Intermediário",
+        advanced: "Avançado",
+        maintainer: "Mantenedor(a)",
+      },
+      termsPrefix: "Li e aceito as ",
+      termsLink: "regras de contribuição e os termos de uso",
+      termsSuffix: ".",
+      submit: "Enviar candidatura",
+      confirm: "Confirmar meus dados",
+      sending: "Enviando...",
+      successTitle: "Recebemos sua candidatura",
+      successDescription:
+        "O registro fica na fila interna do projeto. Se houver uma issue ou um próximo passo para a sua área, a gente fala com você pelo GitHub ou pelo e-mail informado.",
+      verifiedGithubHint:
+        "O GitHub vem do seu vínculo verificado; ele não pode ser alterado por aqui.",
+      verifiedSuccessTitle: "Dados confirmados",
+      verifiedSuccessDescription:
+        "Você já aparece no painel de contribuintes. A verificação é o próprio GitHub, sem aprovação manual.",
+      again: "Enviar outra",
+      error: "Não foi possível enviar agora. Tente de novo em alguns minutos.",
+      validationName: "Informe seu nome (pelo menos 2 caracteres).",
+      validationGithub: "Informe seu usuário do GitHub.",
+      validationEmail: "Informe um e-mail válido.",
+      validationTerms: "Para enviar, aceite as regras e os termos.",
+    },
     finalCta: {
       eyebrow: "Chega junto",
       title: "A internet também é feita das escolhas da gente.",
@@ -1162,6 +904,7 @@ export const texts = {
       terms: "Termos",
       contact: "Contato",
       api: "API pública",
+      seals: "Selos",
       about: "Sobre o énóis",
       home: "Início",
     },
@@ -1194,16 +937,15 @@ export const texts = {
       description: "Seu feed de insights, perguntas e projetos da comunidade profissional.",
     },
     you: "Você",
+    refreshing: "Atualizando publicações…",
     loadingMore: "Carregando mais publicações...",
     endOfFeed: "Você chegou ao fim do feed.",
     loadMore: "Carregar mais",
     scrollToTop: "Voltar ao topo",
-    share: "Compartilhar",
     empty: "Nada por aqui ainda. Publicações da sua rede aparecem neste feed.",
     composer: {
+      removeMedia: "Remover mídia",
       topic: "Assunto",
-      insertInText: "Inserir no texto",
-      insertMedia: (number: number) => `Inserir mídia ${number} no texto`,
       topicNone: "Sem assunto",
       topicHint: "Liga o post ao que a gente quer ver (ou não quer) na personalização.",
       schedule: "Agendar",
@@ -1243,8 +985,6 @@ export const texts = {
         bodyPlaceholder: "Escreva o artigo. O campo de cima é o título que aparece no feed.",
         bodyHint:
           "Artigo aceita até 4.000 caracteres (post comum aceita 1.200) e o texto fica guardado separado do post.",
-        read: "Ler artigo",
-        open: "Abrir artigo",
       },
       media: "Mídia",
       video: "Vídeo",
@@ -1257,15 +997,12 @@ export const texts = {
       page: "Página",
       pagePlaceholder: "Cole aqui o HTML da sua página...",
       pageLabel: "HTML da página",
-      pagePreview: "Pré-visualizar",
-      pageEditHtml: "Editar HTML",
       pageDescription:
         "Uma página é uma coisa ou outra: o HTML dela é o conteúdo do post, sem texto separado. Imagem, vídeo e áudio por link https tocam dentro dela; scripts, formulários e requisições externas não rodam. Link de YouTube, Vimeo, Twitch, Dailymotion ou Spotify vira player embutido logo abaixo da página — o quadro em si não executa script, então o player é montado pelo próprio énóis. Documento (PDF) vira link e abre no visualizador do navegador.",
       pageEmpty: "Cole um HTML para ver a pré-visualização.",
       corporateDestination: (name: string) =>
         `Publicando como ${name} — esta publicação vai para o feed corporativo.`,
     },
-    tabsLabel: "Filtrar publicações",
     tabs: {
       forYou: "Para você",
       news: "Notícias",
@@ -1276,13 +1013,14 @@ export const texts = {
       all: "Tudo",
       following: "Seguindo",
       discussions: "Discussões",
-      /** O oposto de "Discussoes": aqui entram os posts em que a pessoa ainda nao reagiu nem comentou. */
       unseen: "Ainda não vi",
+      trending: "Em Alta",
+      interacted: "Interações",
       projects: "Projetos",
       corporate: "Corporativo",
-      /** Legenda do seletor de tipo de feed (as abas ficam recolhidas atrás do botao). */
       type: "Tipo de feed",
       openList: "Escolher o tipo de feed",
+      allTypes: "Todos os tipos",
     },
     sidebar: {
       connections: "Conexões",
@@ -1302,16 +1040,6 @@ export const texts = {
   posts: {
     mediaSpoiler: {
       badge: "SPOILER",
-      reveal: "Mostrar mídia",
-    },
-    momentExpiry: (hours: number) => `some em ${hours}h`,
-    momentExpiryTitle: "Momento se apaga sozinho em 24 horas",
-    /** Palco de mídia do Modo lite: o vídeo aberto em tela cheia, com o resto da página pausado. */
-    mediaStage: {
-      open: "Assistir em tela cheia",
-      title: "Vídeo",
-      mute: "Silenciar",
-      unmute: "Ativar som",
     },
     /** Fixar UM post no topo do feed da comunidade/grupo (a administração faz isso). */
     pin: {
@@ -1320,65 +1048,12 @@ export const texts = {
       pinned: "Fixado",
       error: "Não foi possível atualizar o fixado agora.",
     },
-    types: {
-      insight: "Insight",
-      question: "Pergunta",
-      project: "Projeto",
-      opportunity: "Oportunidade",
-      article: "Artigo",
-      page: "Página",
-      news: "Notícia",
-      tutorial: "Tutorial",
-      review: "Avaliação",
-      divertido: "Divertido",
-      moment: "Momento",
-    },
-    formatting: {
-      toolbar: "Formatar texto",
-      bold: "Negrito",
-      italic: "Itálico",
-      strike: "Riscado",
-      heading: "Título",
-      bulletList: "Lista",
-      quote: "Citação",
-      code: "Código",
-      link: "Link",
-      spoiler: "Spoiler",
-      boldPlaceholder: "texto em negrito",
-      italicPlaceholder: "texto em itálico",
-      strikePlaceholder: "texto riscado",
-      codePlaceholder: "código",
-      linkPlaceholder: "texto do link",
-      spoilerPlaceholder: "texto com spoiler",
-      spoilerShow: "Mostrar spoiler",
-      spoilerHide: "Esconder spoiler",
-      spoilerHint: "Spoiler — toque para exibir",
-      emoji: "Emoji",
-      emojiSearch: "Buscar emoji",
-      emojiEmpty: "Nenhum emoji com esse nome.",
-    },
     page: {
       frameTitle: "Página publicada no post",
-      expand: "Abrir página",
-      dialogTitle: "Página",
-      badge: "Página",
       loading: "Carregando a página...",
     },
-    tag: (tag: string) => `#${tag}`,
-    authorTime: (time: string) => `· ${time}`,
-    edited: "editado",
-    community: {
-      publishedIn: "publicou em",
-      follow: "Seguir",
-      followError: "Não foi possível seguir a comunidade. Tente novamente.",
-    },
     owner: {
-      actions: "Ações da publicação",
-      edit: "Editar",
-      editTitle: "Editar publicação",
       editDescription: "Atualize o texto. Tags, mídias e a comunidade continuam como estão.",
-      save: "Salvar",
-      delete: "Excluir",
       deleteTitle: "Excluir publicação?",
       deleteDescription:
         "A publicação sai do feed para todo mundo e deixa de aparecer para quem acessar o link. As tags e mídias param de ser exibidas.",
@@ -1393,49 +1068,15 @@ export const texts = {
      * pessoa por post (clicar de novo tira, clicar em outro troca).
      */
     seals: {
-      action: "Adicionar selo",
-      title: "Sinalizar com um selo",
-      hint: "Quantos selos quiser: cada um conta sozinho. Clicar de novo no mesmo tira.",
-      remove: "Tirar meus selos",
       error: "Nao foi possivel salvar o selo. Tente novamente.",
-      /** O selo no topo do post abre a lista de quem marcou — como a contagem de reações abre a dela. */
-      seeWho: "Ver quem marcou",
-      peopleTitle: "Selos do post",
-      peopleEmpty: "Ninguem marcou este post ainda.",
-      peopleError: "Nao foi possivel carregar quem marcou. Tente de novo.",
-      peopleTotal: (count: number) => (count === 1 ? "1 selo" : `${count} selos`),
-      items: {
-        important: "Importante",
-        interesting: "Interessante",
-        tip: "Dica",
-        help: "Ajuda",
-        duplicate: "Post duplicado",
-        fanfic: "Fanfic",
-        tiring: "Massante",
-        goodQuestion: "Boa pergunta",
-        inspiring: "Inspirador",
-      },
     },
     reactions: {
-      title: "Reações",
-      empty: "Nenhuma reação ainda",
-      /** Estado vazio de uma aba por tipo (o tipo existe no resumo, mas ninguém está nele). */
-      emptyType: "Ninguém reagiu com isso ainda",
-      /** Aba geral do diálogo. */
-      all: "Todas",
-      /** Marca a própria linha na lista de quem reagiu. */
-      you: "(você)",
-      react: "Reagir",
-      reactWith: (emoji: string) => `Reagir com ${emoji}`,
-      removeWith: (emoji: string) => `Remover reação ${emoji}`,
-      reactedWith: (emoji: string) => `Reagiu com ${emoji}`,
-      /** Palavra do contador (sem número): o número é renderizado à parte. */
-      noun: (count: number) => (count === 1 ? "reação" : "reações"),
-      /** Rótulo acessível do contador "ver quem reagiu". */
-      seeWho: (count: number) => `Ver quem reagiu (${count} ${count === 1 ? "reação" : "reações"})`,
       error: "Não foi possível reagir. Tente novamente.",
-      permissionError: "Você não tem permissão para reagir neste post.",
-      loadError: "Não foi possível carregar as reações.",
+      restrictedError: "Sua conta está restrita e não pode reagir agora. Veja em Penalidades.",
+      sessionError: "Sua sessão expirou. Entre de novo para reagir.",
+      rateLimitError: "Calma aí — muitas ações em pouco tempo. Aguarde um minuto e tente de novo.",
+      /** Sem resposta do servidor (rede, bloqueio do proxy): não é recusa da reação. */
+      networkError: "Não conseguimos falar com o servidor agora. Tente de novo em instantes.",
       emojis: {
         LIKE: "👍",
         LOVE: "❤️",
@@ -1459,99 +1100,23 @@ export const texts = {
     },
     report: {
       title: "Denunciar post",
-      titles: {
-        comment: "Denunciar comentário",
-        profile: "Denunciar perfil",
-      },
-      reason: "Motivo",
-      description: "Descrição (opcional)",
       action: "Denunciar",
-      sending: "Enviando...",
       success: "Denúncia enviada. Você acompanha em Minhas denúncias.",
       error: "Não foi possível enviar a denúncia. Tente novamente.",
-      guidelines: "Veja as diretrizes da comunidade",
     },
-    share: "Compartilhar",
-    repost: "Republicar",
     reposted: "Republicado no seu perfil.",
     alreadyReposted: "Você já republicou este post.",
     repostError: "Não foi possível republicar agora.",
-    repostTitle: "Republicar",
-    repostDescription:
-      "Publique no seu feed direto, ou escreva uma opinião de até 600 caracteres para aparecer junto com o post original citado.",
-    repostPlain: "Só republicar",
-    repostWithOpinion: "Republicar com opinião",
-    opinionLabel: "Sua opinião (opcional)",
-    opinionPlaceholder: "O que você achou deste post?",
-    opinionCount: (length: number) => `${length}/600`,
-    quotedFrom: (username: string | null | undefined) =>
-      username ? `Publicação original de @${username}` : "Publicação original",
-    viewOriginal: "Ver publicação original",
-    repostedWithOpinion: "Republicou com opinião",
-    repostedFrom: (username: string | null | undefined) =>
-      username ? `Republicado de @${username}` : "Republicado",
     shareCopied: "Link da publicação copiado!",
-    save: "Salvar publicação",
-    unsave: "Remover dos salvos",
     editPhoto: "Editar foto",
     comments: {
-      empty: "Nenhum comentário ainda. Seja o primeiro a comentar.",
       placeholder: "Comente com contexto, dúvida ou referência...",
-      send: "Enviar comentário",
-      reply: "Responder",
-      replyingTo: (name: string) => `respondendo a ${name}`,
-      delete: "Excluir",
-      pin: "Fixar comentário",
-      unpin: "Desafixar comentário",
-      pinned: "Fixado",
       pinError: "Não foi possível fixar o comentário.",
       editError: "Não foi possível salvar a edição. Tente de novo.",
-      loadMore: "Ver comentários anteriores",
-      loadingMore: "Carregando...",
-      error: "Não foi possível carregar os comentários.",
-      retry: "Tentar de novo",
-      cancelReply: "Cancelar resposta",
-      title: "Comentários",
-      count: (count: number) => `${count} comentário${count === 1 ? "" : "s"}`,
-      viewProfile: (name: string) => `Abrir o perfil de ${name}`,
-      attachMedia: "Anexar imagem",
-      removeMedia: "Remover mídia",
-      insertInText: "Inserir no texto",
-      mediaSpoiler: "Marcar mídias como spoiler",
-      mediaSpoilerActive: "Mídias marcadas como spoiler",
-      gif: "GIF",
-      gifTitle: "Adicionar GIF",
-      gifHint: "Cole o link do Giphy ou Tenor — ele aparece como GIF no comentário.",
-      gifPlaceholder: "https://giphy.com/gifs/...",
-      gifAction: "Adicionar GIF",
-      gifInvalid: "Esse link não parece ser um GIF do Giphy, Tenor ou um .gif direto.",
-      gifSearchPlaceholder: "Buscar GIFs",
-      gifTrending: "Em alta",
-      gifSearchEmpty: (term: string) => `Nenhum GIF encontrado para “${term}”.`,
-      gifSearchNothing: "Nenhum GIF para mostrar agora.",
-      gifSearchError: "Não foi possível buscar GIFs agora. Tente de novo.",
-      gifUnavailable:
-        "Sem provedor externo configurado — buscando nos GIFs da comunidade. Para a busca externa, configure REDE_GIFS_TENOR_KEY (grátis no Google Cloud) e colar link continua valendo.",
-      gifPasteToggle: "Prefiro colar um link",
-      gifBackToSearch: "Voltar para a busca",
-      gifPoweredBy: (provider: string) => `GIFs por ${provider}`,
-      recordAudio: "Gravar áudio",
-      stopRecording: "Parar a gravação",
-      recording: (minutes: number, seconds: number) =>
-        `gravando ${minutes}:${String(seconds).padStart(2, "0")}`,
-      micDenied: "Não foi possível usar o microfone. Confira a permissão do navegador.",
-      mediaLimit: "Máximo de 4 mídias por comentário.",
-      uploadFailed: "Não foi possível enviar a mídia. Tente de novo.",
     },
-    video: {
-      openLabel: "abrir no site",
-      watchOn: (provider: string) => `Clique para assistir no ${provider}`,
-      icons: {
-        cinema: "🎬",
-        television: "📺",
-        play: "▶️",
-        web: "🌐",
-      },
+    notes: {
+      sent: "Nota enviada para moderação.",
+      error: "Não foi possível enviar a nota.",
     },
   },
 
@@ -1572,36 +1137,16 @@ export const texts = {
     editProfile: "Editar perfil",
     message: "Mensagem",
     resume: {
-      action: "Currículo",
-      title: "Seu currículo",
-      hint: "Um PDF só seu: ele não aparece no seu perfil para os outros. Serve para anexar nas candidaturas.",
-      empty: "Nenhum currículo enviado ainda.",
-      upload: "Enviar PDF",
-      sending: "Enviando...",
-      download: "Baixar",
-      remove: "Remover currículo",
       removed: "Currículo removido.",
       saved: "Currículo atualizado.",
-      wrongType: "O currículo precisa ser um PDF.",
-      tooBig: "O PDF passou de 5 MB. Envie uma versão menor.",
       error: "Não foi possível salvar o currículo. Tente novamente.",
     },
     /** Etiqueta ao lado do nome: "vulgo Java". */
     aka: (value: string) => `vulgo ${value}`,
-    waitingResponse: "Aguardando resposta",
-    connected: "Conectado",
     connect: "Conectar",
     removeConnection: "Remover conexão",
     cancelRequest: "Cancelar solicitação",
-    blockUser: "Bloquear",
     unblockUser: "Desbloquear",
-    blockTitle: (name: string) => `Bloquear ${name}?`,
-    blockDescription:
-      "A pessoa some para você: os posts, comentários e notificações dela deixam de aparecer, e a conexão é desfeita. Ela não é avisada. Isso vale para sempre, até você desbloquear.",
-    unblockTitle: (name: string) => `Desbloquear ${name}?`,
-    unblockDescription:
-      "O conteúdo dela volta a aparecer para você. Nada é restaurado automaticamente além disso (a conexão precisa ser refeita).",
-    blockError: "Não foi possível concluir. Tente novamente.",
     blockedBadge: "Você bloqueou esta pessoa. O conteúdo dela está escondido.",
     blockedTitle: "Usuários bloqueados",
     blockedSeoTitle: "Usuários bloqueados · Énóis",
@@ -1610,91 +1155,43 @@ export const texts = {
     blockedEmpty: "Você não bloqueou ninguém.",
     blockedHint:
       "O bloqueio vale para sempre e os dois lados deixam de se ver. Desbloqueie aqui quando quiser.",
-    blockedSince: (date: string | null) =>
-      date ? `Bloqueado em ${new Date(date).toLocaleDateString("pt-BR")}` : "Bloqueado",
+    blockedSince: (date: string | null) => (date ? `Bloqueado em ${dataCurta(date)}` : "Bloqueado"),
     openToWork: "Aberto a oportunidades",
     mentorAvailable: "Mentor disponível",
-    connections: (count: number) => `${count} ${count === 1 ? "conexão" : "conexões"}`,
     connectionsMeta: (count: number) => `· ${count} ${count === 1 ? "conexão" : "conexões"}`,
-    reputation: (value: number) => `${value} reputação`,
     reputationMeta: (value: number) => `★ ${value} reputação`,
-    /** Posição na lista (a tela do ranking ainda usa; volta a ser a única forma). */
-    rankingPosition: (position: number) => `${position}º`,
     /** A lista é de chegada: cada linha mostra há quanto tempo a pessoa entrou. */
     joinedToday: "chegou hoje",
     joinedDaysAgo: (days: number) => `há ${days} ${days === 1 ? "dia" : "dias"}`,
     recommendationQuote: (comment: string) => `"${comment}"`,
-    uploadingIndicator: "...",
     imageUploadError: "Não foi possível enviar a imagem. Tente novamente.",
     avatarUnknown: "?",
     bannerHtml: {
       action: "Mudar capa",
-      title: "Capa do perfil",
-      choiceHint:
-        "Escolha uma das duas formas de capa. Dá para trocar de ideia quando quiser — a foto continua guardada.",
-      photoTab: "Selecionar nova foto",
-      photo: "Escolher arquivo",
-      photoHint: "JPG, PNG ou WebP — você recorta no formato da capa em seguida.",
-      htmlTab: "Digitar código HTML",
-      html: "Capa em HTML/CSS",
-      htmlHint:
-        "Escreva a capa com HTML e CSS: ela ocupa exatamente o mesmo espaço da foto e vale para todo mundo que abrir seu perfil.",
-      label: "HTML/CSS da capa",
-      description:
-        "Imagem, vídeo e áudio por link https aparecem na capa. Scripts, formulários e requisições externas não rodam, e nada aqui alcança a conta de quem visita.",
-      placeholder: "Cole ou escreva o HTML da capa...",
-      empty: "Cole um HTML para ver a capa.",
       frameTitle: "Capa em HTML do perfil",
-      save: "Salvar capa",
       saved: "Capa atualizada.",
       error: "Não foi possível salvar a capa. Tente novamente.",
-      remove: "Voltar para a foto",
     },
     bioHtml: {
-      action: "Bio em HTML",
-      title: "Bio em HTML/CSS",
-      label: "HTML/CSS da bio",
-      description:
-        "Escreva sua bio com HTML e CSS: imagens, vídeo e áudio por link https tocam dentro dela. Scripts, formulários e requisições externas não rodam, e nada aqui alcança a conta de quem visita. Fundo e texto acompanham o tema do app com var(--background), var(--foreground), light-dark() ou prefers-color-scheme. Uma cor escrita na mão, como #0b0b12 ou #fff, fica como você pintou.",
-      placeholder: "Cole ou escreva o HTML da sua bio...",
-      empty: "Cole um HTML para ver a pré-visualização.",
       frameTitle: "Bio em HTML do perfil",
-      hint: "Quem visita seu perfil vê esta bio no lugar do texto. Deixar vazio volta para a bio de texto.",
       saved: "Bio atualizada.",
       error: "Não foi possível salvar a bio. Tente novamente.",
-      save: "Salvar bio",
-      preview: "Pré visualização",
-    },
-    experiences: {
-      title: "Experiências",
-      empty: "Nenhuma experiência cadastrada ainda.",
-      present: "atual",
-      hint: "Cargos, empresas, período e o que você fez em cada um.",
     },
     projects: {
       title: "Projetos",
-      hint: "O que você anda construindo — stack, repositório, status e o diário de evolução.",
-      manage: "Gerenciar projetos",
-      empty: "Nenhum projeto ainda. Conte o que você está construindo.",
-      status: "Status",
-      repo: "Repositório",
-      diary: "Diário de evolução",
-      modeStructured: "Estruturado",
-      modeHtml: "HTML próprio",
-      titleField: "Título do projeto",
-      stackField: "Stack (separe por vírgula)",
-      repoField: "Link do repositório (https)",
-      statusField: "Status",
-      diaryAdd: "Adicionar entrada ao diário",
-      diaryDate: "Data",
-      diaryText: "O que evoluiu",
-      add: "Novo projeto",
-      save: "Salvar projeto",
-      remove: "Excluir",
-      deleteConfirm: "Excluir este projeto? O diário vai junto.",
       saved: "Projeto salvo.",
       error: "Não foi possível salvar o projeto.",
-      htmlFrame: "Card de projeto em HTML",
+    },
+    githubImport: {
+      imported: (created: number, skipped: number, invalid: number) => {
+        const parts = [`${created} ${created === 1 ? "projeto importado" : "projetos importados"}`];
+        if (skipped > 0) parts.push(`${skipped} já estava${skipped === 1 ? "" : "m"}`);
+        if (invalid > 0) parts.push(`${invalid} inválido${invalid === 1 ? "" : "s"}`);
+        return parts.join(" · ");
+      },
+      error: "Não foi possível importar agora. Tente de novo.",
+      readmeSaved: "Bio atualizada com o README.",
+      readmeError: "Não foi possível ler o README agora.",
     },
     sections: {
       about: "Sobre",
@@ -1708,46 +1205,12 @@ export const texts = {
       links: "Links",
     },
     dashboard: {
-      walletEyebrow: "Sua carteira",
-      walletCaption: "Faíscas disponíveis agora",
-      walletAction: "Abrir carteira",
       progressTitle: "Presença no Énóis",
       reputationLabel: "reputação",
       postsLabel: "publicações",
       connectionsLabel: "conexões",
       followersLabel: "seguidores",
-      networkDialog: {
-        connectionsTitle: (name: string) => `Conexões de ${name}`,
-        followersTitle: (name: string) => `Seguidores de ${name}`,
-        emptyConnections: "Este perfil ainda não tem conexões públicas.",
-        emptyFollowers: "Este perfil ainda não tem seguidores.",
-        error: "Não foi possível carregar essa lista agora.",
-      },
-      progressCaption: "Sua presença cresce com o que você compartilha e constrói por aqui.",
-      badgesTitle: "Emblemas em destaque",
-      badgeAlt: "Emblema do perfil",
-      badgesEmpty: "Os emblemas que você escolher aparecem aqui e acompanham seu nome pela rede.",
-      exploreTitle: "Continue explorando",
-      exploreDescription:
-        "Seu perfil é uma parte da experiência. O resto se constrói nas trocas da comunidade.",
-      dailyGames: "Jogos diários",
-      appearance: "Explorar aparências",
-      communityEyebrow: "Seu círculo",
-      communityTitle: "Cantos da comunidade",
-      communityDescription:
-        "Os espaços em que suas conversas, projetos e referências continuam depois do perfil.",
-      communityEmpty: "Entre em uma comunidade para ela aparecer aqui.",
-      communityAction: "Explorar comunidades",
       composer: {
-        title: "Compartilhe uma ideia",
-        subtitle: "Uma atualização curta também pode abrir uma boa conversa.",
-        start: "Começar publicação",
-        video: "Vídeo",
-        photo: "Foto",
-        article: "Escrever artigo",
-        placeholder: "No que você está trabalhando hoje?",
-        hint: "Publica no seu perfil e no feed da sua rede.",
-        action: "Publicar",
         success: "Publicação enviada.",
         error: "Não foi possível publicar agora. Tente novamente.",
       },
@@ -1762,85 +1225,12 @@ export const texts = {
     recommendPlaceholder: "Descreva como conhece este profissional...",
     sendRecommendation: "Enviar recomendação",
     userFallback: "Usuário",
-    cropLoading: "Carregando a imagem...",
-    cropUnsupported:
-      "Não foi possível abrir esta imagem. Use JPG, PNG ou WebP (fotos HEIC do iPhone precisam ser convertidas).",
-    cropZoom: "Zoom do recorte",
     cropAvatar: "Ajustar foto de perfil",
     cropCover: "Ajustar foto de capa",
     avatarFallback: "Avatar",
     edit: {
       usernameTaken: "Este username já está em uso",
       birthDateInvalid: "Informe uma data de nascimento válida — é preciso ter 18 anos ou mais.",
-      showRanking: "Mostrar o ranking no perfil",
-      showRankingHint:
-        "Desligue para não ver a seção de ranking (quem está chegando agora) ao abrir um perfil.",
-      title: "Editar perfil",
-      tabs: {
-        info: "Informações",
-        experiences: "Experiências",
-        education: "Educação",
-        certifications: "Certificações",
-      },
-      fields: {
-        name: "Nome",
-        username: "Username (URL do perfil)",
-        badges: "Emblemas",
-        aka: "Vulgo",
-        headline: "Headline",
-        bio: "Bio",
-        company: "Empresa",
-        location: "Localização",
-        birthDate: "Data de nascimento",
-        availability: "Disponibilidade",
-        portfolio: "Portfólio",
-        externalLinks: "Links externos (um por linha)",
-        skills: "Habilidades (separadas por vírgula)",
-        goals: "Objetivos (separados por vírgula)",
-      },
-      placeholders: {
-        username: "seu-username",
-        aka: "Ex.: Java",
-        headline: "Cargo ou frase de destaque",
-        availability: "Ex.: Disponível para freelas",
-        portfolio: "https://...",
-      },
-      openToWork: "Aberto a oportunidades",
-      mentorAvailable: "Mentor disponível",
-      akaHint: "Como você é conhecido por aqui (até 60 caracteres). Aparece ao lado do seu nome.",
-      badgeUpload: "Enviar imagem",
-      badgeRemove: "Remover emblema",
-      badgesHint:
-        "Até 5 imagens pequenas (um PNG com fundo transparente fica melhor). A primeira acompanha o seu nome no perfil, nos posts e nos comentários.",
-      badgesFull: "Você já tem 5 emblemas.",
-      experienceFields: {
-        title: "Cargo",
-        company: "Empresa",
-        location: "Local",
-        description: "Descrição",
-        startDate: "Início",
-        endDate: "Fim",
-      },
-      educationFields: {
-        school: "Instituição",
-        degree: "Grau",
-        field: "Campo",
-        description: "Descrição",
-        startDate: "Início",
-        endDate: "Fim",
-      },
-      certificationFields: {
-        name: "Nome",
-        issuer: "Emissor",
-        description: "Descrição",
-        issueDate: "Data de emissão",
-        expirationDate: "Data de expiração",
-        credentialUrl: "URL da credencial",
-      },
-      emptyExperience: "Nenhuma experiência adicionada",
-      emptyEducation: "Nenhuma formação adicionada",
-      emptyCertification: "Nenhuma certificação adicionada",
-      currentlyHere: "Atualmente aqui",
     },
   },
 
@@ -1867,24 +1257,7 @@ export const texts = {
     backToBlogs: "Ver todos os blogs",
     /** Post escrito no editor livre: na lista não há resumo em texto, então o card diz o que é. */
     pagePost: "Página em HTML/CSS",
-    ownerHint: "Este blog é seu. Publique pelo botão Novo post.",
     editor: {
-      blogTitle: "Nome do blog",
-      blogDescription: "Descrição",
-      theme: "Tema do blog (HTML/CSS)",
-      themeHint:
-        "Opcional: o HTML/CSS abaixo vira a cara da sua página de blog (mesmo quadro isolado das páginas e da bio). Vazio volta ao cabeçalho padrão.",
-      save: "Salvar",
-      saved: "Blog salvo.",
-      postTitle: "Título do post",
-      modeText: "Texto",
-      modeHtml: "HTML/CSS",
-      textHint:
-        "Escreva como no Word: # vira título, **negrito**, *itálico*, - vira lista, > vira citação. A prévia mostra como fica.",
-      htmlHint: "Cole HTML e CSS livres — é o mesmo editor das páginas do perfil.",
-      preview: "Prévia",
-      write: "Escrever",
-      publish: "Publicar",
       published: "Post publicado. Quem segue seu blog foi avisado.",
       draftSaved: "Rascunho salvo neste navegador.",
       draftSaveError:
@@ -1894,16 +1267,10 @@ export const texts = {
         "Quem assina o seu blog recebe um e-mail com este post (além da notificação no app). Dá para desativar só para este post.",
       updated: "Post atualizado.",
       editPost: "Editar post",
-      savePost: "Salvar post",
       deletePost: "Excluir post",
       deleteHint: "O post sai do seu blog e do feed de quem segue. Não dá para desfazer.",
       deleted: "Post excluído.",
       error: "Não foi possível salvar. Tente novamente.",
-      emptyBody: "Escreva alguma coisa antes de publicar.",
-    },
-    feed: {
-      badge: "Blog",
-      read: "Ler no blog",
     },
   },
 
@@ -1930,15 +1297,12 @@ export const texts = {
     orderRecent: "Recentes",
     orderTitle: "A-Z",
     submit: "Enviar projeto",
-    mine: "Meus projetos",
     loadMore: "Carregar mais",
     empty: "Nenhum projeto encontrado.",
     emptyHint: "Você fez algo? Envie o link e ele aparece aqui depois da revisão.",
-    loading: "Carregando projetos…",
     error: "Não foi possível carregar os projetos agora.",
     openProject: "Abrir projeto",
     openRepo: "Ver repositório",
-    visit: "Visitar",
     notFound: "Projeto não encontrado.",
     back: "Voltar",
     submittedBy: (name: string) => `por ${name}`,
@@ -1949,18 +1313,7 @@ export const texts = {
       SUSPENDED: "Suspenso",
     },
     editor: {
-      createTitle: "Enviar projeto",
       editTitle: "Editar projeto",
-      title: "Título do projeto",
-      shortDescription: "Resumo curto (aparece no card)",
-      description: "Descrição do projeto",
-      url: "Link do projeto (https://...)",
-      repoUrl: "Link do repositório (opcional)",
-      tags: "Tags separadas por vírgula",
-      category: "Categoria (ex.: WEB, DADOS, ARTE)",
-      cover: "URL da capa (opcional)",
-      slug: "Endereço na URL (opcional)",
-      save: "Salvar",
       saving: "Salvando…",
       cancel: "Cancelar",
       sent: "Projeto enviado para revisão.",
@@ -1978,8 +1331,6 @@ export const texts = {
   },
   games: {
     title: "Jogos",
-    description:
-      "Feitos pela comunidade. O Énóis não hospeda: cada jogo roda no lugar onde o criador o publicou — aqui só o convite.",
     searchPlaceholder: "Buscar jogo, criador ou tag",
     /** Categorias de jogo: a comunidade e os jogos diários (que eram uma página à parte). */
     categoryCommunity: "Jogos da comunidade",
@@ -1996,17 +1347,8 @@ export const texts = {
     mostPlayed: "Mais jogados",
     alphabetical: "A-Z",
     loadMore: "Carregar mais",
-    share: "Compartilhar",
     empty: "Nenhum jogo encontrado com esses filtros.",
-    emptyHint: "Você fez um jogo? Envie o link e ele aparece aqui depois da moderação.",
     loading: "Carregando…",
-    error: "Não foi possível carregar o catálogo agora.",
-    /** Card "jogados hoje" no painel lateral do feed. */
-    today: {
-      title: "Jogados hoje",
-      subtitle: "As últimas 24 horas da comunidade.",
-      players: (count: number) => `${count} ${count === 1 ? "pessoa jogou" : "pessoas jogaram"}`,
-    },
     /** Página do criador. */
     developer: {
       notFound: "Criador não encontrado.",
@@ -2016,10 +1358,7 @@ export const texts = {
       following: "Acompanhando",
       devChip: "Dev de jogos",
       editPage: "Editar minha página",
-      about: "Sobre",
-      links: "Links",
       noGames: "Nenhum jogo publicado ainda.",
-      badge: "Criador no Énóis Games",
     },
     /** Painel de quem publica. */
     panel: {
@@ -2047,27 +1386,6 @@ export const texts = {
       edit: "Editar",
       analytics: "Números",
       newUpdate: "Publicar novidade",
-      /** Os números de uso (gráfico + totais). */
-      analyticsGroup: {
-        title: "Números de uso",
-        plays: "Sessões",
-        players: "Pessoas distintas",
-        favorites: "Na biblioteca",
-        updates: "Novidades",
-        views: (total: number, days: number) => `${total} visualizações nos últimos ${days} dias`,
-        chartLabel: (days: number) => `Gráfico de visualizações por dia (${days} dias)`,
-        tooltip: (date: string, views: number, plays: number, players: number) =>
-          `${date}: ${views} visualizações · ${plays} partidas · ${players} pessoas`,
-        error: "Não foi possível carregar os números agora.",
-      },
-      newUpdateHint:
-        "Conte o que mudou nesta versão. Quem acompanha você recebe um aviso no Énóis.",
-      updateTitle: "Título da novidade",
-      updateTitlePlaceholder: "Versão 1.2 no ar",
-      updateBody: "O que mudou",
-      updateBodyPlaceholder: "Corrigi o bug do save, adicionei uma fase nova…",
-      updateVersion: "Versão (opcional)",
-      publishUpdate: "Publicar novidade",
       updatePublished: "Novidade publicada.",
       updateError: "Não foi possível publicar a novidade agora.",
       status: {
@@ -2079,46 +1397,6 @@ export const texts = {
     },
     /** Edição do jogo pelo dono (ficha, endereço, identidade visual e exclusão). */
     editor: {
-      title: "Editar jogo",
-      description:
-        "A ficha completa, o endereço público e a identidade visual. Editar não passa pela moderação de novo.",
-      identityTitle: "Identidade visual",
-      icon: "Foto de perfil do jogo",
-      iconHint: "Aparece na loja no lugar do favicon do site de origem.",
-      removeIcon: "Remover foto do jogo",
-      uploadImage: "Enviar foto",
-      banner: "Banner da página",
-      uploadPhoto: "Enviar foto do banner",
-      removeBanner: "Remover banner",
-      bannerHint: "Ou desenhe um banner em HTML, abaixo — a foto tem prioridade.",
-      bannerHtml: "Banner em HTML/CSS (opcional)",
-      bannerHtmlHint:
-        "Roda isolado, sem script — o mesmo formato do banner do seu perfil. A foto acima vence o HTML.",
-      addressTitle: "Endereço e título",
-      titleField: "Título",
-      slug: "Endereço do jogo",
-      url: "Link do jogo (onde ele roda)",
-      fichaTitle: "Ficha",
-      shortDescription: "Descrição curta",
-      descriptionField: "Descrição",
-      genres: "Gêneros (separados por vírgula)",
-      languages: "Idiomas (separados por vírgula)",
-      controls: "Controles",
-      requirements: "Requisitos",
-      warnings: "Avisos de conteúdo",
-      tags: "Tags (separadas por vírgula)",
-      stage: "Estágio",
-      aspect: "Proporção do quadro",
-      distribution: "Distribuição",
-      paid: "Pago (faíscas)",
-      price: "Preço em faíscas",
-      version: "Versão",
-      websiteUrl: "Site do jogo",
-      supportUrl: "Suporte",
-      delete: "Excluir jogo",
-      deleteTitle: "Excluir este jogo?",
-      deleteConfirm:
-        "O jogo sai da loja para sempre, com novidades, favoritos e histórico de uso. Não dá para desfazer. Para tirar do ar sem apagar, a moderação pode suspender.",
       deleted: "Jogo excluído da loja.",
     },
     /** Página do jogo e player. */
@@ -2239,13 +1517,10 @@ export const texts = {
     searchPlaceholder: "Pesquisar comunidades",
     empty: "Nenhuma comunidade encontrada.",
     createCommunity: "Criar comunidade",
-    myTitle: "Suas comunidades",
     created: "Comunidade criada.",
     joined: "Você entrou na comunidade.",
     left: "Você saiu da comunidade.",
     actionError: "Não foi possível concluir. Tente novamente.",
-    favorite: "Favoritar",
-    unfavorite: "Remover dos favoritos",
     mineTitle: "Minhas comunidades",
     favoritesTitle: "Favoritas",
     topics: {
@@ -2285,8 +1560,6 @@ export const texts = {
       POLITICA: "Política",
       RELIGIAO: "Religião",
     },
-    members: (count: number) =>
-      `${count.toLocaleString("pt-BR")} ${count === 1 ? "membro" : "membros"}`,
     memberCount: (count: number) => `${count} membro${count === 1 ? "" : "s"}`,
     participating: "Participando",
     enter: "Entrar",
@@ -2303,8 +1576,6 @@ export const texts = {
       title: "Transferir administração",
       description:
         "Escolha quem passa a administrar a comunidade. Você continua participando como membro.",
-      choose: "Escolher membro",
-      confirm: "Transferir",
       empty: "Não há outros membros para receber a administração.",
     },
     delete: {
@@ -2315,7 +1586,6 @@ export const texts = {
       confirm: "Excluir",
     },
     loadMore: "Carregar mais",
-    share: "Compartilhar",
     create: {
       title: "Criar comunidade",
       name: "Nome",
@@ -2324,7 +1594,6 @@ export const texts = {
     },
     detail: {
       seoFallback: "Comunidade",
-      seoTitle: (name: string) => `${name} · Énóis`,
       createdBy: "Criada por ",
       edit: "Editar",
       editTitle: "Editar comunidade",
@@ -2344,19 +1613,13 @@ export const texts = {
       cropAvatar: "Ajustar avatar",
       bannerHtml: {
         title: "Capa da comunidade",
-        choiceHint: "A capa pode ser uma foto ou um HTML/CSS seu — escolha abaixo.",
         photoTab: "Foto",
         htmlTab: "HTML/CSS",
-        photoHint:
-          "A foto vira a capa da comunidade. Escolher foto quando existe capa em HTML remove o HTML.",
         label: "Capa em HTML/CSS",
         description: "Mesma coisa da capa do perfil: HTML+CSS com animação, sem script.",
         placeholder: '<style>\n  @keyframes brilho { ... }\n</style>\n<div class="capa">...</div>',
         empty: "A pré-visualização aparece aqui quando houver código.",
         frameTitle: "Pré-visualização da capa da comunidade",
-        save: "Salvar capa",
-        saved: "Capa da comunidade atualizada.",
-        error: "Não foi possível salvar a capa. Tente de novo.",
       },
     },
   },
@@ -2389,7 +1652,7 @@ export const texts = {
     hostedBy: (host: string) => `por ${host}`,
     watchLive: "Assistir ao vivo",
     /** "23 out · 08:00"; o ano só aparece quando não é o atual ("31 dez 2029 · 23:59"). */
-    dateTime: (date: string, time: string) => `${formatEventDate(date)} · ${time}`,
+    dateTime: (date: string, time: string) => `${dataDeEvento(date)} · ${time}`,
     attend: "Confirmar presença",
     cancelAttend: "Desconfirmar presença",
     youAreGoing: "Você vai",
@@ -2398,8 +1661,6 @@ export const texts = {
     cancelAttendanceSuccess: "Presença cancelada.",
     cancelAttendanceError: "Não foi possível cancelar a presença.",
     finished: "Encerrado",
-    finishedHint:
-      "Este evento já aconteceu. As confirmações de presença são removidas depois do vencimento (fica só o total).",
     form: {
       title: "Título",
       date: "Data",
@@ -2421,8 +1682,6 @@ export const texts = {
   jobs: {
     visit: "Visitar vaga",
     applyByEmail: {
-      action: "Agilizar envio",
-      hint: "O Énóis escreve o e-mail com os seus dados e abre o seu app de e-mail.",
       resumeHint: "Currículo baixado: anexe no e-mail que acabou de abrir.",
       noProfile: "Entre na sua conta para usar o envio por e-mail.",
     },
@@ -2432,29 +1691,13 @@ export const texts = {
     /** Cadastro manual de vaga externa (achada em outro site) por quem está na comunidade. */
     external: {
       registerButton: "Cadastrar vaga externa",
-      registerTitle: "Cadastrar vaga externa",
-      registerDescription:
-        "Achou a vaga em outro site? Cadastre aqui: o Énóis lista e o botão leva direto para o link de origem.",
-      registerAction: "Cadastrar vaga",
       registerError: "Não foi possível cadastrar a vaga externa.",
-      url: "Link da vaga",
-      urlHint: "A candidatura acontece na plataforma de origem, direto neste link.",
-      locationPlaceholder: "Remoto ou cidade",
       myTitle: "Minhas vagas externas",
       myEmpty: "Você ainda não cadastrou vagas externas.",
       delete: "Excluir",
       deleteConfirm:
         "Excluir esta vaga externa? Ela deixa de aparecer para todo mundo — a vaga original continua no site de origem.",
-      activities: "Descrição das atividades (opcional)",
-      activitiesPlaceholder: "O que a pessoa vai fazer, requisitos e diferenciais...",
-      salaryRange: "Faixa salarial (opcional)",
-      salaryNotInformed: "A vaga não informa salário",
-      salaryNotInformedHint:
-        "Marque quando o anúncio original não traz faixa salarial (é comum nos agregadores).",
-      applyEmail: "E-mail para candidatura (opcional)",
-      applyEmailHint: 'Se informado, o botão do card vira "Enviar candidatura" para este e-mail.',
       communityFilter: "Criadas no Énóis",
-      communityFilterHint: "Vagas externas cadastradas pela comunidade, separadas dos agregadores.",
       applyByEmail: "Enviar candidatura",
     },
     freelancePage: {
@@ -2462,16 +1705,24 @@ export const texts = {
       description:
         "Trabalhos pontuais com escopo fechado, prazo e faixa de valor — pagos em dinheiro ou em faíscas. Qualquer pessoa com conta verificada pode publicar.",
       create: "Publicar freela",
+      /** Aviso no topo: contratar (publicar e conversar) exige conta verificada. */
+      hiringNoticeTitle: "Quer contratar? Crie sua conta.",
+      hiringNotice:
+        "Publicar um freela e falar com quem se candidata exige uma conta verificada no Énóis — é o que mantém o combinado rastreável e protege os dois lados. Criar conta é gratuito.",
+      hiringNoticeCta: "Criar conta",
+      apply: "Candidatar-se",
+      applyError: "Não foi possível enviar a mensagem.",
       empty: "Nenhum freela aberto agora.",
       emptyHint: "Publique o primeiro: escopo fechado, prazo e faixa de valor.",
       searchPlaceholder: "Buscar freelances por título ou escopo",
       searchEmpty: "Nenhum freela encontrado",
       searchEmptyHint: "Tente outra palavra ou limpe a busca para ver todos.",
       clearSearch: "Limpar busca",
-      budget: "Valor",
       deadline: "Prazo",
-      scope: "Escopo fechado",
       close: "Encerrar",
+      closeTitle: "Encerrar este freela?",
+      closeDescription:
+        "Ele sai da lista de abertos. O título e o escopo deixam de aparecer para quem está procurando.",
       closed: "Freela encerrado.",
       createTitle: "Publicar freela",
       titleField: "Título do trabalho",
@@ -2489,14 +1740,9 @@ export const texts = {
         "Em faíscas, a plataforma retém 10% quando o pagamento é liberado — dinheiro não tem taxa.",
       deadlineField: "Prazo",
       submit: "Publicar",
-      invalid: "Preencha título, escopo, faixa de valor e prazo.",
       error: "Não foi possível salvar o freela.",
       saved: "Freela publicado.",
     },
-    freelanceTitle: "Freelances",
-    freelanceSeoTitle: "Freelances · Énóis",
-    freelanceDescription:
-      "Trabalhos pontuais publicados pela comunidade: qualquer pessoa com conta verificada pode publicar, com a mesma proteção antifraude das vagas.",
     seoTitle: "Vagas · Énóis",
     title: "Oportunidades",
     description: "Vagas filtradas por nível, localização, tipo e habilidades.",
@@ -2572,8 +1818,6 @@ export const texts = {
       level: "Nível",
       salaryMin: "Valor (obrigatório)",
       salaryMinPlaceholder: "Ex.: 1500 ou 8.000",
-      salaryMinHint: (symbol: string) =>
-        `O menor valor que a vaga paga. Ela aparece como "${symbol} 8.000 / mês".`,
       salaryMax: "Até (opcional)",
       salaryMaxPlaceholder: "Ex.: 12.000",
       salaryPeriod: "Período",
@@ -2582,11 +1826,9 @@ export const texts = {
       salaryPeriodMonth: "por mês",
       salaryPeriodYear: "por ano",
       salary: "Faixa salarial",
-      salaryPlaceholder: "Ex.: 8.000 – 12.000",
       currency: "Moeda",
       salaryHint: (symbol: string) =>
         `Informe só os números: a vaga aparece como "${symbol} 8.000 – ${symbol} 12.000".`,
-      currencyRequired: "Escolha a moeda da faixa salarial.",
       skills: "Habilidades (separadas por vírgula)",
       skillsPlaceholder: "Java, Spring, AWS",
       description: "Descrição (obrigatória)",
@@ -2600,7 +1842,6 @@ export const texts = {
       add: "Adicionar campo",
       labelPlaceholder: "Ex.: Anos de experiência com Java",
       required: "Obrigatório",
-      optional: "Opcional",
       remove: "Remover campo",
       empty: "Sem campos: a candidatura vai com o perfil e uma mensagem livre.",
       types: {
@@ -2610,41 +1851,11 @@ export const texts = {
         LINK: "Link",
       },
     },
-    /** Candidatura (lado do candidato). */
-    applyDialog: {
-      title: (job: string) => `Candidatar-se a ${job}`,
-      intro: "Ao enviar, seu perfil e suas respostas vão direto para quem publicou a vaga.",
-      aboutYou: "O que vai junto",
-      aboutYouProfile: "Seu perfil público (nome, foto, headline, habilidades)",
-      aboutYouExperience: "Suas experiências e tempo de experiência",
-      aboutYouReputation: "Sua reputação e a verificação da conta",
-      message: "Mensagem (opcional)",
-      messagePlaceholder: "Conte por que você tem interesse nesta vaga.",
-      send: "Enviar candidatura",
-      sending: "Enviando...",
-      requiredHint: "Campos marcados com * são obrigatórios.",
-      success: "Candidatura enviada!",
-      successDescription:
-        "O empregador recebeu seu perfil e suas respostas por e-mail e na conversa direta.",
-      alreadyApplied: "Você já se candidatou a esta vaga.",
-      ownJob: "Você não pode se candidatar à sua própria vaga.",
-      verifiedOnly:
-        "Para se candidatar é preciso ter a conta verificada (e-mail confirmado ou verificação em duas etapas).",
-      verifyIdentity: "Verificar minha conta",
-      resumePrefill: "Preencher com meu currículo",
-      resumePrefillHint:
-        "Suba o currículo (PDF ou texto): o app sugere a mensagem e as respostas. O que ele não achar fica marcado para você preencher — revise antes de enviar.",
-      resumeReading: "Lendo o currículo...",
-      resumeFilled: (filled: number, total: number) =>
-        `${filled} de ${total} campos preenchidos — revise e complete o resto.`,
-      resumeNoSuggestion: "preencha aqui",
-    },
     author: {
       label: "Publicado por",
       reputation: (value: number) => `${value} reputação`,
       verified: "Conta verificada",
       notVerified: "Conta não verificada",
-      viewProfile: "Ver perfil",
     },
     /** Candidaturas recebidas (lado do empregador). */
     applications: {
@@ -2675,12 +1886,6 @@ export const texts = {
       markInReview: "Marcar em análise",
       markAdvanced: "Marcar como avançou",
       markNotSelected: "Não selecionar",
-      feedbackTitle: "Por que essa candidatura não seguiu?",
-      feedbackHint:
-        'O candidato recebe este retorno. Um motivo concreto ajuda mais do que um "não selecionado" seco.',
-      feedbackPlaceholder: "Ex.: seguimos com quem já tinha experiência em pagamentos.",
-      feedbackRequired: "Escreva o motivo — ele vai para o candidato.",
-      feedbackSend: "Enviar retorno",
       feedbackFrom: "Retorno da empresa",
       resume: "Currículo",
       backToReview: "Voltar para análise",
@@ -2688,18 +1893,12 @@ export const texts = {
       statusError: "Não foi possível atualizar o estado. Tente novamente.",
     },
     createAction: "Publicar vaga",
-    createSuccess: "Vaga publicada com sucesso.",
     createError: "Não foi possível publicar a vaga. Tente novamente.",
     editJob: "Editar vaga",
-    editJobTitle: "Editar vaga",
-    editJobDescription:
-      "Os campos do formulário de candidatura continuam como estão — para mudá-los, publique outra vaga.",
     updateError: "Não foi possível salvar a vaga. Tente novamente.",
-    deleted: "Vaga excluída.",
     closeJob: "Encerrar vaga",
     closeConfirm:
       "Encerrar esta vaga? Ela deixa de receber candidaturas — as que já chegaram continuam disponíveis para triagem.",
-    closeError: "Não foi possível encerrar a vaga. Tente novamente.",
     closed: "Encerrada",
     open: "Aberta",
     closedHint: "O processo seletivo desta vaga foi encerrado.",
@@ -2745,19 +1944,16 @@ export const texts = {
     bookError: "Não foi possível agendar este horário. Ele pode ter sido reservado agora.",
     /** Agenda (mentor). */
     manageSlots: "Minha agenda",
-    slotTitle: "Publicar horário disponível",
     slotDate: "Data",
     slotTime: "Hora de início",
     slotDuration: "Duração",
     slotAction: "Publicar horário",
     slotSuccess: "Horário publicado. Quem quiser agendar já consegue escolher.",
-    slotNew: "Publicar outro",
     slotError: "Não foi possível publicar o horário. Confira a data e tente de novo.",
     slotListTitle: "Horários publicados",
     slotEmpty: "Nenhum horário publicado ainda. Publique o primeiro abaixo.",
     slotDelete: "Remover",
     slotBooked: "reservado",
-    slotDeleted: "Horário removido da agenda.",
     slotDeleteError: "Não foi possível remover este horário.",
     bannerLabel: "Banner do perfil (opcional)",
     bannerHint: "Imagem de capa exibida no seu card de mentor.",
@@ -2773,7 +1969,6 @@ export const texts = {
     becomeMentorTitle: "Tornar-se mentor",
     editMentor: "Editar perfil de mentor",
     editMentorTitle: "Editar perfil de mentor",
-    updateSuccess: "Perfil de mentor atualizado.",
     alreadyMentor: 'Você já tem um perfil de mentor. Use "Editar perfil de mentor".',
     featured: "Mentores em destaque",
     featuredDescription: "Avaliados pela comunidade nas últimas 8 semanas.",
@@ -2786,12 +1981,6 @@ export const texts = {
     rating: "Avaliação",
     sessions: "Sessões",
     nextSlot: "Próxima vaga",
-    editTitle: "Editar mentoria",
-    deleteTitle: "Excluir mentoria",
-    deleteDescription:
-      "Tem certeza que deseja excluir sua mentoria? Esta ação não pode ser desfeita.",
-    deleting: "Excluindo...",
-    delete: "Excluir",
   },
 
   network: {
@@ -2835,29 +2024,15 @@ export const texts = {
     noArchived: 'Nada arquivado. O que você apagar "para mim" aparece aqui.',
     restoreSelected: (count: number) => `Restaurar ${count}`,
     restored: "Conversas de volta na caixa de entrada.",
-    selectMessages: "Selecionar mensagens",
-    selectedMessages: (count: number) =>
-      count === 0
-        ? "Toque nas mensagens para escolher"
-        : `${count} selecionada${count === 1 ? "" : "s"}`,
-    deleteSelectedMessages: (count: number) =>
-      count === 0 ? "Apagar para mim" : `Apagar ${count} para mim`,
-    readReceiptSent: "Enviada",
-    readReceiptRead: "Lida pela outra pessoa",
     messagesDeleted: "Mensagens apagadas para você. O outro participante continua vendo.",
     messagesDeleteError: "Não foi possível apagar. Tente novamente.",
     restoreError: "Não foi possível restaurar. Tente novamente.",
+    /** Menor de idade só conversa com quem tem conexão aceita (regra do backend). */
+    minorRestricted:
+      "Para proteger menores de idade, a conversa só é possível depois de uma conexão aceita.",
+    openError: "Não foi possível abrir a conversa. Tente novamente.",
     selectConversation: "Selecione uma conversa ou comece uma nova para exibir as mensagens",
-    noMessages: "Nenhuma mensagem ainda",
-    inputPlaceholder: "Escreva uma mensagem...",
-    attachMedia: "Anexar imagem",
-    removeMedia: "Remover mídia",
-    mediaLimit: "Anexe no máximo 4 imagens por mensagem.",
-    mediaError: "Não foi possível enviar a imagem.",
     sendError: "Não foi possível enviar a mensagem. Tente de novo.",
-    mediaSpoiler: "Marcar mídias como spoiler",
-    mediaSpoilerActive: "Mídias marcadas como spoiler",
-    conversationFallback: "Conversa",
     loadMoreConversations: "Carregar conversas antigas",
     tabs: {
       all: "Todas",
@@ -2866,11 +2041,6 @@ export const texts = {
       people: "Pessoas",
       archived: "Arquivadas",
     },
-    attachService: "Anexar o serviço que você presta",
-    attachServiceTitle: "Seu serviço",
-    attachServiceHint: "Escolha o serviço para mandar o link na conversa.",
-    serviceAttachment: "Serviço:",
-    noServices: "Você ainda não publicou nenhum serviço.",
     selectMode: "Selecionar",
     cancelSelection: "Cancelar",
     selectAll: "Selecionar tudo",
@@ -2881,7 +2051,6 @@ export const texts = {
       "As conversas saem da SUA caixa. A outra pessoa continua com a conversa — isto apaga só para você.",
     deleteConfirm: "Apagar",
     deleted: "Conversas apagadas para você.",
-    loadOlderMessages: "Ver mensagens anteriores",
     loadingOlder: "Carregando...",
   },
 
@@ -2925,47 +2094,34 @@ export const texts = {
     originsTitle: "Origens autorizadas",
     originsDescription:
       "Toda requisição ao backend precisa de uma origem cadastrada. O navegador manda Origin sozinho; chamadas de servidor (SSR, curl, integrações) precisam mandar X-Client-Origin: https://meuapp.com. A origem do próprio Énóis é liberada automaticamente; cadastre a do seu app abaixo. Rotas de administração e moderação aceitam apenas a origem do frontend.",
-    originsLogin: "Entre na sua conta para cadastrar a origem do seu app.",
-    originPlaceholder: "https://meuapp.com",
-    originAdd: "Cadastrar origem",
-    originEmpty: "Nenhuma origem cadastrada ainda.",
-    originRemove: "Remover",
     originAdded: "Origem cadastrada.",
     originRemoved: "Origem removida.",
     originError: "Não foi possível cadastrar a origem.",
-    originValidHint:
-      "Use só o domínio com https (http é aceito apenas em localhost). Sem origem cadastrada, a requisição recebe 403 ORIGIN_REQUIRED. Atividade suspeita derruba a origem automaticamente.",
-    originBlocked: "Bloqueada por atividade suspeita",
+    sandboxTitle: "API pública = sandbox. Produção só com pedido aprovado",
+    sandboxBody:
+      "Os exemplos desta página apontam para o ambiente de testes (sandbox). Quem precisa falar com a API de produção abre um pedido no suporte com os dados abaixo — a gente confere e libera o acesso.",
+    sandboxFields: [
+      "Nome completo",
+      "RG e CPF",
+      "E-mail e telefone de contato",
+      "Empresa/projeto e site (se houver)",
+      "Tipo de integração (bot, painel, automação, app, cliente customizado) e o que ela vai fazer",
+      "Volumes estimados de requisição e horários de uso",
+    ],
+    sandboxWhy:
+      "Não queríamos frear quem integra: o ambiente separado nasceu por necessidade. Uma onda massiva de ataques e de testes rodando em produção (sondagem de cadastro, varredura de perfis, carga em endpoints de dinheiro) obrigou a separar o que é teste do que é dinheiro de verdade.",
+    sandboxCta: "Abrir pedido de acesso à API de produção",
     philosophyTitle: "Filosofia",
     philosophy:
       "A API existe para ampliar o acesso à informação e automatizar processos — nunca para fabricar interação social. Publicar conteúdo automaticamente (IA, bots, integrações) é proibido; criar e agendar posts pela funcionalidade oficial, com você no controle, é permitido.",
-    baseUrlTitle: "Base da API",
     baseUrlHint: "Todas as rotas ficam sob",
     baseUrlNote:
       "Respostas JSON. Timestamps em UTC (ISO-8601). Identificadores são estáveis (prefixados por tipo). Toda requisição precisa de uma origem cadastrada: o navegador manda Origin; chamadas de servidor mandam X-Client-Origin.",
-    authTitle: "Autenticação",
-    authIntro:
-      "As rotas públicas não pedem credencial. As demais usam a sessão do Énóis (a mesma do app):",
-    authHeader: "Envie a sessão em todas as chamadas autenticadas:",
-    authNote:
-      "Cada pessoa só acessa o que é permitido à própria conta. Nunca compartilhe credenciais com integrações — elas nunca devem ver a sua senha.",
-    endpointsTitle: "Endpoints",
-    endpointsIntro: "Grupos principais (todos sob /api):",
-    endpointsNote:
-      "A referência completa, gerada e validada contra o código (OpenAPI), está em preparação — nada aqui é fictício.",
-    paginationTitle: "Paginação",
     pagination:
       "Listas paginam por cursor (não por offset). Use o nextCursor da resposta anterior:",
-    errorsTitle: "Erros",
     errors: "Erros têm código e mensagem estáveis, e o HTTP status correspondente:",
-    errorsNote:
-      "Em produção não há stack trace nem detalhe interno. O código permite tratar o caso.",
-    limitsTitle: "Limites e idempotência",
     limits:
       "Há limites de tamanho e de taxa por operação. Operações de escrita aceitam Idempotency-Key para você repetir com segurança sem duplicar.",
-    publishingTitle: "Política de publicações",
-    publishing:
-      "Permitido: criar e agendar posts pela funcionalidade oficial do Énóis, com controle humano. Proibido: publicar por IA, bots ou integrações (inclusive por endpoints alternativos, tarefas agendadas ou webhooks). Automação proibida leva a banimento após verificação.",
     statusTitle: "Estado e contato",
     status:
       "Esta é a versão inicial. Escopos de terceiros (OAuth) e o portal completo estão em construção — documentamos apenas o que já existe.",
@@ -2973,79 +2129,17 @@ export const texts = {
   },
 
   identity: {
-    title: "Identidade verificada",
-    subtitle:
-      "Comprove que você é uma pessoa real usando um provedor de identidade. Énóis não guarda documento, selfie nem biometria: só o resultado e a validade.",
-    states: {
-      NOT_VERIFIED: "Ainda não verificada",
-      PENDING: "Verificação em andamento",
-      VERIFIED: "Identidade verificada",
-      REJECTED: "Verificação recusada",
-      EXPIRED: "Verificação expirada",
-      REVOKED: "Verificação desvinculada",
-      ERROR: "Falha técnica na verificação",
-    },
-    start: "Verificar identidade",
-    refresh: "Atualizar estado",
-    revoke: "Desvincular identidade",
     unavailable:
       "A verificação de identidade ainda não está disponível: o Énóis precisa de um provedor autorizado. Assim que houver, o botão fica ativo aqui.",
-    whatWeStore:
-      "O que o Énóis guarda: o estado da verificação, o provedor e as datas. Nunca CPF, documento, selfie, biometria ou tokens do provedor.",
-    whoProcesses:
-      "Quem processa os dados é o provedor de identidade. O Énóis recebe apenas a confirmação do resultado.",
-    badgeLabel: "Identidade verificada",
     resultOk: "Identidade verificada com sucesso.",
     resultError: "Não foi possível concluir a verificação. Você pode tentar de novo.",
-    badgeHint:
-      "Identidade confirmada por um provedor. Não significa que a pessoa é confiável em tudo.",
-    dataNotice:
-      "Ao iniciar, você é levado ao provedor para concluir a verificação. Nada é marcado como verificado sem a confirmação dele.",
   },
 
   support: {
     seoTitle: "Ajuda e suporte · Énóis",
     title: "Ajuda e suporte",
-    attachImage: "Anexar imagem",
-    attachImageAction: "Anexar imagem (opcional)",
-    removeImage: "Remover imagem",
-    imageUploadError: "Não foi possível enviar a imagem. Tente de novo.",
     subtitle: "Conte o que aconteceu e uma pessoa do nosso time responde por e-mail.",
-    subject: "Assunto",
-    subjectPlaceholder: "Ex.: não consigo entrar na minha conta",
-    category: "Categoria",
-    categoryHint: "Ajuda o time a priorizar e encaminhar o pedido.",
-    categories: {
-      BUG: "Problema (bug)",
-      ACCOUNT: "Conta e acesso",
-      CONTENT: "Conteúdo e denúncia",
-      IDEA: "Ideia ou sugestão",
-      OTHER: "Outro",
-    } as Record<string, string>,
-    message: "Descreva o problema",
-    messagePlaceholder: "Quanto mais detalhes, melhor conseguimos ajudar.",
-    contactEmail: "E-mail para contato",
-    contactEmailHint: "Respondemos neste e-mail.",
-    action: "Enviar pedido",
-    sending: "Enviando...",
-    successTitle: "Pedido enviado",
-    successDescription:
-      "Uma pessoa do time vai responder no e-mail informado. O pedido fica registrado no nosso painel de atendimento.",
-    newRequest: "Abrir outro pedido",
-    validationSubject: "Informe um assunto curto.",
-    validationMessage: "Descreva o problema com pelo menos 10 caracteres.",
-    validationEmail: "Informe um e-mail válido.",
     error: "Não foi possível enviar o pedido. Tente novamente em instantes.",
-    myRequestsTitle: "Meus pedidos",
-    myRequestsDescription:
-      "Acompanhe o que você abriu. Quando o time conclui, o pedido aparece como resolvido aqui.",
-    myRequestsEmpty: "Você ainda não abriu nenhum pedido.",
-    myRequestsLoading: "Carregando pedidos...",
-    status: {
-      OPEN: "Aberto",
-      IN_PROGRESS: "Em andamento",
-      CLOSED: "Resolvido",
-    } as Record<string, string>,
     contatoSeoTitle: "Contato · Énóis",
     contactTitle: "Fale com a gente",
     contactDescription:
@@ -3103,7 +2197,10 @@ export const texts = {
       "Restrições ativas na sua conta e o andamento dos seus recursos. A decisão final é sempre de uma pessoa do time.",
     empty: "Nenhuma penalidade na sua conta.",
     emptyHint: "Isto não é um histórico de elogios — é só o que de fato restringiu a conta.",
-    type: { RESTRICTION: "Restrição", BAN: "Banimento" } as Record<string, string>,
+    type: { RESTRICTION: "Restrição", SUSPENDED: "Suspensão", BAN: "Banimento" } as Record<
+      string,
+      string
+    >,
     statusLabel: {
       ACTIVE: "Ativa",
       REMOVED: "Removida",
@@ -3120,11 +2217,12 @@ export const texts = {
     appealAction: "Enviar recurso",
     appealSent: "Recurso enviado. Avisamos aqui quando houver decisão.",
     appealError: "Não foi possível enviar o recurso. Tente de novo.",
-    appealMinLength: "Explica o recurso em pelo menos 10 caracteres.",
     appealPending: "Seu recurso está em análise. Você será avisado da decisão.",
     restrictedNotice:
       "Sua conta está restrita: você não pode publicar nem comentar enquanto a restrição estiver ativa.",
     bannedNotice: "Sua conta está banida após revisão do recurso. Se precisar, fale com o suporte.",
+    suspendedNotice:
+      "Sua conta está suspensa: você não entra nem publica até recorrer ou o prazo terminar.",
     moderationTitle: "Moderação · recursos",
     moderationDescription:
       "Fila de recursos de penalidade automática. Aprovar remove a restrição; negar converte em banimento (sessões revogadas).",
@@ -3140,21 +2238,10 @@ export const texts = {
    * Admins (allowlist de username no backend) decidem candidaturas e podem punir qualquer usuário.
    */
   moderator: {
+    tabSelector: "Escolher a aba do painel",
     panic: {
-      title: "Modo pânico",
-      description:
-        "Bloqueia toda escrita da aplicação (POST/PUT/PATCH/DELETE) com 429 imediatamente. O login e este botão continuam funcionando para você poder desligar.",
-      active:
-        "ATIVO — toda escrita está respondendo 429. Desligue para a aplicação voltar ao normal.",
-      activate: "Ativar modo pânico",
-      deactivate: "Desativar modo pânico",
-      confirmTitle: "Ativar o modo pânico?",
-      confirmBody:
-        "Publicações, comentários, mensagens, cadastros e qualquer outra escrita vão falhar com 429 até você desligar. A API de login e este botão continuam acessíveis.",
       done: (active: boolean) => (active ? "Modo pânico ATIVADO." : "Modo pânico desativado."),
       error: "Não foi possível alterar o modo pânico.",
-      envLocked:
-        "Modo pânico travado pela variável de ambiente PANIC_MODE. Para voltar ao normal, esvazie o secret e faça um novo deploy.",
     },
     seoTitle: "Painel de moderador · Énóis",
     back: "Voltar",
@@ -3163,7 +2250,6 @@ export const texts = {
       "Analise as denúncias e vote: punir remove o conteúdo e restringe o autor; descartar arquiva a denúncia. A votação fecha quando um lado atinge o quórum.",
     adminBadge: "Admin",
     moderatorBadge: "Moderador",
-    loading: "Carregando painel...",
     error: "Não foi possível carregar o painel.",
     eligibility: {
       title: "Seja moderador",
@@ -3188,24 +2274,18 @@ export const texts = {
         "Um administrador vai revisar sua candidatura. Você recebe uma notificação quando houver decisão.",
       rejectedTitle: "Candidatura recusada",
       revokedTitle: "Acesso de moderador revogado",
-      retry: "Enviar nova candidatura",
     },
     reports: {
       title: "Denúncias aguardando revisão",
       empty: "Nenhuma denúncia aguardando revisão.",
-      reason: "Motivo",
-      target: "Alvo",
       reporter: "Denunciante",
       author: "Autor",
       noAuthor: "Autor não identificado",
       noContent: "Conteúdo indisponível (pode ter sido removido).",
-      votes: (punish: number, dismiss: number, quorum: number) =>
-        `Punir: ${punish} · Descartar: ${dismiss} · Quórum: ${quorum}`,
       myVote: (vote: "PUNISH" | "DISMISS") =>
         vote === "PUNISH" ? "Seu voto: punir" : "Seu voto: descartar",
       punish: "Votar para punir",
       dismiss: "Votar para descartar",
-      voted: "Voto registrado.",
       voteError: "Não foi possível registrar o voto.",
       openReview: "Revisão completa (admin)",
       adminActions: "Ações de admin",
@@ -3252,64 +2332,21 @@ export const texts = {
       applications: "Candidaturas",
       users: "Usuários",
       emails: "E-mails",
+      monitoring: "Monitorabilidade",
+      contributors: "Contribuintes",
+      githubContributions: "Contribuições GitHub",
+      pulls: "Pull requests",
+      notes: "Notas",
       suspicious: "Contas suspeitas",
       suspiciousPosts: "Posts suspeitos",
+      notices: "Avisos",
     },
     suspiciousPosts: {
-      title: "Posts suspeitos",
-      description:
-        "Posts denunciados que passaram no score da pré-triagem. O conteúdo não foi julgado pela IA ainda; selecione o que deve sair do ar. A exclusão é auditada e reversível pelo painel.",
-      empty: "Nenhum post suspeito na fila.",
-      emptyHint: "Posts com score alto de pré-triagem aparecem aqui para revisão.",
-      score: (value: number) => `score ${value}`,
-      reason: (value: string) => `motivo: ${value}`,
-      openPost: "Abrir post",
-      selectAll: "Selecionar todos",
-      clear: "Limpar seleção",
-      selected: (count: number) => `${count} selecionado(s)`,
-      reasonPlaceholder: "Motivo da exclusão (mínimo de 10 caracteres)",
-      delete: (count: number) =>
-        count === 0 ? "Excluir selecionados" : `Excluir ${count} post(s)`,
-      confirmTitle: "Excluir posts suspeitos",
-      confirmBody: (count: number) =>
-        `Remover ${count} post(s) do feed? A ação fica registrada na auditoria.`,
-      confirm: "Excluir agora",
       result: (deleted: number, failed: number) =>
         `${deleted} post(s) removido(s), ${failed} falha(s).`,
       error: "Não foi possível excluir os posts selecionados.",
-      signals: {
-        REASON_VIOLENCE: "Motivo grave",
-        REASON_SPAM: "Spam/fraude",
-        REASON_OTHER: "Outro motivo",
-        REPEATED_TARGET: "Denúncias repetidas",
-        NEW_ACCOUNT: "Conta nova",
-        DETAILED_REPORT: "Relato detalhado",
-        CONTENT_LINK: "Link no conteúdo",
-        SHORT_CONTENT: "Conteúdo curto",
-        SYSTEM_REPORT: "Sinal automático",
-      } as Record<string, string>,
     },
     suspicious: {
-      title: "Contas suspeitas",
-      description:
-        "Contas recentes com sinais de cadastro em série: nome repetido ou de teste, e-mail não confirmado, perfil vazio e denúncias contra. Revise e selecione o que banir — o lote aplica o banimento pelo fluxo normal, sem apagar conteúdo de quem você está julgando.",
-      autoHint:
-        "Risco acima de 60: a triagem automática bane a conta e apaga o conteúdo sozinha. O que aparece aqui é o que ficou abaixo do teto ou pede julgamento humano.",
-      empty: "Nenhuma conta suspeita no período.",
-      emptyHint:
-        "Os sinais avaliados são nome em série, e-mail não confirmado, perfil vazio e denúncias.",
-      selectAll: "Selecionar todas",
-      clear: "Limpar seleção",
-      selected: (count: number) => `${count} selecionada(s)`,
-      reasonPlaceholder:
-        "Motivo (opcional) — sem ele fica registrado como limpeza de contas em série",
-      typeBan: "Banir",
-      typePermanent: "Banir permanentemente",
-      ban: (count: number) => (count === 0 ? "Banir selecionadas" : `Banir ${count} conta(s)`),
-      confirmTitle: "Banir em lote",
-      confirmBody: (count: number, type: "BAN" | "PERMABAN") =>
-        `Aplicar ${type === "PERMABAN" ? "banimento permanente" : "banimento"} em ${count} conta(s)? As sessões serão revogadas, o login bloqueado e o IP de cada conta entra na lista de bloqueio.`,
-      confirm: "Banir agora",
       result: (banned: number, already: number, failed: number) =>
         `${banned} banida(s), ${already} já estavam banidas, ${failed} falha(s).`,
       /** Quem falhou e por quê: sem isso, "N falha(s)" não diz o que fazer. */
@@ -3317,90 +2354,60 @@ export const texts = {
       blockedIps: (count: number) =>
         count === 0 ? "" : `${count} IP(s) bloqueado(s) junto com o lote.`,
       error: "Não foi possível banir as contas selecionadas.",
-      risk: (score: number) => `risco ${score}`,
-      staffChip: "equipe",
-      createdAt: (date: string) => `criada em ${date}`,
-      counts: (posts: number, comments: number, reports: number) =>
-        `${posts} post(s) · ${comments} comentário(s) · ${reports} denúncia(s) contra`,
-      signals: {
-        NOME_SUSPEITO: "Nome em série",
-        NOME_REPETIDO: "Nome repetido",
-        EMAIL_NAO_VERIFICADO: "E-mail não confirmado",
-        SEM_CONTEUDO: "Sem conteúdo",
-        PERFIL_VAZIO: "Perfil vazio",
-        CONTA_NOVA: "Conta nova",
-        DENUNCIAS_CONTRA: "Denúncias contra",
-        EQUIPE: "Conta da equipe (a automação não pune)",
-      } as Record<string, string>,
     },
     projects: {
-      title: "Projetos esperando revisão",
-      description:
-        "Projetos enviados pela comunidade. Aprovar publica em /projetos; recusar exige um motivo que o criador vai ler.",
-      empty: "Nenhum projeto na fila de revisão.",
-      noCategory: "sem categoria",
-      openProject: "Abrir projeto",
-      openRepo: "Repositório",
-      notePlaceholder: "Motivo (obrigatório para recusar)",
-      approve: "Aprovar",
-      reject: "Recusar",
       approved: "Projeto aprovado: já está em /projetos.",
       rejected: "Projeto recusado: o motivo vai para o painel do criador.",
       error: "Não foi possível revisar o projeto.",
     },
     games: {
-      title: "Jogos esperando revisão",
-      empty: "Nenhum jogo na fila de revisão.",
-      notePlaceholder: "Motivo da decisão (obrigatório ao recusar)",
-      approve: "Aprovar",
-      reject: "Recusar",
       approved: "Jogo aprovado: já está no catálogo.",
       rejected: "Jogo recusado: o motivo vai para o painel do criador.",
       error: "Não foi possível decidir sobre o jogo.",
-      play: "Testar no quadro",
     },
     support: {
-      title: "Tickets de suporte",
-      issuesTitle: "Issues da comunidade",
-      historyDescription:
-        "Issues e tickets já concluídos. A fila ativa mostra apenas o que ainda precisa de atenção.",
-      historyEmpty: "Nada no histórico ainda.",
-      description:
-        "Pedidos abertos pelo app, separados por categoria. Cada pedido também vira uma issue no GitHub: concluir aqui fecha a issue e avisa quem abriu.",
-      empty: "Nenhum ticket nesta categoria.",
-      all: "Todas",
-      statusAll: "Todos",
-      statusOpen: "Abertos",
-      statusInProgress: "Em andamento",
-      statusClosed: "Resolvidos",
-      start: "Em andamento",
-      resolve: "Concluir",
-      reopen: "Reabrir",
       moved: "Ticket atualizado.",
       error: "Não foi possível atualizar o ticket.",
-      replyTitle: "Responder ao solicitante",
-      replyPlaceholder: "Escreva a resposta que será enviada por e-mail...",
-      replyAction: "Responder",
       replySent: "Resposta enviada ao solicitante.",
       replyError: "Não foi possível enviar a resposta.",
-      adminReplyLabel: "Resposta do suporte",
-      from: "De",
-      image: "Abrir print anexado",
-      noMessage: "Sem mensagem.",
-      githubIssue: "Issue no GitHub",
     },
-    emails: {
-      title: "E-mails enviados",
+    notes: {
+      approved: "Nota aprovada e publicada.",
+      denied: "Nota negada.",
+      error: "Não foi possível revisar a nota.",
+    },
+    pulls: {
+      approved: "PR aprovado.",
+      changesRequested: "Mudanças solicitadas.",
+      reviewError: "Não foi possível enviar a revisão. Confira a permissão do seu GitHub.",
+    },
+    notices: {
+      title: "Aviso da plataforma",
       description:
-        "Metadados dos envios feitos pela plataforma a partir de agora. O corpo da mensagem não é armazenado; e-mails de 2FA não são listados.",
-      empty: "Nenhum e-mail registrado ainda.",
-      all: "Todos",
-      sent: "Enviados",
-      failed: "Falhas",
-      to: "Para",
-      error: "Erro",
-      redacted: "Conteúdo sensível (redigido)",
-      status: { SENT: "Enviado", FAILED: "Falhou" } as Record<string, string>,
+        "Um aviso por vez, em HTML e CSS. Publicar reescreve o que está no ar; tirar do ar some com ele.",
+      none: "Nenhum aviso no ar.",
+      live: (title: string, surface: string) => `No ar: ${title} (${surface}).`,
+      titleLabel: "Título",
+      titlePlaceholder: "Ex.: Manutenção no marketplace",
+      surfaceLabel: "Onde aparece",
+      surfaces: {
+        BANNER: "Faixa no topo",
+        MODAL: "Popup",
+        BOTH: "Faixa e popup",
+      } as Record<string, string>,
+      surfaceHint: "A faixa tem altura fixa: um recado longo cabe melhor no popup.",
+      htmlLabel: "Conteúdo (HTML e CSS)",
+      htmlHint:
+        "Sem JavaScript: o aviso é renderizado num quadro isolado, do mesmo jeito que o post de página.",
+      emptyPreview: "Escreva um HTML para ver como fica.",
+      formHint: "Quem já fechou o aviso volta a vê-lo depois de uma nova publicação.",
+      publish: "Publicar aviso",
+      republish: "Republicar alterações",
+      publishing: "Publicando…",
+      retire: "Tirar do ar",
+      published: "Aviso publicado.",
+      retired: "Aviso tirado do ar.",
+      error: "Não foi possível publicar o aviso.",
     },
     sanction: {
       title: "Punição por votação",
@@ -3437,6 +2444,17 @@ export const texts = {
       proposedBy: (username: string) => `Proposta de @${username}`,
     },
     admin: {
+      adminsTitle: "Administradores",
+      adminsEmpty: "Nenhum administrador além de você.",
+      adminsAddLabel: "Username do novo admin",
+      adminsAddPlaceholder: "ex.: ana-silva",
+      adminsAdd: "Promover a admin",
+      adminsPromoted: (username: string) => `@${username} agora é admin.`,
+      adminsRevokeError: "Não foi possível atualizar o papel de admin.",
+      adminsRevoke: "Remover admin",
+      adminsRevokeTitle: "Remover administrador",
+      adminsRevokeBody: (username: string) =>
+        `Remover @${username} do papel de administrador? A pessoa perde o acesso administrativo.`,
       applicationsTitle: "Candidaturas a moderador",
       applicationsEmpty: "Nenhuma candidatura pendente.",
       applicant: "Candidato",
@@ -3490,55 +2508,38 @@ export const texts = {
     subtitle: "Quem está contratando na rede — a partir das vagas publicadas e agregadas.",
     searchPlaceholder: "Buscar empresa...",
     jobsCount: (n: number) => (n === 1 ? "1 vaga aberta" : `${n} vagas abertas`),
-    viewJobs: "Ver vagas",
     empty: "Nenhuma empresa encontrada.",
-  },
-  /** Campo de data digitável (dd/mm/aaaa). */
-  dateInput: {
-    placeholder: "dd/mm/aaaa",
-    invalid: "Digite uma data válida no formato dd/mm/aaaa.",
-    outOfRange: "Confira a data: ela está fora do intervalo permitido.",
   },
   /** Diálogo global de regularização da data de nascimento (ECA Digital). */
   /** Diálogo global de regularização da data de nascimento (ECA Digital). */
   ageGate: {
-    title: "Confirme sua data de nascimento",
-    description:
-      "A plataforma exige a data de nascimento para publicar, comentar e enviar mensagens. Ela fica guardada com a sua conta e não aparece para outras pessoas.",
-    label: "Data de nascimento",
-    confirm: "Confirmar e continuar",
-    later: "Agora não",
     saved: "Data de nascimento registrada. Você já pode publicar.",
     savedMinor:
       "Data registrada. Agora falta a autorização de um responsável para liberar a conta.",
-    invalid: "Confira a data: ela não pode estar no futuro.",
     error: "Não foi possível salvar a data. Tente de novo.",
   },
-  /** Card de espaços novos no painel lateral. */
-  platformSpaces: {
-    title: "Novidades para explorar",
-    subtitle: "Loja, marketplace, freelances e projetos da comunidade.",
+  /** Aviso da plataforma publicado por um admin (faixa e/ou popup). */
+  notices: {
+    bannerLabel: "Aviso",
+    close: "Fechar aviso",
+    closeButton: "Entendi",
+    dialogDescription: "Aviso publicado pela equipe do Énóis.",
+    publishedOn: (raw: string | undefined) => {
+      if (!raw) return "";
+      const at = new Date(raw);
+      if (Number.isNaN(at.getTime())) return "";
+      return `Publicado em ${at.toLocaleString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      })}.`;
+    },
   },
   /** Canais privados por tema dentro das comunidades. */
   communityChannels: {
     title: "Canais privados",
-    subtitle:
-      "Conversas por tema, só para quem participa da comunidade. Nada daqui aparece nos feeds.",
-    locked: "Os canais são privados: entre na comunidade para ver e participar.",
-    create: "Criar canal",
-    createTitle: "Novo canal",
-    name: "Nome do canal",
-    namePlaceholder: "Ex.: Bastidores, Dúvidas, Vagas",
-    topic: "Tema (opcional)",
-    topicNone: "Sem tema",
-    description: "Descrição (opcional)",
-    descriptionPlaceholder: "Para que serve este canal?",
-    cancel: "Cancelar",
-    confirm: "Criar",
-    creating: "Criando...",
     created: "Canal criado.",
-    empty: "Nenhum canal ainda. Crie o primeiro.",
-    invalidName: "O nome precisa ter pelo menos 2 caracteres.",
     error: "Não foi possível criar o canal. Tente de novo.",
   },
   /** Página de um canal privado. */
@@ -3582,34 +2583,78 @@ export const texts = {
   },
   /** Supervisão parental: menor sem responsável autorizado (ECA Digital). */
   parentalGate: {
-    title: "Conta de adolescente protegida",
-    description:
-      "Sua conta é de menor de 18 anos. Para publicar, comentar e enviar mensagens, um responsável legal precisa autorizar o uso da rede.",
-    howItWorks:
-      "Envie o convite para o e-mail do seu responsável. Ele precisa entrar no Énóis com uma conta de adulto e aceitar o convite. Até lá, a conta fica somente leitura.",
-    emailLabel: "E-mail do responsável",
-    invite: "Enviar convite",
-    inviting: "Enviando...",
     sent: "Convite enviado ao seu responsável.",
     emailFailed: "Não conseguimos enviar o e-mail agora. Tente novamente em instantes.",
-    sentFor: (email: string) => `Convite enviado para ${email}.`,
-    waiting:
-      "Quando o responsável aceitar, a conta é liberada. Se ele já aceitou, verifique de novo.",
-    checkAgain: "Verificar de novo",
-    checking: "Verificando...",
-    later: "Agora não",
-    invalidEmail: "Informe um e-mail válido.",
     error: "Não foi possível enviar o convite. Tente de novo.",
   },
-  exportTheme: "Exportar tema",
-  importTheme: "Importar tema",
-  sellTheme: "Vender no marketplace",
-  exportFileName: "tema.enois-theme",
-  importError: "Arquivo inválido — use um .enois-theme exportado do Énóis.",
-  /** Arquivo de uma versão mais nova do app: recusar explicando é melhor que importar pela metade. */
-  importNewerVersion:
-    "Este arquivo é de uma versão mais nova do Énóis. Atualize o app para importar.",
-  galleryLink: "Temas da comunidade",
+
+  frameShop: {
+    title: "Carteira & estilo",
+    subtitle: "Suas faíscas, suas escolhas.",
+    walletTab: "Carteira",
+    marketplaceTab: "Marketplace",
+    storeTab: "Loja",
+    ownedTab: "Minhas molduras",
+    filters: {
+      all: "Todas",
+      simple: "Simples",
+    },
+    showMore: "Mostrar mais molduras",
+    bought: "Moldura comprada. Agora você pode equipá-la.",
+    buyError: "Não foi possível comprar a moldura. Confira seu saldo e tente novamente.",
+    equipError: "Não foi possível atualizar a moldura. Tente novamente.",
+  },
+
+  /** Seasonal cosmetics: shop actions, status bubble, profile popover and the Saci events. */
+  cosmetics: {
+    bought: "Item comprado. Agora é só equipar.",
+    lookBought: "Look comprado e vestido no seu perfil.",
+    equipped: "Item equipado no seu perfil.",
+    unequipped: "Item guardado. Ele continua seu.",
+    /** One message per API error code of the shop, the status and the events. */
+    errors: {
+      ITEM_NOT_FOUND: "Esse item não existe mais na loja.",
+      ALREADY_OWNED: "Você já tem tudo isso.",
+      OUT_OF_SEASON: "Esse item está fora da temporada. Ele volta na próxima.",
+      NOT_FOR_SALE: "Esse item é prêmio de evento e não está à venda.",
+      INSUFFICIENT_SPARKS: "Você não tem faíscas suficientes para essa compra.",
+      MAX_BADGES: "Você já mostra 5 emblemas. Guarde um antes de equipar outro.",
+      NOT_OWNED: "Esse item ainda não é seu.",
+      INVALID_STATUS_ICON: "Esse ícone não está disponível para você.",
+      FIELD_TOO_LONG: "O status pode ter no máximo 60 caracteres.",
+      ALREADY_CHOSEN: "Você já escolheu um time.",
+      EVENT_CLOSED: "O evento já terminou.",
+      INVALID_CHOICE: "Escolha o time do Saci ou o do Halloween.",
+      SPOT_NOT_FOUND: "Esse esconderijo não existe.",
+    } as Record<string, string>,
+    genericError: "Não foi possível concluir agora. Tente de novo.",
+    status: {
+      action: "Status",
+      title: "Seu status",
+      description: "Um recado curto que aparece no seu cartão de perfil.",
+      textLabel: "Texto",
+      placeholder: "Procurando minha carapuça",
+      iconLabel: "Ícone",
+      noIcon: "Sem ícone",
+      freeIcons: {
+        cafe: "Café",
+        estrela: "Estrela",
+        coracao: "Coração",
+        chip: "Chip",
+      } as Record<string, string>,
+      saved: "Status atualizado.",
+    },
+    peek: {
+      open: (name: string) => `Abrir o cartão de ${name}`,
+      loadError: "Não foi possível carregar este perfil.",
+      retry: "Tentar de novo",
+    },
+    eventLoadError: "Não foi possível carregar o evento.",
+    duelBannerDismiss: "Fechar o duelo",
+    duelChosen: "Você entrou no time! O emblema já está no seu perfil.",
+    huntFound: (found: number, total: number) => `Você achou o Saci! ${found} de ${total}.`,
+    huntCompleted: "Você achou os 7 Sacis! O emblema Achei o Saci já é seu.",
+  },
 
   wallet: {
     seoTitle: "Carteira · Énóis",
@@ -3648,29 +2693,12 @@ export const texts = {
     } as Record<string, string>,
   },
 
-  themeGallery: {
-    seoTitle: "Temas da comunidade · Énóis",
-  },
-
   empresa: {
     editPanel: {
       title: "Editar empresa",
-      description: "Nome, descrição, setor, tamanho, local, site, logo e capa são seus.",
-      nameLabel: "Nome da empresa",
-      descriptionLabel: "Descrição",
-      sector: "Setor",
-      size: "Tamanho",
-      location: "Localização",
-      website: "Site",
-      logo: "Logo",
-      cover: "Capa",
       saved: "Página atualizada!",
       error: "Não foi possível salvar a empresa.",
       uploadError: "O upload da imagem falhou.",
-      team: "Equipe",
-      noMembers: "Ninguém além de você ainda.",
-      memberSearch: "Adicionar por nome ou @usuário",
-      memberAdd: "Adicionar",
       memberAdded: "Membro adicionado!",
       memberError: "Não foi possível adicionar o membro.",
     },
@@ -3692,14 +2720,12 @@ export const texts = {
     applyAction: "Enviar candidatura",
     applySent: "Candidatura enviada! A empresa avisa quando decidir.",
     applyError: "Não foi possível enviar. Tente de novo.",
-    applyDone: "Você já se candidatou — aguarde a decisão da empresa.",
     status: {
       OPEN: "Aberto",
       IN_PROGRESS: "Em andamento",
       COMPLETED: "Concluído",
       CANCELLED: "Cancelado",
     } as Record<string, string>,
-    edit: "Editar página",
     createTitle: "Criar página empresarial",
     createHint:
       "A página pública da sua empresa com microprojetos e vagas. Você é o dono e pode convidar a equipe.",
@@ -3809,16 +2835,11 @@ export const texts = {
 
   legal: {
     footer: {
-      copyright: (year: number) => `© ${year} Énóis · Rede humana gratuita`,
-      terms: "Termos de Uso",
-      privacy: "Política de Privacidade",
       guidelines: "Diretrizes da Comunidade",
-      about: "Sobre o énóis",
-      lastUpdated: "Última atualização: ",
       backPrefix: "Voltar para a ",
       home: "página inicial",
     },
-    updatedAt: "15 de agosto de 2026",
+    updatedAt: "24 de outubro de 2026",
     terms: {
       seoTitle: "Termos de Uso · Énóis",
       seoDescription:
@@ -3872,6 +2893,14 @@ export const texts = {
         {
           title: "12. Contato",
           text: "Dúvidas sobre estes Termos podem ser enviadas pela página de contato (enois.ia.br/contato) ou pelo e-mail de suporte informado nela.",
+        },
+        {
+          title: "13. Moeda faísca (token de utilidade)",
+          text: "A faísca é um token de utilidade da plataforma. Ela serve exclusivamente para acessar recursos e circular dentro do Énóis, como comprar aparências, temas, jogos ou serviços oferecidos por outros usuários, e não é dinheiro, moeda de curso legal, valor mobiliário, investimento ou ativo financeiro.\n\nA faísca não tem valor monetário garantido, não gera rendimento, juros, dividendos ou expectativa de lucro e não pode ser trocada por reais ou por qualquer outra moeda fora dos recursos expressamente previstos na plataforma. Não existe plano, promessa ou compromisso de listar a faísca em exchanges, corretoras, bolsas de valores ou qualquer mercado secundário.\n\nPodemos ajustar regras de emissão, preços, limites e formas de uso para manter o equilíbrio da economia interna. Saldos obtidos por fraude, abuso ou violação destes Termos podem ser revogados. Compras e transferências internas são finais, salvo quando a lei exigir o contrário.",
+        },
+        {
+          title: "14. Contribuição open source",
+          text: "O código do Énóis é aberto e recebe contribuições pelo GitHub. Contribuir não cria vínculo empregatício, sociedade, participação societária, direito a remuneração ou expectativa de retorno financeiro. A decisão sobre aceitar, revisar ou mesclar uma contribuição é dos mantenedores, conforme o guia de contribuição e o código de conduta.\n\nO formulário de contribuição da landing existe para organizar e documentar quem procura o projeto. Ao enviar, você declara que os dados são verdadeiros e autoriza o contato pelo GitHub ou pelo e-mail informado. O envio não garante aprovação, atribuição ou prioridade; o processo segue as regras publicadas no repositório.\n\nContribuições devem vir com issue ou discussão prévia quando mudarem arquitetura, contrato público, segurança ou dados. Mudanças pequenas, com teste e descrição clara, têm prioridade. O projeto não é uma bagunça: é aberto, com processo, revisão e responsabilidade sobre o que entra.",
         },
       ],
     },
@@ -3962,6 +2991,54 @@ export const texts = {
     },
   },
 
+  sealsPage: {
+    seoTitle: "Selos de contribuição · Énóis",
+    seoDescription:
+      "Como o Énóis reconhece contribuições técnicas verificadas nos repositórios oficiais da organização Rede-ENois.",
+    title: "Selos de contribuição",
+    intro:
+      "O Énóis reconhece quem ajuda a construir o projeto. Os selos vêm de contribuições verificadas nos repositórios oficiais: PRs integrados contam para Código e issues qualificadas contam para Issues. O nível sobe com a contagem — não é um produto comercial nem privilégio de moderação.",
+    categoriesTitle: "Categorias e níveis",
+    categoriesEmpty: "Nenhuma categoria disponível neste ambiente.",
+    categories: {
+      CODE: "Pull requests integrados contam automaticamente. PR revertido deixa de contar.",
+      ISSUES: "Só issues qualificadas contam: label de qualificação ou validação de um mantenedor.",
+    },
+    tierRange: (min: number, max: number | null) =>
+      max === null ? `${min}+` : min === max ? `${min}` : `${min}–${max}`,
+    criteriaTitle: "Como o nível é calculado",
+    criteria: [
+      "PR integrado em um dos repositórios oficiais da organização Rede-ENois conta automaticamente.",
+      "Issue conta quando tem label de qualificação ou é validada por um mantenedor.",
+      "Autoria verificável pelo ID imutável da conta GitHub vinculada ao perfil.",
+      "Cada categoria exibe apenas o nível mais alto alcançado.",
+      "PR revertido ou issue invalidada deixam de contar e o nível é recalculado.",
+      "Selo é reconhecimento de trabalho, não privilégio de moderação.",
+    ],
+    reposTitle: "Repositórios elegíveis",
+    reposEmpty: "Nenhum repositório elegível configurado neste ambiente.",
+    linkTitle: "Como vincular seu GitHub",
+    linkSteps: [
+      "Entre na sua conta do Énóis.",
+      "Abra Segurança e toque em “Vincular GitHub”.",
+      "Autorize o acesso de leitura ao perfil público do GitHub.",
+      "A partir daí, PRs integrados e issues qualificadas nos repositórios elegíveis são sincronizados.",
+    ],
+    statesTitle: "Estados da evidência",
+    states: {
+      PENDING: "Pendente: issue coletada, aguardando qualificação por label ou mantenedor.",
+      VALIDATED: "Validada: conta para o nível. PR integrado entra assim automaticamente.",
+      REJECTED: "Recusada: não atende aos critérios; não conta.",
+      CONTESTED: "Contestada: precisa de uma nova revisão.",
+      REVOKED: "Revogada: deixou de contar, com registro de auditoria.",
+    },
+    privacyTitle: "O que fica público",
+    privacy:
+      "No perfil aparecem o nome do nível, a categoria, a data de concessão e os links das evidências validadas. Notas internas, suspeitas, e-mail e detalhes de revisão não são públicos.",
+    cta: "Vincular GitHub",
+    ctaHint: "É preciso ter uma conta no Énóis e entrar antes de vincular.",
+  },
+
   root: {
     notFound: {
       code: "404",
@@ -3989,27 +3066,5 @@ export const texts = {
     /** Descrição do manifesto do PWA: é a frase que o navegador mostra ao convidar a instalar. */
     manifestDescription:
       "Rede humana para conexões autênticas: conversa, comunidades, vagas, mentoria, brincadeira e construção junto.",
-    offlineTitle: "Você está offline",
-    offlineDescription:
-      "Não conseguimos falar com o servidor. Verifique sua conexão e tente de novo.",
-    offlineRetry: "Tentar novamente",
-    install: {
-      ariaLabel: "Instalar aplicativo",
-      title: "Instale o app do Énóis",
-      description: "Abra direto da tela inicial e receba notificações.",
-      action: "Instalar",
-      close: "Fechar convite de instalação",
-      iosTitle: "Instalar no iPhone",
-      iosIntro: "Para instalar o app no seu iPhone, siga estes passos:",
-      iosStepShareBefore: "Toque no ícone de",
-      iosShare: "Compartilhar",
-      iosStepShareAfter: "na barra do navegador.",
-      iosStepAddBefore: "Role para baixo e toque em",
-      iosAddToHome: "“Adicionar à Tela de Início”",
-      iosStepConfirmBefore: "Confirme tocando em",
-      iosAdd: "Adicionar",
-      iosStepConfirmAfter: "no canto superior direito.",
-      iosOk: "Entendi",
-    },
   },
 } as const;

@@ -1,10 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { LegalLastUpdated, LegalSection } from "@rede-enois/design-system/domain";
 
 import { ogMetas } from "@/lib/seo";
 
-import { LegalLastUpdated, LegalLayout, LegalSection } from "@/components/legal-layout";
+import { LegalLayout } from "@/components/legal-layout";
 
 export const Route = createFileRoute("/termos")({
   head: () => ({
@@ -21,21 +22,6 @@ export const Route = createFileRoute("/termos")({
 });
 
 function Termos() {
-  const [
-    acceptance,
-    definitions,
-    registration,
-    conduct,
-    publishedContent,
-    jobs,
-    thirdParty,
-    availability,
-    liability,
-    termination,
-    law,
-    contact,
-  ] = texts.legal.terms.sections;
-
   return (
     <LegalLayout>
       <header className="space-y-2">
@@ -44,53 +30,13 @@ function Termos() {
         <LegalLastUpdated date={texts.legal.updatedAt} />
       </header>
 
-      <LegalSection title={acceptance.title}>
-        <p>{acceptance.text}</p>
-      </LegalSection>
-
-      <LegalSection title={definitions.title}>
-        <p>{definitions.text}</p>
-      </LegalSection>
-
-      <LegalSection title={registration.title}>
-        <p>{registration.text}</p>
-      </LegalSection>
-
-      <LegalSection title={conduct.title}>
-        <p>{conduct.text}</p>
-      </LegalSection>
-
-      <LegalSection title={publishedContent.title}>
-        <p>{publishedContent.text}</p>
-      </LegalSection>
-
-      <LegalSection title={jobs.title}>
-        <p>{jobs.text}</p>
-      </LegalSection>
-
-      <LegalSection title={thirdParty.title}>
-        <p>{thirdParty.text}</p>
-      </LegalSection>
-
-      <LegalSection title={availability.title}>
-        <p>{availability.text}</p>
-      </LegalSection>
-
-      <LegalSection title={liability.title}>
-        <p>{liability.text}</p>
-      </LegalSection>
-
-      <LegalSection title={termination.title}>
-        <p>{termination.text}</p>
-      </LegalSection>
-
-      <LegalSection title={law.title}>
-        <p>{law.text}</p>
-      </LegalSection>
-
-      <LegalSection title={contact.title}>
-        <p>{contact.text}</p>
-      </LegalSection>
+      {texts.legal.terms.sections.map((section) => (
+        <LegalSection key={section.title} title={section.title}>
+          {section.text.split("\n\n").map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </LegalSection>
+      ))}
 
       <footer className="border-t border-border pt-6 text-sm">
         <p>

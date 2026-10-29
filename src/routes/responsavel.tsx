@@ -5,15 +5,14 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { SupervisedMinorView } from "@/types/application/age/supervised-minor-view";
+import { Button, useToast } from "@rede-enois/design-system/ui";
 import { Check, ShieldCheck, UserMinus, X } from "lucide-react";
 import { z } from "zod";
 
 import { parentalApi } from "@/lib/api";
+import { dataCurta } from "@/lib/date/format";
 import { hasSession } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
-
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
 
 import { AppContainer } from "@/components/app-container";
 
@@ -248,8 +247,7 @@ function MinorRow({
         <span className="block truncate text-sm font-medium text-text-strong">{minor.name}</span>
 
         <span className="block text-xs text-text-subtle">
-          @{minor.username} ·{" "}
-          {texts.guardian.since(new Date(minor.since).toLocaleDateString("pt-BR"))}
+          @{minor.username} · {texts.guardian.since(dataCurta(minor.since))}
         </span>
       </span>
 

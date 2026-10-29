@@ -1,5 +1,54 @@
 # Componentes
 
+## `CosmeticShop` (`src/components/wallet/cosmetic-shop.tsx`)
+
+Seasonal cosmetics shop in the `Loja` tab of `/carteira`, drawn by the design system
+`CosmeticShop`.
+
+- Reads `GET /loja` and `GET /loja/colecoes` (Zod-validated in `src/lib/api/loja.ts`); prices are
+  formatted with `formatFaisca`, and each look shows the price of the pieces still missing
+  (`lookPriceMf` in `src/lib/cosmetics.ts`: 75% of their sum, rounded to whole faíscas, the
+  backend arithmetic)
+- Buy, buy look, equip and unequip invalidate `loja`, `carteira`, `profile`, `me` and `feed`;
+  every API error code has its own pt-BR toast (`texts.cosmetics.errors`)
+- The `saci` and `halloween` collections show the Saci × Halloween duel (`SaciDuelPanel`)
+
+## `FrameShop` (`src/components/wallet/frame-shop.tsx`)
+
+The owned frames in the `Minhas molduras` tab of `/carteira` (`onlyOwned`). It lists only the
+`FRAME` items of the catalog.
+
+**Props:** `{ onlyOwned?: boolean }`
+
+- Search, filters, `oldest`/`newest` order (`GET /loja?order=`), pagination of 12 and the frame
+  preview come from the design system `FrameShop`
+
+## `ProfilePeek` (`src/components/profile/profile-peek.tsx`)
+
+The avatar or name of a person in a list opens a popover with the design system
+`ProfileMiniCard`. The public profile loads only when the popover opens (same query key as the
+profile page), with loading and error states. Used in the network, feed suggestions, group
+members, requests, posts and comments, community members, ranking and recommendations.
+In posts and comments it comes through the design system `renderAuthorTrigger` prop; a corporate
+post keeps the link to the professional profile.
+
+## `ProfileStatusDialog` (`src/components/profile/profile-status-dialog.tsx`)
+
+The owner's status bubble (`PUT /me/status`): up to 60 characters and an icon from the free
+icons or the icons of owned official badges.
+
+## `SaciSpot` and `SaciDuelBanner` (`src/components/events/`)
+
+- `SaciSpot`: the hidden Saci of the hunt in one of the 7 spots (feed, vagas, comunidades, blog,
+  carteira, mensagens, perfil), shown only while the hunt is active, for a signed-in person, and
+  until that spot is found
+- `SaciDuelBanner`: the duel on the feed while it is open; closing it hides it on the device
+
+## `BadgeMediaProvider` (`src/components/badge-media-provider.tsx`)
+
+The badge editors of the design system draw each badge with `<img src>`. Official badge ids
+(`emblema-*`) become SVG data URLs; the renderer is loaded only when the list has one.
+
 ## `AppShell` (`src/components/app-shell.tsx`)
 
 Layout principal da aplicação. Envolve todo o conteúdo das páginas autenticadas.
@@ -9,9 +58,11 @@ Layout principal da aplicação. Envolve todo o conteúdo das páginas autentica
 **Funcionalidades:**
 
 - Header com logo "Conexão", `SearchBox`, `ThemeToggle`, sino de notificações, avatar do perfil
-- Sidebar de navegação (desktop, 9 links) com destaque para rota ativa
-- Navbar inferior (mobile) com os mesmos links
+- Sidebar de navegação (desktop, ≥ 1024px, 9 links) com destaque para rota ativa
+- Drawer lateral de navegação (mobile/tablet, < 1024px) com os mesmos links
 - Popover de notificações com: lista, contador de não lidas, botão "Marcar lidas", ação "Aceitar" em convites
+
+O limite da navegação é 1024px (`lg`): abaixo, hambúrguer/drawer; a partir, sidebar.
 
 **Estado:** `useQuery` para perfil, notificações; `useMutation` para marcar lidas
 
@@ -70,22 +121,11 @@ Dialog multi-aba para edição completa do perfil.
 - `Field()` - Wrapper de campo com label e erro
 - `SubList()` - Componente genérico de CRUD para listas aninhadas
 
-## `ImageCropDialog` (`src/components/image-crop-dialog.tsx`)
+## `ImageCropDialog` (`@rede-enois/design-system/patterns`)
 
-Dialog para corte de imagens usando `react-easy-crop`.
-
-**Props:** `{ open, onOpenChange, imageSrc, aspect, title, onCropComplete }`
-
-**Funcionalidades:**
-
-- Zoom slider (1x a 3x)
-- Crop em canvas com output JPEG (qualidade 0.9)
-- Carregamento de imagem com CORS
-
-**Funções auxiliares:**
-
-- `createImage(url)` - Carrega imagem com CORS
-- `getCroppedImg(imageSrc, pixelCrop)` - Executa o crop via canvas
+Dialog de corte de imagem (`react-easy-crop`). Mora no design system
+(`src/patterns/editor/image-crop-dialog.tsx` do repositório `enois-design-system`); props e
+variações estão no Storybook de lá.
 
 ## `MentionTextarea` (`src/components/mention-textarea.tsx`)
 
@@ -99,17 +139,47 @@ Textarea com autocomplete de @menções.
 - Query na API de search de usuários (mínimo 2 caracteres)
 - Dropdown de resultados com navegação por setas, Tab/Enter para selecionar, Escape para fechar
 - Insere `@username` no texto e rastreia IDs dos mencionados
+- Com `toolbar`, mostra o botão `Figurinhas`: o código escolhido (`KEKW`) entra no texto como
+  palavra (ver abaixo)
 
-## `UserAvatar` (`src/components/user-avatar.tsx`)
+## Figurinhas (globais + populares)
 
-Componente de avatar reutilizável.
+`src/lib/emotes/` (catálogo, cache, paginação, retrato popular) e
+`src/components/emotes/emote-picker-dialog.tsx` (seletor). O texto gravado continua sendo o CÓDIGO —
+a troca por imagem acontece na leitura (`useEmoteText` dentro do `RichText`), então quem edita vê
+`KEKW`, não um endereço de CDN.
 
-**Props:** `{ src?, alt?, className?, fallback? }`
+- **Catálogo:** as duas APIs públicas são chamadas pelo navegador (`fetch`), sem passar pelo
+  backend. São 78 figurinhas globais (65 do BTTV + 13 do FFZ; o código repetido fica com o BTTV).
+  Do FFZ só entram os `default_sets` — os outros sets da resposta não são a coleção global. Isso é
+  TUDO que os dois publicam como global: a lista popular do BTTV responde `401/403` para qualquer
+  origem que não seja `betterttv.com`, e nem o CORS libera outra origem.
+- **Populares:** as mais usadas vêm do retrato `public/emotes/popular.json` (737 figurinhas hoje),
+  gerado por `node scripts/update-popular-emotes.mjs [paginas]` a partir do catálogo público do
+  FFZ ordenado por uso. É o catálogo INTEIRO do FFZ ordenado por uso — a API leva de 8 a 30
+  segundos por página, inviável no clique, daí o retrato versionado. Como o arquivo é nosso e igual
+  para todo mundo, toda figurinha escolhida no seletor é desenhada no texto de qualquer leitor; a
+  aba `Populares` usa essa ordem e a grade inteira soma globais + retrato.
+- **Cache:** o catálogo montado vai para o `localStorage` (`rede:emotes:global:v2`) e entra como dado
+  inicial do react-query. O JSON do FFZ responde `cache-control: private, must-revalidate`, então
+  sem essa cópia toda visita pagava a ida à API antes de desenhar figurinha nenhuma. O que vem do
+  armazenamento é revalidado item por item (inclusive `popularRank`) antes de virar imagem.
+- **Animação:** GIF do BTTV (`/emote/{id}/1x.gif`) e WebP animado do FFZ
+  (`/emote/{id}/animated/{escala}`, campo `animated` da API) quando o provedor publica a versão em
+  movimento; estático continua `2x.png` / `urls["2"]`. Na grade do seletor a figurinha do BTTV usa
+  o PNG de 1x mesmo quando é animada — GIF de ~300KB na grade é o que deixava o seletor lento.
+- **Grade:** `preview` (escala 1x) em páginas de 40 (`EMOTES_POR_PAGINA` em
+  `src/lib/emotes/pagination.ts`), com busca e filtro (`Todas`, `Populares`, `BTTV`, `FFZ`) voltando
+  para a página 1.
+- **Tamanho no chat:** `src/styles.css` casa pelo HOST do CDN (`cdn.betterttv.net`,
+  `cdn.frankerfacez.com`) e dá a toda figurinha a mesma caixa quadrada de 28px com
+  `object-fit: contain`. O seletor antigo só conhecia o caminho `/emoticon/` do FFZ, que a API não
+  usa mais (`/emote/{id}/...`), e por isso as figurinhas do FFZ saíam no tamanho original.
 
-- Usa `Avatar` do shadcn com `AvatarImage` e `AvatarFallback`
-- Resolve CDN URL via `resolveCdnUrl()`
-- Fallback: primeira letra do nome ou "?"
-- Se sem src, aplica `dark:invert` no placeholder
+## `UserAvatar` (`@rede-enois/design-system/domain`)
+
+Avatar reutilizável. Mora no design system (`src/domain/avatar/user-avatar.tsx` do repositório
+`enois-design-system`); props e variações estão no Storybook de lá.
 
 ## `ThemeToggle` (`src/components/theme-toggle.tsx`)
 

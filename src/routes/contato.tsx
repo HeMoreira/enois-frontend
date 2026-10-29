@@ -3,12 +3,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { SIGNUP_OPEN } from "@/constants/account";
 import { texts } from "@/texts";
+import { Button } from "@rede-enois/design-system/ui";
 import { ArrowRight, LifeBuoy, Mail } from "lucide-react";
 
 import { supportApi } from "@/lib/api";
 import { useIsAuthenticated } from "@/lib/use-auth";
-
-import { Button } from "@/components/ui/button";
 
 import { AppContainer } from "@/components/app-container";
 import { SupportForm } from "@/components/support-form";

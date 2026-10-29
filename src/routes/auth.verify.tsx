@@ -4,14 +4,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { VerifyStatus } from "@/types/routes/auth/verify-status";
+import { Button } from "@rede-enois/design-system/ui";
 import { CheckCircle2, Loader2, MailCheck, MailWarning } from "lucide-react";
 import { z } from "zod";
 
 import { ApiError, authApi } from "@/lib/api";
-import { getSessionToken } from "@/lib/api-client";
+import { hasSessionFlag } from "@/lib/session";
 import { storeSession } from "@/lib/session";
-
-import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
   token: z.string().optional(),
@@ -73,7 +72,7 @@ function VerifyEmail() {
         // O link consumido NAO volta: se a pessoa ja tem sessao, a conta foi confirmada em
         // outra aba (ou o link ja foi usado) — dizer "link invalido" seria errado e
         // mandaria a pessoa pedir outro link sem necessidade.
-        else if (code === "INVALID_TOKEN" && getSessionToken()) setStatus("used");
+        else if (code === "INVALID_TOKEN" && hasSessionFlag()) setStatus("used");
         else setStatus("invalid");
       });
   };

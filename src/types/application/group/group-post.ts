@@ -1,3 +1,5 @@
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
+
 /** Publicação do feed privado do grupo (tabela própria; nunca aparece no feed principal). */
 export type GroupPost = {
   id: string;
@@ -8,6 +10,8 @@ export type GroupPost = {
   authorUsername: string | null;
   authorAvatar: string | null;
   authorAvatarFrame?: string | null;
+  /** Personalização do nome do autor (tema/fonte/cor). */
+  authorStyle?: AuthorNameStyle | null;
   authorBadges: string[];
   content: string;
   mediaIds: string[];

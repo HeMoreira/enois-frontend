@@ -5,13 +5,14 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { SIGNUP_OPEN } from "@/constants/account";
 import { texts } from "@/texts";
-import { ArrowRight, ArrowUpRight, ShieldAlert } from "lucide-react";
+import { ApoieBanner } from "@rede-enois/design-system/domain";
+import { Button } from "@rede-enois/design-system/ui";
+import { ArrowRight, ArrowUpRight, GitPullRequest, ShieldAlert } from "lucide-react";
 
 import { statsApi } from "@/lib/api";
+import { anoAtual } from "@/lib/date/format";
 
-import { Button } from "@/components/ui/button";
-
-import { ApoieBanner } from "@/components/apoie-banner";
+import { ContributionForm } from "@/components/contribution-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/")({
@@ -475,6 +476,77 @@ function Landing() {
           </div>
         </section>
 
+        <section
+          id="contribuir"
+          aria-labelledby="contribuir-titulo"
+          className="scroll-mt-20 border-b border-border"
+        >
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
+            <div>
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+                <GitPullRequest className="h-4 w-4" aria-hidden />
+
+                <>{texts.landing.contribute.eyebrow}</>
+              </p>
+
+              <h2
+                id="contribuir-titulo"
+                className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl"
+              >
+                {texts.landing.contribute.title}
+              </h2>
+
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+                {texts.landing.contribute.description}
+              </p>
+
+              <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-foreground">
+                {texts.landing.contribute.rulesTitle}
+              </h3>
+
+              <ol className="mt-4 space-y-3">
+                {texts.landing.contribute.rules.map((rule, index) => (
+                  <li
+                    key={rule}
+                    className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+                  >
+                    <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
+                      {index + 1}
+                    </span>
+
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <a
+                href={texts.landing.contribute.guideUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                {texts.landing.contribute.guide}
+
+                <ArrowUpRight className="h-4 w-4" aria-hidden />
+              </a>
+            </div>
+
+            <div className="surface-card min-w-0 p-5 sm:p-7">
+              <h3 className="text-lg font-semibold tracking-tight">
+                {texts.landing.contribute.formTitle}
+              </h3>
+
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {texts.landing.contribute.formDescription}
+              </p>
+
+              <div className="mt-5">
+                <ContributionForm />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="border-b border-border bg-primary-soft/40">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-center lg:gap-20">
             <div>
@@ -633,6 +705,15 @@ function Landing() {
 
                 <li>
                   <Link
+                    to="/selos"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {texts.landing.footer.seals}
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
                     to="/contato"
                     className="text-muted-foreground transition-colors hover:text-foreground"
                   >
@@ -654,7 +735,7 @@ function Landing() {
 
           <div className="mt-12 space-y-3 border-t border-border pt-6">
             <p className="text-xs text-muted-foreground">
-              {texts.landing.footer.copyright(new Date().getFullYear())}
+              {texts.landing.footer.copyright(anoAtual())}
             </p>
 
             {/* Aviso de independência pedido pela Mel: afasta confusão com organizações homônimas. */}
@@ -696,6 +777,7 @@ const pageAnchors = [
   { href: "#pratica", label: texts.landing.nav.practice },
   { href: "#existe", label: texts.landing.nav.exists },
   { href: "#comunidade", label: texts.landing.nav.community },
+  { href: "#contribuir", label: texts.landing.nav.contribute },
 ];
 
 const heroFacts = [

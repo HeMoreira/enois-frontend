@@ -3,11 +3,10 @@ import { createFileRoute, useParams, useSearch } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { ModeracaoAcao } from "@/types/routes/moderacao/moderacao-acao";
+import { Button } from "@rede-enois/design-system/ui";
 
 import { reportsAdminApi } from "@/lib/api/reports-admin";
 import { requireAuth } from "@/lib/require-auth";
-
-import { Button } from "@/components/ui/button";
 
 import { AppContainer } from "@/components/app-container";
 

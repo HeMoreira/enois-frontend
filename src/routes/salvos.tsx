@@ -2,13 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
+import { EmptyState, PageHeader } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Bookmark } from "lucide-react";
 
-import { feedApi } from "@/lib/api";
+import { savedPostsQueryOptions } from "@/lib/feed/saved-posts";
 import { requireAuth } from "@/lib/require-auth";
-
-import { EmptyState } from "@/components/ui/empty-state";
-import { PageHeader } from "@/components/ui/page-header";
 
 import { AppContainer } from "@/components/app-container";
 import { PostCard } from "@/components/post-card";
@@ -20,10 +18,7 @@ export const Route = createFileRoute("/salvos")({
 });
 
 function SavedPosts() {
-  const { data: savedData } = useQuery({
-    queryKey: ["saved-posts"],
-    queryFn: () => feedApi.listSaved(),
-  });
+  const { data: savedData } = useQuery(savedPostsQueryOptions());
 
   const savedPosts = savedData?.items ?? [];
 

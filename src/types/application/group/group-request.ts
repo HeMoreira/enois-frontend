@@ -1,3 +1,5 @@
+import type { AuthorNameStyle } from "@/types/application/profile/author-name-style";
+
 /** Pedido de ingresso pendente (só quem administra vê). */
 export type GroupRequest = {
   id: string;
@@ -7,4 +9,6 @@ export type GroupRequest = {
   avatar: string | null;
   message: string | null;
   createdAt: string;
+  /** Personalização do nome (tema/fonte/cor). */
+  nameStyle?: AuthorNameStyle | null;
 };

@@ -1,5 +1,7 @@
 import { texts } from "@/texts";
 
+import { dataCurta } from "@/lib/date/format";
+
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return "";
   const date = new Date(iso);
@@ -13,5 +15,5 @@ export function formatTime(iso: string | null | undefined): string {
   if (diffH < 24) return texts.time.hoursAgo(diffH);
   const diffD = Math.floor(diffH / 24);
   if (diffD < 7) return texts.time.daysAgo(diffD);
-  return date.toLocaleDateString("pt-BR");
+  return dataCurta(date);
 }

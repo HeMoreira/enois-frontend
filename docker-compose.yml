@@ -1,6 +1,11 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      # A TOKEN IS REQUIRED: export NODE_AUTH_TOKEN (GitHub token with read:packages) before
+      # `docker compose build`, so npm can install @rede-enois/design-system from GitHub Packages.
+      secrets:
+        - npm_token
     ports:
       - "3000:3000"
     environment:
@@ -12,3 +17,7 @@ services:
       - VITE_IMAGEKIT_UPLOAD_URL=${VITE_IMAGEKIT_UPLOAD_URL:-https://upload.imagekit.io/api/v1/files/upload}
       - VITE_IMAGEKIT_URL_ENDPOINT=${VITE_IMAGEKIT_URL_ENDPOINT:-https://ik.imagekit.io/socialcoisa}
       - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
+
+secrets:
+  npm_token:
+    environment: NODE_AUTH_TOKEN
