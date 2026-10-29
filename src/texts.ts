@@ -1014,6 +1014,7 @@ export const texts = {
       discussions: "Discussões",
       unseen: "Ainda não vi",
       trending: "Em Alta",
+      interacted: "Interações",
       projects: "Projetos",
       corporate: "Corporativo",
       type: "Tipo de feed",
