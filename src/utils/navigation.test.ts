@@ -70,6 +70,10 @@ describe("navigateToHref", () => {
     expect(resolve("/configuracoes/seguranca")).toHaveBeenCalledWith({ to: "/seguranca" });
   });
 
+  it("opens the study pairs page from its notifications", () => {
+    expect(resolve("/par-de-estudo")).toHaveBeenCalledWith({ to: "/par-de-estudo" });
+  });
+
   it("keeps the query string of the href (event notification highlights the event)", () => {
     expect(resolve("/eventos?evento=ev-1")).toHaveBeenCalledWith({
       to: "/eventos",

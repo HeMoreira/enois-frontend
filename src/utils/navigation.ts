@@ -46,6 +46,8 @@ const routeDefinitions = [
   { source: "eventos", to: "/eventos" },
   { source: "mentoria", to: "/mentoria" },
   { source: "penalidades", to: "/penalidades" },
+  // Study pair notifications (matched, check-in, ended, reminder) all point here.
+  { source: "par-de-estudo", to: "/par-de-estudo" },
 ] as const satisfies readonly RouteDefinition[];
 
 const routes = [...routeDefinitions].sort((a, b) => b.source.length - a.source.length);

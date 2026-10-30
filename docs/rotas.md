@@ -107,6 +107,17 @@ Página pública de autenticação com duas abas.
 
 - `EditCommunityForm()` - Formulário de edição da comunidade
 
+## `/par-de-estudo` - Par de estudo (`src/routes/par-de-estudo.tsx`)
+
+**Auth:** Obrigatória (`requireAuth`, também em `PROTECTED_ROUTES`)
+
+**Componente:** `StudyPairs()` (`src/components/study-pairs/study-pairs.tsx`) sobre o `StudyPairsView` do DS
+
+- Pares ativos com o check-in da semana dos dois (`""` = check-in sem comentário, `null` = ainda não), semanas anteriores e encerrar par
+- Pedido em espera (cancelar) e formulário de pedido com assunto opcional e objetivos populares
+- Erros do pedido explicados pelo código do backend; `BIRTH_DATE_REQUIRED` leva a `/perfil` e `EMAIL_NOT_VERIFIED` a `/seguranca`
+- Módulo desativável `STUDY_PAIRS` (`disabledModules`): desligado, some do menu, a rota cai no `ModuleDisabledGate` e as notificações `STUDY_PAIR_*` ficam ocultas; um `409 STUDY_PAIRS_DISABLED` no pedido (módulo desligado em outra aba) mostra o erro no formulário com o botão "Ligar par de estudo", que religa o módulo (`useReenableModule`, o mesmo do gate) sem reenviar o pedido. Ligado, as notificações abrem esta rota pelo `navigateToHref`
+
 ## `/eventos` - Eventos (`src/routes/eventos.tsx`)
 
 **Auth:** Obrigatória
@@ -298,6 +309,7 @@ seguintes; aqui é o mapa completo.
 | `/empresa/:slug`                 | `empresa.$slug.tsx`                              | Página pública da empresa.                                                    |
 | `/empresas`                      | `empresas.tsx`                                   | Catálogo de empresas (derivado de vagas) e painel de edição.                  |
 | `/entrar`                        | `entrar.tsx`                                     | Login e cadastro (e-mail + social + 2FA).                                     |
+| `/par-de-estudo`                 | `par-de-estudo.tsx`                              | Pares de estudo com check-in semanal.                                         |
 | `/eventos`                       | `eventos.tsx`                                    | Catálogo de eventos com RSVP.                                                 |
 | `/feed`                          | `feed.tsx`                                       | Feed principal: compositor, abas, feed infinito, sidebar.                     |
 | `/freelances`                    | `freelances.tsx`                                 | Freelances; visitante vê o aviso e o botão de candidatura.                    |

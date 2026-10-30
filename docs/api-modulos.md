@@ -206,6 +206,19 @@ mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` e
 
 ---
 
+## Módulo Study pairs (`src/lib/api/study-pairs.ts`)
+
+| Método | Endpoint                         | Descrição                                              |
+| ------ | -------------------------------- | ------------------------------------------------------ |
+| POST   | `/study-pairs/requests`          | Pedir um par (`{goal, topic}`)                         |
+| DELETE | `/study-pairs/requests/current`  | Cancelar o pedido aberto                               |
+| GET    | `/study-pairs/me`                | Pedido aberto, pares e check-ins das últimas 4 semanas |
+| POST   | `/study-pairs/{pairId}/checkins` | Check-in da semana (`{note}`)                          |
+| POST   | `/study-pairs/{pairId}/end`      | Encerrar o par                                         |
+| GET    | `/study-pairs/goals/popular`     | Objetivos com pedidos abertos                          |
+
+---
+
 ## Módulo Jobs (`src/lib/api/jobs.ts`)
 
 | Método | Endpoint                  | Descrição                                                    |

@@ -48,5 +48,6 @@ export { supportApi } from "./support";
 export { contributorsApi } from "./contributors";
 export { statsApi } from "./stats";
 export { corporateApi } from "./corporate";
+export { studyPairsApi } from "./study-pairs";
 export { resumeImportApi, resumeErrorMessage } from "./resume-import";
 export { api, ApiError, buildQuery, clearSession } from "../api-client";
