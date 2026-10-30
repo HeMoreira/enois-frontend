@@ -94,6 +94,15 @@ gravada no aparelho; fora do feed, o efeito visível é o toast de confirmação
 - É conveniência de interface, **não autorização**: o backend decide a autoria de cada publicação e
   valida permissões em toda requisição.
 
+## Sequência diária (`StreakCard` do design system)
+
+- **Carteira** (`src/routes/carteira.tsx`): o cartão completo acima do extrato, com o `streak` que
+  já vem em `/carteira` (sem pedido extra). Backend sem o campo não desenha nada.
+- **Cabeçalho** (`src/components/streak-badge.tsx`): a versão compacta, de `GET /me/streak`, só a
+  partir de `sm` e só com o dado na mão (carregando ou com erro o cabeçalho fica como estava).
+- `today` vem de `hojeNoApp()` (`src/lib/date/format.ts`), o dia no fuso do app, o mesmo em que o
+  backend conta.
+
 ## `PostCard` (`src/components/post-card.tsx`)
 
 Card de post no feed, com todas as ações sociais.

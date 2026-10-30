@@ -168,6 +168,11 @@ export function valorDeDataLocal(valor: string | number | Date | null | undefine
   return `${pega("year")}-${pega("month")}-${pega("day")}T${pega("hour")}:${pega("minute")}`;
 }
 
+/** Hoje (`AAAA-MM-DD`) no fuso do app, o mesmo em que o backend conta os dias. */
+export function hojeNoApp(agora: Date = new Date()): string {
+  return valorDeDataLocal(agora).slice(0, 10);
+}
+
 /**
  * Data de evento ("2026-10-23"): é dia de calendário, não instante. Sai como "23 de out" (sem o
  * ponto e sem o "de", como o resto do app escreve).

@@ -58,6 +58,17 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ---
 
+## Módulo Streak (`src/lib/api/streak.ts`)
+
+| Método | Endpoint     | Descrição                                                  |
+| ------ | ------------ | ---------------------------------------------------------- |
+| GET    | `/me/streak` | Sequência diária (dias, recorde, hoje, descanso da semana) |
+
+`/carteira` também traz o mesmo objeto em `streak`. Toda mutação bem-sucedida invalida
+`["me", "streak"]` (regra global em `createAppQueryClient`, `src/lib/query-client.ts`).
+
+---
+
 ## Módulo Profile (`src/lib/api/profile.ts`)
 
 **Endpoints:**

@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 import { GlobalSearch } from "./global-search";
 import { NotificationsPopover } from "./notifications-popover";
+import { StreakBadge } from "./streak-badge";
 
 /** Wires the design system header to the shell store, the session and its nested containers. */
 export function AuthenticatedAppHeader() {
@@ -28,6 +29,7 @@ export function AuthenticatedAppHeader() {
       search={<GlobalSearch />}
       actions={
         <>
+          {mounted && profile && <StreakBadge />}
           <ThemeToggle />
           <NotificationsPopover />
           {mounted && profile && <AccountMenu profile={profile} />}

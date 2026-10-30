@@ -36,6 +36,7 @@ export { marketplaceApi } from "./marketplace";
 export { themesApi } from "./themes";
 export { cosmeticsApi } from "./cosmetics";
 export { walletApi } from "./wallet";
+export { streakApi } from "./streak";
 export { linkedInIntegrationApi, linkedinContactsApi } from "./linkedin";
 export { lojaApi } from "./loja";
 export { cosmeticEventsApi, HUNT_SPOTS } from "./cosmetic-events";

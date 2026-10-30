@@ -773,10 +773,18 @@ export const apiSections: ApiSection[] = [
         path: "/carteira",
         access: "auth",
         description:
-          "Saldo, chave (username) e extrato. A primeira abertura executa o genesis idempotente (100 faíscas) e marca a presença do dia.",
+          "Saldo, chave (username), extrato e a sequência diária (streak, o mesmo objeto de /me/streak). A primeira abertura executa o genesis idempotente (100 faíscas) e marca a presença do dia.",
         response: `{"balance":105000,"escala":1000,"cotacaoBrlCents":1,"cotacaoBrlMicros":10000,"chave":"ada-silva",
  "entries":[{"amount":5000,"kind":"REWARD","message":"Presença diária","createdAt":"2026-10-18T10:00:00Z"},
  {"amount":100000,"kind":"AIRDROP","message":"Distribuição inicial","createdAt":"2026-10-18T09:59:59Z"}]}`,
+      },
+      {
+        method: "GET",
+        path: "/me/streak",
+        access: "auth",
+        description:
+          "Sequência diária: dias seguidos, recorde, se hoje já contou e o descanso da semana (um dia perdido por semana é coberto sozinho).",
+        response: `{"currentDays":4,"longestDays":9,"todayDone":true,"freezesAvailable":1,"lastFrozenDay":null}`,
       },
       {
         method: "POST",

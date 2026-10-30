@@ -20,6 +20,7 @@ vi.mock("@/components/account-menu", () => ({
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
 vi.mock("./global-search", () => ({ GlobalSearch: () => null }));
 vi.mock("./notifications-popover", () => ({ NotificationsPopover: () => null }));
+vi.mock("./streak-badge", () => ({ StreakBadge: () => null }));
 
 describe("authenticated header", () => {
   afterEach(() => {

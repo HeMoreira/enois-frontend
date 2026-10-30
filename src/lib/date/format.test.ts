@@ -9,6 +9,7 @@ import {
   dataMedia,
   dataSemAno,
   formatarData,
+  hojeNoApp,
   hora,
   mesAno,
   paraData,
@@ -26,6 +27,11 @@ import {
  */
 describe("data do app", () => {
   const instante = "2026-10-21T01:35:16Z";
+
+  it("hoje é o dia no fuso do app, não no UTC", () => {
+    // 01:35 UTC ainda é dia 20 em São Paulo: a sequência conta o dia de lá.
+    expect(hojeNoApp(new Date(instante))).toBe("2026-10-20");
+  });
 
   it("formata a data curta no fuso do app", () => {
     expect(dataCurta(instante)).toBe("20/10/2026");
