@@ -70,6 +70,17 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ---
 
+## Módulo Streak (`src/lib/api/streak.ts`)
+
+| Método | Endpoint     | Descrição                                                  |
+| ------ | ------------ | ---------------------------------------------------------- |
+| GET    | `/me/streak` | Sequência diária (dias, recorde, hoje, descanso da semana) |
+
+`/carteira` também traz o mesmo objeto em `streak`. Toda mutação bem-sucedida invalida
+`["me", "streak"]` (regra global em `createAppQueryClient`, `src/lib/query-client.ts`).
+
+---
+
 ## Módulo Profile (`src/lib/api/profile.ts`)
 
 **Endpoints:**
@@ -98,18 +109,19 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Feed (`src/lib/api/feed.ts`)
 
-| Método | Endpoint                               | Descrição                                                            |
-| ------ | -------------------------------------- | -------------------------------------------------------------------- |
-| GET    | `/feed`                                | Listar feed (cursor, limit, tab; com `tab=ALL`, `type` e `resolved`) |
-| POST   | `/feed/posts`                          | Criar post                                                           |
-| POST   | `/feed/posts/{postId}/accepted-answer` | Marcar a resposta aceita de uma dúvida                               |
-| DELETE | `/feed/posts/{postId}/accepted-answer` | Reabrir a dúvida                                                     |
-| DELETE | `/feed/posts/{postId}`                 | Excluir post                                                         |
-| POST   | `/feed/posts/bulk-delete`              | Excluir em lote                                                      |
-| GET    | `/feed/saved`                          | Posts salvos                                                         |
-| GET    | `/feed/posts/{postId}/reactions`       | Reações de um post                                                   |
-| GET    | `/users/{username}/posts`              | Posts por username                                                   |
-| GET    | `/users/{userId}/posts`                | Posts por ID                                                         |
+| Método | Endpoint                               | Descrição                                                                                           |
+| ------ | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| GET    | `/feed`                                | Listar feed (cursor, limit, tab; com `tab=ALL`, `type` e `resolved`); a 1ª página traz `lastSeenAt` |
+| POST   | `/feed/seen`                           | Avança o marcador "Você está em dia" (`seenUntil`)                                                  |
+| POST   | `/feed/posts`                          | Criar post                                                                                          |
+| POST   | `/feed/posts/{postId}/accepted-answer` | Marcar a resposta aceita de uma dúvida                                                              |
+| DELETE | `/feed/posts/{postId}/accepted-answer` | Reabrir a dúvida                                                                                    |
+| DELETE | `/feed/posts/{postId}`                 | Excluir post                                                                                        |
+| POST   | `/feed/posts/bulk-delete`              | Excluir em lote                                                                                     |
+| GET    | `/feed/saved`                          | Posts salvos                                                                                        |
+| GET    | `/feed/posts/{postId}/reactions`       | Reações de um post                                                                                  |
+| GET    | `/users/{username}/posts`              | Posts por username                                                                                  |
+| GET    | `/users/{userId}/posts`                | Posts por ID                                                                                        |
 
 **Tipos de Post:** `INSIGHT`, `ARTICLE`, `QUESTION`, `PROJECT`, `OPPORTUNITY`
 

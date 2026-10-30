@@ -94,6 +94,16 @@ gravada no aparelho; fora do feed, o efeito visível é o toast de confirmação
 - É conveniência de interface, **não autorização**: o backend decide a autoria de cada publicação e
   valida permissões em toda requisição.
 
+## Sequência diária (`StreakCard` do design system)
+
+- **Carteira** (`src/routes/carteira.tsx`): o cartão completo acima do extrato, com o `streak` que
+  já vem em `/carteira` (sem pedido extra). Backend sem o campo não desenha nada.
+- **Perfil, só do dono** (`src/components/profile/profile-gamification-panel.tsx`): o cartão
+  completo logo abaixo do painel de presença, de `GET /me/streak`; visitante não vê nem busca.
+- Nunca fica fixo no cabeçalho: sempre à vista, a sequência vira cobrança diária.
+- `today` vem de `hojeNoApp()` (`src/lib/date/format.ts`), o dia no fuso do app, o mesmo em que o
+  backend conta.
+
 ## Jogos diários: compartilhar o resultado
 
 `DailyWord`, `DailyMaze` e `DailyBlocks` (`src/components/daily-*.tsx`) compartilham pelo

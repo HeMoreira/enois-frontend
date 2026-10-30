@@ -4,6 +4,7 @@ import type { BulkDeleteInput } from "@/types/application/feed/bulk-delete-input
 import type { BulkDeleteResult } from "@/types/application/feed/bulk-delete-result";
 import type { CreatePostInput } from "@/types/application/feed/create-post-input";
 import type { DeleteResult } from "@/types/application/feed/delete-result";
+import type { FeedPage } from "@/types/application/feed/feed-page";
 import type { FeedTab } from "@/types/application/feed/feed-tab";
 import type { PostView } from "@/types/application/feed/post-view";
 import type { ScheduledPostView } from "@/types/application/feed/scheduled-post-view";
@@ -25,7 +26,10 @@ export const feedApi = {
 
   /** `type` and `resolved` are only honored by the backend with tab=ALL. */
   list: (cursor?: string | null, limit = 20, tab?: FeedTab, type?: string, resolved?: boolean) =>
-    api.get<PageResponse<PostView>>(`/feed${buildQuery({ cursor, limit, tab, type, resolved })}`),
+    api.get<FeedPage>(`/feed${buildQuery({ cursor, limit, tab, type, resolved })}`),
+
+  /** Avança o marcador "Você está em dia" (só anda para frente; 204). */
+  markSeen: (seenUntil: string) => api.post<void>("/feed/seen", { seenUntil }),
 
   create: (data: CreatePostInput) => api.post<PostView>("/feed/posts", data),
 

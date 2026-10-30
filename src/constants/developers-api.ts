@@ -106,7 +106,19 @@ export const apiSections: ApiSection[] = [
         request: `curl "${P}/feed?tab=FOR_YOU&limit=20" \\
   -H "X-Session-Token: $TOKEN"`,
         response: `200 OK
-{"items":[{"id":"post_…","type":"INSIGHT","content":"…","counters":{"reactions":26,"comments":23,"saves":3,"shares":4},"createdAt":"2026-10-15T02:16:48Z"}],"nextCursor":"2026-10-15T02:16:48Z"}`,
+{"items":[{"id":"post_…","type":"INSIGHT","content":"…","counters":{"reactions":26,"comments":23,"saves":3,"shares":4},"createdAt":"2026-10-15T02:16:48Z"}],"nextCursor":"2026-10-15T02:16:48Z","lastSeenAt":"2026-10-14T21:03:10Z"}`,
+      },
+      {
+        method: "POST",
+        path: "/feed/seen",
+        access: "auth",
+        description:
+          'Avança o marcador "Você está em dia" (só anda para frente; valor no futuro vira agora). O GET /feed devolve o marcador anterior em lastSeenAt, só na primeira página.',
+        request: `curl -X POST ${P}/feed/seen \\
+  -H "Content-Type: application/json" \\
+  -H "X-Session-Token: $TOKEN" \\
+  -d '{"seenUntil":"2026-10-15T02:16:48Z"}'`,
+        response: "204 No Content",
       },
       {
         method: "GET",
@@ -845,10 +857,18 @@ export const apiSections: ApiSection[] = [
         path: "/carteira",
         access: "auth",
         description:
-          "Saldo, chave (username) e extrato. A primeira abertura executa o genesis idempotente (100 faíscas) e marca a presença do dia.",
+          "Saldo, chave (username), extrato e a sequência diária (streak, o mesmo objeto de /me/streak). A primeira abertura executa o genesis idempotente (100 faíscas) e marca a presença do dia.",
         response: `{"balance":105000,"escala":1000,"cotacaoBrlCents":1,"cotacaoBrlMicros":10000,"chave":"ada-silva",
  "entries":[{"amount":5000,"kind":"REWARD","message":"Presença diária","createdAt":"2026-10-18T10:00:00Z"},
  {"amount":100000,"kind":"AIRDROP","message":"Distribuição inicial","createdAt":"2026-10-18T09:59:59Z"}]}`,
+      },
+      {
+        method: "GET",
+        path: "/me/streak",
+        access: "auth",
+        description:
+          "Sequência diária: dias seguidos, recorde, se hoje já contou e o descanso da semana (um dia perdido por semana é coberto sozinho).",
+        response: `{"currentDays":4,"longestDays":9,"todayDone":true,"freezesAvailable":1,"lastFrozenDay":null}`,
       },
       {
         method: "POST",
