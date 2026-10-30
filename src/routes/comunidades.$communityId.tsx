@@ -59,8 +59,8 @@ import { buildShareTags } from "@/lib/open-graph";
 import { communityQueries } from "@/lib/query-options/communities";
 import { useAuth } from "@/lib/use-auth";
 import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
-import { useMediaUpload } from "@/lib/use-media-upload";
 import { uploadComposerMedia } from "@/lib/upload-composer-media";
+import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
 import { CommunityChannels } from "@/components/communities/community-channels";
@@ -122,7 +122,8 @@ function CommunityDetail() {
   const [postType, setPostType] = useState<PostView["type"]>("INSIGHT");
   const [media, setMedia] = useState<MediaItem[]>([]);
   const mediaReady = media.every(
-    (item) => item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
+    (item) =>
+      item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
   );
   const [mediaSpoiler, setMediaSpoiler] = useState(false);
   const [pageHtml, setPageHtml] = useState("");
@@ -318,7 +319,9 @@ function CommunityDetail() {
                       ...entry,
                       moderationStatus: "blocked",
                       moderationError:
-                        error instanceof Error ? error.message : texts.feed.composer.imageCheckError,
+                        error instanceof Error
+                          ? error.message
+                          : texts.feed.composer.imageCheckError,
                     }
                   : entry,
               ),

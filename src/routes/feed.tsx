@@ -81,8 +81,8 @@ import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
-import { useMediaUpload } from "@/lib/use-media-upload";
 import { uploadComposerMedia } from "@/lib/upload-composer-media";
+import { useMediaUpload } from "@/lib/use-media-upload";
 import { cn } from "@/lib/utils";
 
 import { AppContainer } from "@/components/app-container";
@@ -509,7 +509,9 @@ function Home() {
                       ...entry,
                       moderationStatus: "blocked",
                       moderationError:
-                        error instanceof Error ? error.message : texts.feed.composer.imageCheckError,
+                        error instanceof Error
+                          ? error.message
+                          : texts.feed.composer.imageCheckError,
                     }
                   : entry,
               ),
@@ -535,7 +537,8 @@ function Home() {
 
   const mediaType = media.length > 0 ? (media[0].type === "image" ? "image" : "video") : null;
   const mediaReady = media.every(
-    (item) => item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
+    (item) =>
+      item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
   );
 
   const feedPosts = feedData?.pages.flatMap((page) => page.items) ?? [];
@@ -1037,7 +1040,10 @@ function Home() {
                   size="sm"
                   className="rounded-full"
                   disabled={
-                    !scheduleAt || schedulePost.isPending || upload.status === "uploading" || !mediaReady
+                    !scheduleAt ||
+                    schedulePost.isPending ||
+                    upload.status === "uploading" ||
+                    !mediaReady
                   }
                   onClick={schedulePublish}
                 >
