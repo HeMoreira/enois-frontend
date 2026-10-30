@@ -15,6 +15,7 @@ import { StudyPairs } from "./study-pairs";
 const mocks = vi.hoisted(() => ({
   props: null as null | StudyPairsViewProps,
   toast: vi.fn(),
+  prefs: { getPersonalization: vi.fn(), setPersonalization: vi.fn() },
   api: {
     me: vi.fn(),
     popularGoals: vi.fn(),
@@ -31,11 +32,11 @@ vi.mock("@rede-enois/design-system/domain", () => ({
     return null;
   },
 }));
-vi.mock("@rede-enois/design-system/ui", () => ({ useToast: () => ({ toast: mocks.toast }) }));
-vi.mock("@/lib/api", async () => ({
-  ApiError: (await import("@/lib/api-client")).ApiError,
-  studyPairsApi: mocks.api,
+vi.mock("@rede-enois/design-system/ui", () => ({
+  useToast: () => ({ toast: mocks.toast }),
+  Button: (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props} />,
 }));
+vi.mock("@/lib/api", () => ({ studyPairsApi: mocks.api, preferencesApi: mocks.prefs }));
 
 const me: MyStudyPairs = {
   openRequest: null,
@@ -67,6 +68,7 @@ describe("StudyPairs container", () => {
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     mocks.toast.mockReset();
     Object.values(mocks.api).forEach((fn) => fn.mockReset());
+    Object.values(mocks.prefs).forEach((fn) => fn.mockReset());
     mocks.api.me.mockResolvedValue(me);
     mocks.api.popularGoals.mockResolvedValue({
       items: [{ goalKey: "sql", goal: "SQL", topic: "DADOS", openRequests: 2 }],
@@ -117,18 +119,25 @@ describe("StudyPairs container", () => {
     expect(props().requestError).toBe("BIRTH_DATE_REQUIRED");
   });
 
-  it("hands over to the module gate when study pairs are turned off", async () => {
+  it("offers to turn the module back on, without retrying the request", async () => {
     mocks.api.request.mockRejectedValue(new ApiError(409, "STUDY_PAIRS_DISABLED", "x"));
-    const invalidate = vi.spyOn(client, "invalidateQueries");
+    mocks.prefs.getPersonalization.mockResolvedValue({
+      disabledModules: ["JOBS", "STUDY_PAIRS"],
+    });
+    mocks.prefs.setPersonalization.mockResolvedValue({});
 
     await act(async () => props().onRequest({ goal: "Aprender Go", topic: null }));
     await settle();
+    expect(props().requestError).toBe("STUDY_PAIRS_DISABLED");
 
+    const action = props().errorAction as React.ReactElement<{ onClick: () => void }>;
+    await act(async () => action.props.onClick());
+    await settle();
+
+    expect(mocks.prefs.setPersonalization).toHaveBeenCalledWith({ disabledModules: ["JOBS"] });
     expect(props().requestError).toBeNull();
-    expect(mocks.toast).toHaveBeenCalledWith(
-      "Par de estudo está desativado nas suas preferências.",
-    );
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["personalization"] });
+    expect(props().errorAction).toBeUndefined();
+    expect(mocks.api.request).toHaveBeenCalledTimes(1);
   });
 
   it("tracks the check-in save per pair and refetches on success", async () => {

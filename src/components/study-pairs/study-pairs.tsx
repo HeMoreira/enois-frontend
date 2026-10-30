@@ -10,10 +10,11 @@ import {
   type StudyPairsErrorCode,
   StudyPairsView,
 } from "@rede-enois/design-system/domain";
-import { useToast } from "@rede-enois/design-system/ui";
+import { Button, useToast } from "@rede-enois/design-system/ui";
 
-import { ApiError, studyPairsApi } from "@/lib/api";
+import { studyPairsApi } from "@/lib/api";
 import { studyPairsErrorCode, toStudyPair, topicLabel } from "@/lib/study-pairs/to-study-pair";
+import { useReenableModule } from "@/lib/use-personalization";
 
 const ME_KEY = ["study-pairs", "me"] as const;
 const POPULAR_KEY = ["study-pairs", "popular"] as const;
@@ -44,16 +45,17 @@ export function StudyPairs() {
       if (result.status === "MATCHED") toast(texts.studyPairs.matched, "success");
       void refresh();
     },
-    onError: (error) => {
-      // The module was turned off (maybe in another tab): the gate takes over after the refetch.
-      if (error instanceof ApiError && error.code === "STUDY_PAIRS_DISABLED") {
-        toast(texts.studyPairs.disabled);
-        void queryClient.invalidateQueries({ queryKey: ["personalization"] });
-        return;
-      }
-      setRequestError(studyPairsErrorCode(error));
-    },
+    onError: (error) => setRequestError(studyPairsErrorCode(error)),
   });
+
+  // The module was turned off elsewhere (another tab): the form offers to turn it back on. Nothing
+  // is retried; the person sends the request again.
+  const reenable = useReenableModule();
+  const turnModuleOn = () =>
+    reenable.mutate("STUDY_PAIRS", {
+      onSuccess: () => setRequestError(null),
+      onError: () => toast(texts.studyPairs.reenableError, "error"),
+    });
 
   const cancelRequest = useMutation({
     mutationFn: () => studyPairsApi.cancelRequest(),
@@ -99,6 +101,20 @@ export function StudyPairs() {
       onRequest={(input) => request.mutate(input)}
       requesting={request.isPending}
       requestError={requestError}
+      errorAction={
+        requestError === "STUDY_PAIRS_DISABLED" ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            disabled={reenable.isPending}
+            onClick={turnModuleOn}
+          >
+            {texts.studyPairs.reenable}
+          </Button>
+        ) : undefined
+      }
       birthDateHref="/perfil"
       verifyEmailHref="/seguranca"
       onCancelRequest={() => cancelRequest.mutate()}

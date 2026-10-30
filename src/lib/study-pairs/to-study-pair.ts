@@ -19,6 +19,7 @@ const KNOWN_ERRORS = new Set<StudyPairsErrorCode>([
   "ACCOUNT_RESTRICTED",
   "STUDY_REQUEST_ALREADY_OPEN",
   "STUDY_PAIR_LIMIT",
+  "STUDY_PAIRS_DISABLED",
 ]);
 
 export function studyPairsErrorCode(error: unknown): StudyPairsErrorCode {
