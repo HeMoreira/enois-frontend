@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { ProfileGamificationPanelProps } from "@/types/components/profile/profile-gamification-panel-props";
 import { ProfileGamificationPanel as ProfileGamificationPanelView } from "@rede-enois/design-system/domain";
 
-import { walletApi } from "@/lib/api";
 import { formatFaisca } from "@/lib/faisca";
+import { walletQueries } from "@/lib/query-options/wallet";
 
 export function ProfileGamificationPanel({
   profile,
@@ -12,8 +12,7 @@ export function ProfileGamificationPanel({
   postsCount,
 }: ProfileGamificationPanelProps) {
   const { data: wallet } = useQuery({
-    queryKey: ["wallet"],
-    queryFn: () => walletApi.wallet(),
+    ...walletQueries.wallet(),
     enabled: isOwner,
     staleTime: 60_000,
   });

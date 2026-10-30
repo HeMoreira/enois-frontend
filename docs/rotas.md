@@ -29,6 +29,7 @@ Funcionalidades:
 - **Identidade ativa:** escolhida no menu da conta; com a profissional, o compositor publica no feed corporativo (`BUSINESS`) e os tipos de página/artigo saem da seleção — regras em `componentes.md`
 - **Abas de filtro:** Para você, Tudo, Seguindo, Discussões, Projetos
 - **Feed infinito** de `PostCard` components
+- **Dúvidas:** no "Tudo", o filtro de tipo "Dúvidas" (`type=QUESTION`) mostra o `QuestionStatusFilter` (Todas, Abertas, Resolvidas → `resolved` omitido, `false`, `true`). Com o tipo Pergunta no compositor aparece o `QuestionComposerHint`. Quem perguntou marca a resposta de outra pessoa nos comentários (otimista, desfaz se a API recusar); a resposta aceita sobe para o topo da lista
 - **Sidebar direita:** Mini-perfil, sugestões de conexão, eventos
 
 **Componentes auxiliares:**
@@ -71,7 +72,11 @@ Página pública de autenticação com duas abas.
 - Grid de cards de comunidades com cover, avatar, nome, descrição, membros
 - Botão "Entrar"/"Participando" com mutation
 - Load more com cursor
-- Dialog de criação de comunidade (nome, descrição, tópico)
+- Dialog de criação de comunidade (nome, descrição, tópico, cidade e UF opcionais)
+- "Perto de você" (com sessão): `LocalCommunitiesSection` do DS com `/communities/local`; sem
+  cidade no perfil, o convite abre `ProfileCityDialog` ali mesmo
+- Filtro de local (`CommunityLocationFilter`) na URL: `?uf=MG&cidade=Belo%20Horizonte` (UF sozinha
+  filtra o estado; cidade só vale com UF). As seções fixas (minhas, favoritas) seguem o filtro
 
 **Componentes auxiliares:**
 
@@ -87,7 +92,8 @@ Página pública de autenticação com duas abas.
 
 - Cover, avatar, nome, descrição, tópico, membros
 - Botão Entrar/Sair
-- Admin pode editar (nome, descrição, cover, avatar com crop)
+- Admin pode editar (nome, descrição, cover, avatar com crop, cidade e UF)
+- Cidade/UF no cabeçalho (`LocationLine`) quando a comunidade tem lugar
 - Feed da comunidade com posts (membros podem postar)
 - Lista de membros na sidebar
 
@@ -115,7 +121,8 @@ Página pública de autenticação com duas abas.
 - Grid de cards de eventos
 - Card com data, formato (Online/Presencial/Híbrido), título, host, participantes
 - Botão "Confirmar presença" / "Desconfirmar presença"; card marcado com "Você vai" quando `attending`
-- Dialog de criação de evento (título, data, hora, realizador, formato)
+- Dialog de criação de evento (título, data, hora, realizador, formato); presencial e híbrido
+  pedem também cidade e UF estruturadas (`CityStateField`), além do local livre
 
 **Componentes auxiliares:**
 
@@ -175,6 +182,19 @@ Página pública (mostra layout mesmo sem auth, mas sem funcionalidade).
 - `RequestCard()` - Card de solicitação de conexão
 - `Stat()` - Card de estatística
 
+## `/notificacoes/preferencias` - Preferências de notificação (`src/routes/notificacoes.preferencias.tsx`)
+
+**Auth:** Obrigatória (também na revalidação central do cliente)
+
+**Componente:** `NotificationPreferencesPanel` (`src/components/notifications/notification-preferences-panel.tsx`)
+sobre o `NotificationPreferences` do design system.
+
+- Resumo semanal por e-mail e as categorias de push; cada switch salva sozinho (PUT parcial),
+  muda na hora e volta ao valor anterior se o servidor recusar.
+- Push desligado neste aparelho: as categorias continuam editáveis e a tela oferece ligar.
+- Entrada pelo menu da conta (`hrefs.notificationPreferences`) e pelo ícone no cabeçalho do sino
+  (`preferencesHref`), os dois desenhados pelo design system.
+
 ## `/salvos` - Posts Salvos (`src/routes/salvos.tsx`)
 
 **Auth:** Obrigatória
@@ -213,6 +233,9 @@ Página pública (qualquer um pode ver). Loader busca dados ou `notFound`.
 - Seções: Sobre, Habilidades, Objetivos, Publicações
 - Sidebar: Disponibilidade, Recomendar, Recomendações recebidas, Ranking, Links externos
 - Dono do perfil: botão "Editar perfil" com dialog multi-aba
+- Cidade estruturada: o dono vê a sua (de `/me`) e abre `ProfileCityDialog` (cidade, UF e
+  "mostrar no perfil"); quem visita só vê `LocationLine` quando o dono escolheu mostrar. O campo
+  livre "local" continua separado
 - Outros usuários: botões "Mensagem" e "Conectar"
 - Recomendação com dialog
 
@@ -278,6 +301,7 @@ seguintes; aqui é o mapa completo.
 | `/moderacao`                     | `moderacao.tsx`                                  | Fila de recursos de penalidades e votação de punição.                         |
 | `/moderacao/:reportId`           | `moderacao.$reportId.tsx`                        | Decisão de recurso/fila filha da moderação.                                   |
 | `/moderador`                     | `moderador.tsx`                                  | Painel do moderador: todas as filas + monitoramento (candidatura é só admin). |
+| `/notificacoes/preferencias`     | `notificacoes.preferencias.tsx`                  | Resumo semanal e categorias de push.                                          |
 | `/penalidades`                   | `penalidades.tsx`                                | Minhas penalidades e recursos.                                                |
 | `/perfil/:username`              | `perfil.$username.tsx`                           | Perfil público (posts fixados, ranking de chegada, projetos).                 |
 | `/perfil`                        | `perfil.index.tsx`                               | Meu perfil (redireciona/edição).                                              |
@@ -301,6 +325,14 @@ seguintes; aqui é o mapa completo.
 | `/vagas/:jobId`                  | `vagas.$jobId.tsx`                               | Detalhe da vaga (candidatar, salvar).                                         |
 | `/vagas/:jobId/candidaturas`     | `vagas.$jobId.candidaturas.tsx`                  | Candidaturas da vaga (painel do contratante).                                 |
 | `/vagas/minhas`                  | `vagas.minhas.tsx`                               | Minhas vagas (publicadas e candidaturas).                                     |
+
+Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatamente seis dígitos,
+preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
+automático usa `one-time-code`.
+
+O campo usa o `Input` de `@rede-enois/design-system/ui` na versão `0.12.0`, com `maxLength={6}` e
+`showCounter={false}`. O limite nativo de seis caracteres permanece ativo, sem exibir o contador
+ou o aviso de limite atingido.
 
 ## Nametag do perfil profissional
 

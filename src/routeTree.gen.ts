@@ -60,6 +60,7 @@ import { Route as ProjetosUsernameRouteImport } from './routes/projetos.$usernam
 import { Route as ProfissionalUsernameRouteImport } from './routes/profissional_.$username'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as PerfilUsernameRouteImport } from './routes/perfil.$username'
+import { Route as NotificacoesPreferenciasRouteImport } from './routes/notificacoes.preferencias'
 import { Route as ModeracaoReportIdRouteImport } from './routes/moderacao.$reportId'
 import { Route as GruposSlugRouteImport } from './routes/grupos.$slug'
 import { Route as GamesPainelRouteImport } from './routes/games.painel'
@@ -333,6 +334,12 @@ const PerfilUsernameRoute = PerfilUsernameRouteImport.update({
   path: '/perfil/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificacoesPreferenciasRoute =
+  NotificacoesPreferenciasRouteImport.update({
+    id: '/notificacoes/preferencias',
+    path: '/notificacoes/preferencias',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ModeracaoReportIdRoute = ModeracaoReportIdRouteImport.update({
   id: '/$reportId',
   path: '/$reportId',
@@ -474,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/games/painel': typeof GamesPainelRoute
   '/grupos/$slug': typeof GruposSlugRoute
   '/moderacao/$reportId': typeof ModeracaoReportIdRoute
+  '/notificacoes/preferencias': typeof NotificacoesPreferenciasRoute
   '/perfil/$username': typeof PerfilUsernameRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profissional/$username': typeof ProfissionalUsernameRoute
@@ -544,6 +552,7 @@ export interface FileRoutesByTo {
   '/games/painel': typeof GamesPainelRoute
   '/grupos/$slug': typeof GruposSlugRoute
   '/moderacao/$reportId': typeof ModeracaoReportIdRoute
+  '/notificacoes/preferencias': typeof NotificacoesPreferenciasRoute
   '/perfil/$username': typeof PerfilUsernameRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profissional/$username': typeof ProfissionalUsernameRoute
@@ -615,6 +624,7 @@ export interface FileRoutesById {
   '/games/painel': typeof GamesPainelRoute
   '/grupos/$slug': typeof GruposSlugRoute
   '/moderacao/$reportId': typeof ModeracaoReportIdRoute
+  '/notificacoes/preferencias': typeof NotificacoesPreferenciasRoute
   '/perfil/$username': typeof PerfilUsernameRoute
   '/post/$postId': typeof PostPostIdRoute
   '/profissional_/$username': typeof ProfissionalUsernameRoute
@@ -687,6 +697,7 @@ export interface FileRouteTypes {
     | '/games/painel'
     | '/grupos/$slug'
     | '/moderacao/$reportId'
+    | '/notificacoes/preferencias'
     | '/perfil/$username'
     | '/post/$postId'
     | '/profissional/$username'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/games/painel'
     | '/grupos/$slug'
     | '/moderacao/$reportId'
+    | '/notificacoes/preferencias'
     | '/perfil/$username'
     | '/post/$postId'
     | '/profissional/$username'
@@ -827,6 +839,7 @@ export interface FileRouteTypes {
     | '/games/painel'
     | '/grupos/$slug'
     | '/moderacao/$reportId'
+    | '/notificacoes/preferencias'
     | '/perfil/$username'
     | '/post/$postId'
     | '/profissional_/$username'
@@ -893,6 +906,7 @@ export interface RootRouteChildren {
   AuthVerifyRoute: typeof AuthVerifyRoute
   BlogUsernameRoute: typeof BlogUsernameRoute
   EmpresaSlugRoute: typeof EmpresaSlugRoute
+  NotificacoesPreferenciasRoute: typeof NotificacoesPreferenciasRoute
   PerfilUsernameRoute: typeof PerfilUsernameRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ProfissionalUsernameRoute: typeof ProfissionalUsernameRoute
@@ -1264,6 +1278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notificacoes/preferencias': {
+      id: '/notificacoes/preferencias'
+      path: '/notificacoes/preferencias'
+      fullPath: '/notificacoes/preferencias'
+      preLoaderRoute: typeof NotificacoesPreferenciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/moderacao/$reportId': {
       id: '/moderacao/$reportId'
       path: '/$reportId'
@@ -1543,6 +1564,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyRoute: AuthVerifyRoute,
   BlogUsernameRoute: BlogUsernameRoute,
   EmpresaSlugRoute: EmpresaSlugRoute,
+  NotificacoesPreferenciasRoute: NotificacoesPreferenciasRoute,
   PerfilUsernameRoute: PerfilUsernameRoute,
   PostPostIdRoute: PostPostIdRoute,
   ProfissionalUsernameRoute: ProfissionalUsernameRoute,

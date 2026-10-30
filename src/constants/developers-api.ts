@@ -102,7 +102,7 @@ export const apiSections: ApiSection[] = [
         path: "/feed",
         access: "auth",
         description:
-          "Feed pessoal por aba: FOR_YOU (comunidades que você participa + posts fora de comunidade), FOLLOWING, ALL, DISCUSSIONS, RECENT, PROJECTS. Pagina por cursor.",
+          "Feed pessoal por aba: FOR_YOU (comunidades que você participa + posts fora de comunidade), FOLLOWING, ALL, DISCUSSIONS, RECENT, PROJECTS. Pagina por cursor. Com tab=ALL, type filtra o tipo (ex.: QUESTION) e resolved=true|false separa dúvidas resolvidas das abertas.",
         request: `curl "${P}/feed?tab=FOR_YOU&limit=20" \\
   -H "X-Session-Token: $TOKEN"`,
         response: `200 OK
@@ -166,6 +166,18 @@ export const apiSections: ApiSection[] = [
   -d '{"content":"Concordo!","parentCommentId":null,"mediaIds":[],"mentionedUserIds":[]}'`,
         response: `201 Created
 {"id":"comment_…","postId":"post_…","content":"Concordo!","mediaIds":[],"createdAt":"…"}`,
+      },
+      {
+        method: "POST",
+        path: "/feed/posts/{postId}/accepted-answer",
+        access: "auth",
+        description:
+          "Quem publicou a dúvida (type QUESTION) marca o comentário de outra pessoa como resposta. DELETE na mesma rota reabre a dúvida. Erros: NOT_A_QUESTION, INVALID_ANSWER_COMMENT, OWN_ANSWER, NOT_QUESTION_AUTHOR, POST_NOT_FOUND.",
+        request: `curl -X POST ${P}/feed/posts/$POST_ID/accepted-answer \\
+  -H "X-Session-Token: $TOKEN" -H "Idempotency-Key: a-1" \\
+  -H "Content-Type: application/json" -d '{"commentId":"comment_…"}'`,
+        response: `200 OK
+{"postId":"post_…","acceptedCommentId":"comment_…","resolved":true}`,
       },
       {
         method: "GET",
@@ -264,7 +276,7 @@ export const apiSections: ApiSection[] = [
         path: "/me/profile",
         access: "auth",
         description:
-          "Edita o próprio perfil (nome, headline, skills, bio, bioHtml, bannerHtml, emblema…). Experiências, educação e certificações têm CRUD próprio em /me/experiences, /me/education, /me/certifications.",
+          "Edita o próprio perfil (nome, headline, skills, bio, bioHtml, bannerHtml, emblema, city + state + showCity…). A cidade só aparece no perfil público com showCity. Experiências, educação e certificações têm CRUD próprio em /me/experiences, /me/education, /me/certifications.",
       },
     ],
   },
@@ -279,11 +291,18 @@ export const apiSections: ApiSection[] = [
         path: "/communities",
         access: "public",
         description:
-          "Lista comunidades (topic para filtrar, cursor para paginar). Com sessão, joined reflete participação.",
+          "Lista comunidades (topic para filtrar, cursor para paginar). state (sigla da UF) filtra o estado; city só vale junto com state e compara sem acento. Com sessão, joined reflete participação. city e state vêm no item quando a comunidade tem lugar.",
         request: `curl "${P}/communities?limit=10"`,
         response: `200 OK
 {"items":[{"id":"community_…","name":"Muita IA pouco $","description":"…","members":1,
  "topic":"TECNOLOGIA","cover":null,"bannerHtml":null,"joined":false}],"nextCursor":null}`,
+      },
+      {
+        method: "GET",
+        path: "/communities/local",
+        access: "auth",
+        description:
+          "Perto de você: comunidades da cidade do próprio perfil primeiro, depois o resto da UF (limit até 50). Perfil sem cidade devolve lista vazia.",
       },
       {
         method: "GET",
@@ -315,7 +334,7 @@ export const apiSections: ApiSection[] = [
         path: "/communities",
         access: "auth",
         description:
-          "Cria comunidade (o criador vira ADMIN). PATCH edita; /transfer passa a administração; /favorite + /favorites para favoritas.",
+          "Cria comunidade (o criador vira ADMIN), com city e state opcionais (os dois ou nenhum). PATCH edita (city e state vazios limpam); /transfer passa a administração; /favorite + /favorites para favoritas.",
       },
     ],
   },
@@ -370,7 +389,7 @@ export const apiSections: ApiSection[] = [
         path: "/events",
         access: "public",
         description:
-          "Lista eventos (vitrine). Com sessão, attending reflete se o viewer confirmou presença.",
+          "Lista eventos (vitrine). city + state (ou só state) listam os encontros presenciais e híbridos do lugar. Com sessão, attending reflete se o viewer confirmou presença.",
         response: `200 OK
 {"items":[{"id":"event_…","title":"…","date":"2029-12-31","time":"23:59","format":"ONLINE","attendees":2,"attending":false,"expired":false}]}`,
       },
@@ -380,7 +399,12 @@ export const apiSections: ApiSection[] = [
         access: "public",
         description: "Detalhe do evento (attending do viewer quando autenticado).",
       },
-      { method: "POST", path: "/events", access: "auth", description: "Cria evento." },
+      {
+        method: "POST",
+        path: "/events",
+        access: "auth",
+        description: "Cria evento. city e state opcionais, só para presencial ou híbrido.",
+      },
       {
         method: "POST",
         path: "/events/{eventId}/attendees",
@@ -513,7 +537,8 @@ export const apiSections: ApiSection[] = [
         method: "POST",
         path: "/network/connections/{targetUserId}",
         access: "auth",
-        description: "Pedir conexão (PUT …/accept aceita; GET …/status consulta; DELETE desfaz).",
+        description:
+          "Pedir conexão (PUT …/accept aceita; DELETE desfaz). GET …/status consulta: `status` é igual para os dois lados e `requestedByMe` diz se o pedido pendente foi enviado por você.",
       },
       {
         method: "POST",
@@ -572,6 +597,26 @@ export const apiSections: ApiSection[] = [
         path: "/notifications",
         access: "auth",
         description: "Notificações do usuário (cursor).",
+      },
+      {
+        method: "GET",
+        path: "/me/notification-preferences",
+        access: "auth",
+        description:
+          "O que chega fora do app: resumo semanal por e-mail e as categorias de push (social, mensagens, grupos, vagas, sistema). Padrão: tudo ligado.",
+        response: `200 OK
+{"weeklyDigest":true,"pushSocial":true,"pushMessages":true,"pushGroups":true,"pushJobs":true,"pushSystem":true,"updatedAt":null}`,
+      },
+      {
+        method: "PUT",
+        path: "/me/notification-preferences",
+        access: "auth",
+        description:
+          "Atualização parcial: só os campos enviados mudam. Devolve todas as preferências.",
+        request: `curl -X PUT ${P}/me/notification-preferences \
+  -H "Content-Type: application/json" \
+  -H "X-Session-Token: $TOKEN" \
+  -d '{"weeklyDigest":false}'`,
       },
       {
         method: "GET",

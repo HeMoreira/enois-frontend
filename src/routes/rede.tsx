@@ -10,10 +10,12 @@ import { StyledName, UserAvatar } from "@rede-enois/design-system/domain";
 import { Button, PageHeader } from "@rede-enois/design-system/ui";
 import { Check, Send, UserMinus, UserPlus, X } from "lucide-react";
 
-import { networkApi, profileApi } from "@/lib/api";
+import { networkApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { liteInterval } from "@/lib/lite-mode";
 import { authorNameStyle } from "@/lib/profile-name-style";
+import { networkQueries } from "@/lib/query-options/network";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { requireAuth } from "@/lib/require-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
@@ -44,8 +46,7 @@ function Rede() {
     queryFn: () => networkApi.summary(),
   });
   const { data: requestsData } = useQuery({
-    queryKey: ["network", "requests"],
-    queryFn: () => networkApi.requests(),
+    ...networkQueries.requests(20),
     refetchInterval: liteInterval(30_000, lite),
   });
 
@@ -57,7 +58,7 @@ function Rede() {
   const incomingRequests = pendingRequests.filter((r) => r.fromUserId !== currentUserId);
   const outgoingRequests = pendingRequests.filter((r) => r.fromUserId === currentUserId);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["network"] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: networkQueries.all });
 
   const acceptRequest = useMutation({
     mutationFn: (id: string) => networkApi.accept(id),
@@ -231,8 +232,7 @@ function RequestCard({ request, onAccept, onCancel }: RequestCardProps) {
   const targetUserId = isOutgoing ? request.toUserId : request.fromUserId;
 
   const { data: user } = useQuery({
-    queryKey: ["profile", "by-id", targetUserId],
-    queryFn: () => profileApi.getById(targetUserId),
+    ...profileQueries.byId(targetUserId),
   });
 
   return (

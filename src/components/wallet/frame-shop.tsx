@@ -11,6 +11,7 @@ import { useToast } from "@rede-enois/design-system/ui";
 import { lojaApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { formatFaisca } from "@/lib/faisca";
+import { walletQueries } from "@/lib/query-options/wallet";
 
 export function FrameShop({ onlyOwned = false }: FrameShopProps) {
   const queryClient = useQueryClient();
@@ -22,7 +23,7 @@ export function FrameShop({ onlyOwned = false }: FrameShopProps) {
     mutationFn: (id: string) => lojaApi.buy(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["loja"] });
-      void queryClient.invalidateQueries({ queryKey: ["carteira"] });
+      void queryClient.invalidateQueries({ queryKey: walletQueries.wallet().queryKey });
       toast(texts.frameShop.bought, "success");
     },
     onError: () => toast(texts.frameShop.buyError, "error"),

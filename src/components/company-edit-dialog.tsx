@@ -15,6 +15,7 @@ import {
 import { useToast } from "@rede-enois/design-system/ui";
 
 import { companiesApi, searchApi } from "@/lib/api";
+import { companyQueries } from "@/lib/query-options/companies";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 /**
@@ -51,8 +52,9 @@ export function CompanyEditDialog({
         cover: form.cover,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["empresa", company.slug] });
-      queryClient.invalidateQueries({ queryKey: ["empresas"] });
+      queryClient.invalidateQueries({ queryKey: companyQueries.detail(company.slug).queryKey });
+      queryClient.invalidateQueries({ queryKey: companyQueries.directoryKey });
+      queryClient.invalidateQueries({ queryKey: companyQueries.mine().queryKey });
       toast(texts.empresa.editPanel.saved, "success");
       onOpenChange(false);
     },
