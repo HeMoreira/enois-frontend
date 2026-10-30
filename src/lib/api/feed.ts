@@ -1,4 +1,5 @@
 import type { PageResponse } from "@/types/application/api/page-response";
+import type { AcceptedAnswerView } from "@/types/application/feed/accepted-answer-view";
 import type { BulkDeleteInput } from "@/types/application/feed/bulk-delete-input";
 import type { BulkDeleteResult } from "@/types/application/feed/bulk-delete-result";
 import type { CreatePostInput } from "@/types/application/feed/create-post-input";
@@ -22,8 +23,9 @@ export const feedApi = {
       `/corporate/${encodeURIComponent(username)}/posts${buildQuery({ cursor: cursor ?? undefined, limit })}`,
     ),
 
-  list: (cursor?: string | null, limit = 20, tab?: FeedTab, type?: string) =>
-    api.get<PageResponse<PostView>>(`/feed${buildQuery({ cursor, limit, tab, type })}`),
+  /** `type` and `resolved` are only honored by the backend with tab=ALL. */
+  list: (cursor?: string | null, limit = 20, tab?: FeedTab, type?: string, resolved?: boolean) =>
+    api.get<PageResponse<PostView>>(`/feed${buildQuery({ cursor, limit, tab, type, resolved })}`),
 
   create: (data: CreatePostInput) => api.post<PostView>("/feed/posts", data),
 
@@ -50,6 +52,14 @@ export const feedApi = {
 
   /** Desfaz a exclusão do próprio post (soft delete reversível). */
   restore: (postId: string) => api.post<PostView>(`/feed/posts/${postId}/restore`),
+
+  /** The asker marks another person's comment as the answer to a QUESTION. */
+  acceptAnswer: (postId: string, commentId: string) =>
+    api.post<AcceptedAnswerView>(`/feed/posts/${postId}/accepted-answer`, { commentId }),
+
+  /** Reopens the question. */
+  unacceptAnswer: (postId: string) =>
+    api.delete<AcceptedAnswerView>(`/feed/posts/${postId}/accepted-answer`),
 
   delete: (postId: string) => api.delete<DeleteResult>(`/feed/posts/${postId}`),
 
