@@ -20,20 +20,36 @@ import {
   EmptyState,
   Input,
   Label,
+  Switch,
   Textarea,
 } from "@rede-enois/design-system/ui";
-import { Calendar, CheckCircle2, Image as ImageIcon, Sparkles, Star, Trash2 } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  Coins,
+  Image as ImageIcon,
+  Sparkles,
+  Star,
+  Trash2,
+} from "lucide-react";
 
-import { ApiError, mentorsApi, profileApi } from "@/lib/api";
+import { ApiError, mentorsApi, profileApi, walletApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { useCurrentUser } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
+import { FAIS_SCALE, formatFaisca, parseFaiscaInput } from "@/lib/faisca";
 import { requireAuth } from "@/lib/require-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
 import { MentorAgendaDialog } from "@/components/mentoring/mentor-agenda-dialog";
+import { MySessionsSection } from "@/components/mentoring/my-sessions-section";
 import { WeeklyAvailabilityEditor } from "@/components/mentoring/weekly-availability-editor";
+
+// Os mesmos limites do backend (MentorService.MIN_SPARKS_PRICE / MAX_SPARKS_PRICE): o formulário
+// barra antes de gastar uma ida à API.
+const MIN_SPARKS_PRICE = 50 * FAIS_SCALE;
+const MAX_SPARKS_PRICE = 10_000 * FAIS_SCALE;
 
 export const Route = createFileRoute("/mentoria")({
   head: () => ({ meta: [{ title: texts.mentoring.seoTitle }] }),
@@ -147,6 +163,7 @@ function Mentoria() {
                     initialPrice={myMentor?.price}
                     initialBanner={myMentor?.banner ?? undefined}
                     initialMeetingUrl={myMentor?.meetingUrl ?? undefined}
+                    initialSparksPrice={myMentor?.sparksPrice ?? undefined}
                     mentorId={myMentor?.id}
                   />
 
@@ -160,6 +177,8 @@ function Mentoria() {
             </div>
           </div>
         </div>
+
+        <MySessionsSection />
 
         <div id="mentores-lista">
           <h2 className="text-lg font-semibold">{texts.mentoring.featured}</h2>
@@ -211,13 +230,22 @@ function RegisterMentorForm({
   initialPrice,
   initialBanner,
   initialMeetingUrl,
+  initialSparksPrice,
   mentorId,
 }: RegisterMentorFormProps) {
   const [skillsText, setSkillsText] = useState(initialExpertise ?? "");
   const [price, setPrice] = useState(initialPrice ?? texts.mentoring.free);
   const [banner, setBanner] = useState(initialBanner ?? "");
   const [meetingUrl, setMeetingUrl] = useState(initialMeetingUrl ?? "");
+  const [acceptSparks, setAcceptSparks] = useState(initialSparksPrice != null);
+  const [sparksPriceText, setSparksPriceText] = useState(
+    initialSparksPrice != null ? formatFaisca(initialSparksPrice) : "",
+  );
   const [bannerError, setBannerError] = useState<string | null>(null);
+  // O preço é digitado em faíscas e enviado em milésimos, como o resto da moeda.
+  const sparksPrice = parseFaiscaInput(sparksPriceText);
+  const sparksPriceValid =
+    sparksPrice != null && sparksPrice >= MIN_SPARKS_PRICE && sparksPrice <= MAX_SPARKS_PRICE;
   const upload = useMediaUpload();
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
@@ -302,6 +330,48 @@ function RegisterMentorForm({
         />
       </div>
 
+      <div className="space-y-2 rounded-xl border border-border-soft p-3">
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-xs text-muted-foreground" htmlFor="mentor-accept-sparks">
+            {texts.mentoring.acceptSparks}
+          </Label>
+
+          <Switch
+            id="mentor-accept-sparks"
+            checked={acceptSparks}
+            onCheckedChange={(next) => {
+              setAcceptSparks(next);
+              if (!next) setSparksPriceText("");
+            }}
+          />
+        </div>
+
+        <p className="text-xs text-text-subtle">{texts.mentoring.acceptSparksHint}</p>
+
+        {acceptSparks && (
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground" htmlFor="mentor-sparks-price">
+              {texts.mentoring.sparksPrice}
+            </Label>
+
+            <Input
+              id="mentor-sparks-price"
+              value={sparksPriceText}
+              onChange={(e) => setSparksPriceText(e.target.value)}
+              placeholder={texts.mentoring.sparksPricePlaceholder}
+              inputMode="decimal"
+              aria-invalid={sparksPriceText.trim().length > 0 && !sparksPriceValid}
+              className="h-10 border-transparent bg-muted"
+            />
+
+            <p className="text-xs text-text-subtle">{texts.mentoring.sparksPriceHint}</p>
+            {sparksPriceText.trim().length > 0 && !sparksPriceValid && (
+              <p className="text-xs text-destructive">{texts.mentoring.sparksPriceInvalid}</p>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-1.5">
         <Label className="text-xs text-muted-foreground">{texts.mentoring.meetingUrl}</Label>
 
@@ -325,6 +395,7 @@ function RegisterMentorForm({
         disabled={
           !skillsText.trim() ||
           isPending ||
+          (acceptSparks && !sparksPriceValid) ||
           (meetingUrl.trim().length > 0 && !meetingUrl.trim().startsWith("https://"))
         }
         onClick={() => {
@@ -337,6 +408,7 @@ function RegisterMentorForm({
             price: price || texts.mentoring.free,
             banner: banner || null,
             meetingUrl: meetingUrl.trim() || null,
+            sparksPrice: acceptSparks ? sparksPrice : null,
           });
         }}
       >
@@ -408,12 +480,21 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
               mentorId={mentor.id}
               mentorName={user?.name ?? texts.mentoring.mentorFallback}
               meetingUrl={mentor.meetingUrl}
+              sparksPrice={mentor.sparksPrice}
             />
           )}
         </div>
       </header>
 
-      <section>
+      <section className="flex flex-wrap items-center gap-1.5">
+        {mentor.sparksPrice != null && (
+          <Badge className="rounded-full bg-primary-soft font-normal text-primary hover:bg-primary-soft">
+            <Coins className="mr-1 h-3 w-3" />
+
+            <>{texts.mentoring.sparksAccepted(formatFaisca(mentor.sparksPrice))}</>
+          </Badge>
+        )}
+
         {mentor.expertise.map((e) => (
           <Badge
             key={e}
@@ -472,10 +553,13 @@ function BookSessionDialog({
   mentorId,
   mentorName,
   meetingUrl,
+  sparksPrice,
 }: {
   mentorId: string;
   mentorName: string;
   meetingUrl?: string | null;
+  /** Preço em milésimos de faísca; `null`/`undefined` quando o mentor não cobra em faíscas. */
+  sparksPrice?: number | null;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -483,12 +567,23 @@ function BookSessionDialog({
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
+  const chargesSparks = sparksPrice != null && sparksPrice > 0;
+
+  // Saldo só interessa quando a sessão custa faíscas: o agendamento retém o valor na hora.
+  const { data: wallet } = useQuery({
+    queryKey: ["wallet"],
+    queryFn: () => walletApi.wallet(),
+    enabled: open && chargesSparks,
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["mentor-slots", mentorId],
     queryFn: () => mentorsApi.getSlots(mentorId),
     enabled: open,
   });
+
+  const balance = wallet?.balance;
+  const insufficient = chargesSparks && balance != null && balance < sparksPrice!;
 
   const slots = (data?.items ?? []).filter((slot) => slot.available);
 
@@ -499,7 +594,12 @@ function BookSessionDialog({
       queryClient.invalidateQueries({ queryKey: ["mentor-slots", mentorId] });
       queryClient.invalidateQueries({ queryKey: ["mentors"] });
     },
-    onError: () => setError(texts.mentoring.bookError),
+    onError: (err) =>
+      setError(
+        err instanceof ApiError && err.code === "INSUFFICIENT_SPARKS"
+          ? texts.mentoring.sparksInsufficientError
+          : texts.mentoring.bookError,
+      ),
   });
 
   const close = (next: boolean) => {
@@ -558,6 +658,31 @@ function BookSessionDialog({
               <p className="rounded-xl border border-border-soft px-4 py-6 text-center text-sm text-muted-foreground">
                 {texts.mentoring.noSlots}
               </p>
+            )}
+
+            {chargesSparks && (
+              <div className="space-y-1 rounded-xl border border-border-soft px-3 py-2 text-xs">
+                <p className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Coins className="h-3.5 w-3.5 text-primary" />
+
+                  <>{texts.mentoring.paidWithSparks(formatFaisca(sparksPrice!))}</>
+                </p>
+
+                {balance != null && (
+                  <p className={insufficient ? "text-destructive" : "text-text-subtle"}>
+                    {insufficient
+                      ? texts.mentoring.sparksBalanceLow(
+                          formatFaisca(balance),
+                          formatFaisca(sparksPrice!),
+                        )
+                      : texts.mentoring.sparksBalance(formatFaisca(balance))}
+                  </p>
+                )}
+
+                <p className="text-text-subtle">{texts.mentoring.sparksEscrowNote}</p>
+
+                <p className="text-text-subtle">{texts.mentoring.sparksFeeNote}</p>
+              </div>
             )}
 
             {meetingUrl && (
@@ -623,7 +748,7 @@ function BookSessionDialog({
             {slots.length > 0 && (
               <Button
                 className="w-full rounded-full"
-                disabled={!slotId || book.isPending}
+                disabled={!slotId || book.isPending || insufficient}
                 onClick={() => {
                   setError(null);
                   requireAuth();
