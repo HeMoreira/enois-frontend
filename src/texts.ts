@@ -2905,7 +2905,6 @@ export const texts = {
     title: "Preferências de notificação",
     description:
       "Escolha o que chega até você fora do app: o resumo semanal e os avisos no navegador.",
-    menuLabel: "Preferências de notificação",
   },
 
   saved: {

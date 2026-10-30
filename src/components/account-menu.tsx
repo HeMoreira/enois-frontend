@@ -6,8 +6,7 @@ import { texts } from "@/texts";
 import type { AccountMenuProps } from "@/types/components/account/account-menu-props";
 import type { ActiveIdentity } from "@/types/lib/active-identity";
 import { AccountMenu as AccountMenuView } from "@rede-enois/design-system/domain";
-import { AppLink, useToast } from "@rede-enois/design-system/ui";
-import { BellRing } from "lucide-react";
+import { useToast } from "@rede-enois/design-system/ui";
 
 import {
   effectiveIdentity,
@@ -38,6 +37,7 @@ const ACCOUNT_MENU_HREFS = {
   guardian: "/responsavel",
   moderator: "/moderador",
   apoie: "/apoiar",
+  notificationPreferences: "/notificacoes/preferencias",
 };
 
 /** Account menu: identity, logout and the account dialogs around the design system menu. */
@@ -110,23 +110,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         onDeleteAccount={openDialog(setShowDeleteAccount)}
         onLogout={() => void handleLogout()}
         loggingOut={loggingOut}
-        pushToggle={
-          <>
-            <PushToggle onClose={() => setMenuOpen(false)} />
-
-            {/* ponytail: the DS menu has no preferences entry yet; this row copies its item style
-                (ACCOUNT_MENU_ITEM_CLASS, not exported). Move to `hrefs` once the DS gains it. */}
-            <AppLink
-              href="/notificacoes/preferencias"
-              onClick={() => setMenuOpen(false)}
-              className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm font-normal text-text-strong transition hover:bg-surface-2"
-            >
-              <BellRing className="h-4 w-4" />
-
-              <>{texts.notificationPreferences.menuLabel}</>
-            </AppLink>
-          </>
-        }
+        pushToggle={<PushToggle onClose={() => setMenuOpen(false)} />}
       />
       <ChangeEmailDialog
         open={showChangeEmail}

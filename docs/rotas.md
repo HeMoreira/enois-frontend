@@ -174,7 +174,8 @@ sobre o `NotificationPreferences` do design system.
 - Resumo semanal por e-mail e as categorias de push; cada switch salva sozinho (PUT parcial),
   muda na hora e volta ao valor anterior se o servidor recusar.
 - Push desligado neste aparelho: as categorias continuam editáveis e a tela oferece ligar.
-- Entrada pelo menu da conta ("Preferências de notificação").
+- Entrada pelo menu da conta (`hrefs.notificationPreferences`) e pelo ícone no cabeçalho do sino
+  (`preferencesHref`), os dois desenhados pelo design system.
 
 ## `/salvos` - Posts Salvos (`src/routes/salvos.tsx`)
 
