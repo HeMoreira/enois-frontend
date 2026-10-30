@@ -18,6 +18,7 @@ import {
 } from "@rede-enois/design-system/domain";
 
 import { ApiError, preferencesApi, profileApi } from "@/lib/api";
+import { useCurrentUser } from "@/lib/current-user";
 import { ISO_DATE, hasMinAge } from "@/lib/min-age";
 import { profileQueries } from "@/lib/query-options/profiles";
 import { useMediaUpload } from "@/lib/use-media-upload";
@@ -60,7 +61,12 @@ function useListMutations<TData>(
   return { create, update, remove, pending: create.isPending || update.isPending };
 }
 
-export function EditProfileDialog({ profile, children }: Props) {
+export function EditProfileDialog({ profile: publicProfile, children }: Props) {
+  // A página entrega o perfil público, que não traz a data de nascimento, de propósito: ela só
+  // existe na projeção do dono (/me).
+  const { data: me } = useCurrentUser();
+  const profile = { ...publicProfile, birthDate: me?.birthDate };
+
   const queryClient = useQueryClient();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -118,8 +124,10 @@ export function EditProfileDialog({ profile, children }: Props) {
 
   const handleSave = async (values: EditProfileValues): Promise<EditProfileSaveError | null> => {
     const { birthDate, badges, showRanking } = values;
-    // Data preenchida precisa ser real e maior de idade — mesma régua do cadastro.
-    if (birthDate && (!ISO_DATE.test(birthDate) || !hasMinAge(birthDate))) {
+    const birthDateChanged = birthDate !== (profile.birthDate ?? "");
+    // Data nova precisa ser real e maior de idade — mesma régua do cadastro. A que já está na conta
+    // não passa por aqui: quem é menor supervisionado não pode ficar sem salvar o resto do perfil.
+    if (birthDateChanged && birthDate && (!ISO_DATE.test(birthDate) || !hasMinAge(birthDate))) {
       return { field: "general", message: texts.profile.edit.birthDateInvalid };
     }
     // Os emblemas vão por endpoint próprio (a lista de até 5 não passa pelo PUT do perfil) e antes
@@ -154,7 +162,7 @@ export function EditProfileDialog({ profile, children }: Props) {
         bio: values.bio || null,
         company: values.company || null,
         location: values.location || null,
-        birthDate: birthDate !== (profile.birthDate ?? "") ? birthDate || null : undefined,
+        birthDate: birthDateChanged ? birthDate || null : undefined,
         // Apenas apagar o valor, nao alterava o campo. O servidor entende string vazia como "limpar", null como "preservar".
         // Desta forma, se o usuário apagar o campo, ele será removido do perfil de fato.
         availability:
@@ -201,7 +209,10 @@ export function EditProfileDialog({ profile, children }: Props) {
 
   return (
     <BadgeMediaProvider badges={profileBadges(profile)}>
+      {/* O formulário só lê o perfil ao montar: recria uma vez quando /me chega, e não a cada nova
+          resposta, que poderia chegar antes da do perfil público e trazer de volta campos antigos. */}
       <EditProfileDialogView
+        key={me ? "com-me" : "sem-me"}
         profile={profile}
         open={open}
         onOpenChange={setOpen}
