@@ -12,7 +12,7 @@ import { ArrowLeft, Globe, UserX } from "lucide-react";
 
 import { ApiError, corporateApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
-import { mesAno, partesDaData } from "@/lib/date/format";
+import { monthsBetween, partesDaData, shortMonthYear } from "@/lib/date/format";
 import { litePageSize } from "@/lib/lite-mode";
 import { safeHref } from "@/lib/safe-url";
 import { ogMetas } from "@/lib/seo";
@@ -124,7 +124,7 @@ function ProfessionalProfile() {
           industry: data.industry,
           identityVerified: data.identityVerified,
           reputation: data.reputation ?? null,
-          memberSinceLabel: data.memberSince ? monthYear(data.memberSince) : null,
+          memberSinceLabel: data.memberSince ? shortMonthYear(data.memberSince) : null,
           skills: data.skills ?? [],
           links: splitLinks(data.externalLinks)
             .map(safeHref)
@@ -132,8 +132,8 @@ function ProfessionalProfile() {
         }}
         experiences={sortCurrentFirst(data.experiences ?? []).map((item) => ({
           ...item,
-          startLabel: item.startDate ? monthYear(item.startDate) : null,
-          endLabel: item.endDate ? monthYear(item.endDate) : null,
+          startLabel: item.startDate ? shortMonthYear(item.startDate) : null,
+          endLabel: item.endDate ? shortMonthYear(item.endDate) : null,
           months: item.startDate ? monthsBetween(item.startDate, item.endDate) : null,
         }))}
         educations={sortCurrentFirst(data.educations ?? []).map((item) => ({
@@ -147,7 +147,7 @@ function ProfessionalProfile() {
           id: item.id,
           name: item.name,
           issuer: item.issuer,
-          issuedLabel: item.issueDate ? monthYear(item.issueDate) : null,
+          issuedLabel: item.issueDate ? shortMonthYear(item.issueDate) : null,
           credentialUrl: item.credentialUrl ? safeHref(item.credentialUrl) : null,
         }))}
         posts={
@@ -196,19 +196,6 @@ function BackToFeed() {
       <>{texts.corporate.publicProfile.backToFeed}</>
     </Link>
   );
-}
-
-// ponytail: same month math as components/profile/experiences-section.tsx; extract a shared
-// helper when a third screen needs it.
-/** "jan. de 2023" → "jan. 2023". */
-const monthYear = (iso: string) => mesAno(iso).replace(" de ", " ");
-
-/** Meses inclusivos entre início e fim, lidos no fuso do app (servidor e cliente concordam). */
-function monthsBetween(start: string, end: string | null): number {
-  const from = partesDaData(start);
-  const to = partesDaData(end ?? new Date());
-  if (!from || !to) return 1;
-  return Math.max(1, (to.ano - from.ano) * 12 + (to.mes - from.mes) + 1);
 }
 
 /** "2016 a 2020", "2024 até o momento" (sem fim) ou `null` sem datas. */

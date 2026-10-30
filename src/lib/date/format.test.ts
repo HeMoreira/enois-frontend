@@ -12,8 +12,10 @@ import {
   hojeNoApp,
   hora,
   mesAno,
+  monthsBetween,
   paraData,
   partesDaData,
+  shortMonthYear,
 } from "./format";
 
 /**
@@ -112,5 +114,13 @@ describe("data do app", () => {
     } finally {
       process.env.TZ = fusoOriginal;
     }
+  });
+});
+
+describe("career timeline helpers", () => {
+  it("writes the month without the 'de' and counts months inclusively", () => {
+    expect(shortMonthYear("2023-01-15")).not.toContain(" de ");
+    expect(monthsBetween("2024-01-10", "2024-03-01")).toBe(3);
+    expect(monthsBetween("2024-03-10", "2024-03-20")).toBe(1);
   });
 });
