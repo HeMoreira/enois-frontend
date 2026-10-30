@@ -390,6 +390,58 @@ export const apiSections: ApiSection[] = [
     ],
   },
   {
+    id: "par-de-estudo",
+    title: "Par de estudo",
+    description:
+      "Duas pessoas adultas com o mesmo objetivo e um check-in curto por semana. Tudo exige sessão; escritas exigem Idempotency-Key. Até 2 pares ativos e um pedido aberto por pessoa.",
+    endpoints: [
+      {
+        method: "POST",
+        path: "/study-pairs/requests",
+        access: "auth",
+        description:
+          "Pede um par para um objetivo (goal até 120, topic opcional da taxonomia). Casa na hora (MATCHED) ou fica na fila (OPEN). Erros: STUDY_GOAL_REQUIRED, STUDY_GOAL_TOO_LONG, INVALID_TOPIC, STUDY_PAIRS_ADULTS_ONLY, BIRTH_DATE_REQUIRED, EMAIL_NOT_VERIFIED, ACCOUNT_RESTRICTED, STUDY_REQUEST_ALREADY_OPEN, STUDY_PAIR_LIMIT.",
+        request: `curl -X POST ${P}/study-pairs/requests \\
+  -H "X-Session-Token: $TOKEN" -H "Idempotency-Key: sp-1" \\
+  -H "Content-Type: application/json" -d '{"goal":"Aprender Rust","topic":null}'`,
+        response: `201 Created
+{"requestId":"spr_…","status":"OPEN","pairId":null}`,
+      },
+      {
+        method: "DELETE",
+        path: "/study-pairs/requests/current",
+        access: "auth",
+        description: "Cancela o pedido aberto.",
+      },
+      {
+        method: "GET",
+        path: "/study-pairs/me",
+        access: "auth",
+        description:
+          "Pedido aberto, pares ativos e check-ins da semana atual e das 3 anteriores (semana ISO, ex.: 2026-W44).",
+      },
+      {
+        method: "POST",
+        path: "/study-pairs/{pairId}/checkins",
+        access: "auth",
+        description:
+          "Check-in da semana (note até 500, pode ser vazia). Repetir na mesma semana edita.",
+      },
+      {
+        method: "POST",
+        path: "/study-pairs/{pairId}/end",
+        access: "auth",
+        description: "Encerra o par (qualquer membro).",
+      },
+      {
+        method: "GET",
+        path: "/study-pairs/goals/popular",
+        access: "auth",
+        description: "Até 10 objetivos com pedidos abertos, sem dado pessoal.",
+      },
+    ],
+  },
+  {
     id: "mentoria",
     title: "Mentoria",
     description: "Mentores publicam horários livres; quem quer aprender pede sessão em um slot.",
