@@ -171,6 +171,24 @@ Página pública (mostra layout mesmo sem auth, mas sem funcionalidade).
 - `RequestCard()` - Card de solicitação de conexão
 - `Stat()` - Card de estatística
 
+## `/boas-vindas` - Onboarding (`src/routes/boas-vindas.tsx`)
+
+**Auth:** Obrigatória (também na revalidação central do cliente, `src/lib/require-auth.ts`)
+
+**Componente:** `OnboardingFlow` (`src/components/onboarding/onboarding-flow.tsx`) sobre o
+`OnboardingView` do design system.
+
+- Passo 1: assuntos (os de `TOPICS` sem "Todas") e habilidades, já semeadas com as do perfil.
+- Passo 2: pacote inicial (`GET /me/onboarding/starter-pack`) com comunidades, grupos e pessoas,
+  tudo marcado; a pessoa desmarca o que não quiser.
+- Concluir (`POST /me/onboarding/complete`) ou pular (`POST /me/onboarding/skip`) marca o
+  onboarding em `["auth-me"]`, invalida `["me"]` e o feed e leva ao `/feed`.
+- Quem chega: login, e-mail confirmado e retorno do OAuth vão direto para cá quando
+  `/auth/me` traz `onboardingCompleted: false` (`landingPathFor` em `src/lib/onboarding.ts`). A guarda
+  central `OnboardingRedirect` (montada no root) cobre quem abre o `/feed` por outro caminho. Nos
+  dois casos o desvio acontece **uma vez por sessão** (`sessionStorage`): sair sem concluir nunca
+  prende a pessoa fora do feed.
+
 ## `/notificacoes/preferencias` - Preferências de notificação (`src/routes/notificacoes.preferencias.tsx`)
 
 **Auth:** Obrigatória (também na revalidação central do cliente)
@@ -260,6 +278,7 @@ seguintes; aqui é o mapa completo.
 | `/blog/post/novo`                | `blog.post.new.tsx`                              | Editor de post de blog.                                                       |
 | `/blogs`                         | `blogs.tsx`                                      | Catálogo de blogs.                                                            |
 | `/bloqueados`                    | `bloqueados.tsx`                                 | Lista de usuários bloqueados (desbloquear).                                   |
+| `/boas-vindas`                   | `boas-vindas.tsx`                                | Onboarding: interesses e pacote inicial (uma vez por sessão até concluir).    |
 | `/carteira`                      | `carteira.tsx`                                   | Carteira em faíscas: saldo, transferências, contestações.                     |
 | `/comunidades`                   | `comunidades.tsx`                                | Catálogo de comunidades.                                                      |
 | `/comunidades/:id`               | `comunidades.$communityId.tsx`                   | Página da comunidade (posts, membros, regras).                                |

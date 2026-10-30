@@ -480,6 +480,33 @@ export const texts = {
     alreadyReviewed: "Esta denúncia já foi revisada.",
     forbidden: "Sessão sem acesso de admin para esta fila.",
   },
+  onboarding: {
+    seoTitle: "Boas-vindas · Énóis",
+    /** Sugestões de habilidade no primeiro passo: amplas, porque a rede não é só de tecnologia. */
+    skillSuggestions: [
+      "Comunicação",
+      "Design",
+      "Programação",
+      "Fotografia",
+      "Escrita",
+      "Gestão de projetos",
+      "Marketing",
+      "Dados",
+      "Música",
+      "Ensino",
+    ],
+    errors: {
+      INVALID_ASSUNTO:
+        "Um dos assuntos escolhidos não existe mais. Revise a lista e tente de novo.",
+      TOO_MANY_SKILLS: "Escolha até 20 habilidades.",
+      TOO_MANY_ITEMS: "Você marcou mais itens do que o limite. Desmarque alguns e tente de novo.",
+      SKILL_TOO_LONG: "Uma das habilidades ficou longa demais. Encurte e tente de novo.",
+      CONFLICTING_PREFERENCE:
+        "Um dos assuntos está na sua lista de assuntos que você não quer ver. Ajuste em Personalização.",
+      generic: "Não deu pra salvar agora. Tente de novo em instantes.",
+    } as Record<string, string>,
+  },
+
   personalization: {
     saved: "Preferências salvas.",
     saveError: "Não foi possível salvar as preferências. Tente novamente.",

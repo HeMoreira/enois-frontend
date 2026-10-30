@@ -58,6 +58,18 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ---
 
+## Módulo Onboarding (`src/lib/api/onboarding.ts`)
+
+| Método | Endpoint                                            | Descrição                                      |
+| ------ | --------------------------------------------------- | ---------------------------------------------- |
+| GET    | `/me/onboarding/starter-pack?topics=A,B&skills=x,y` | Comunidades, grupos e pessoas sugeridos        |
+| POST   | `/me/onboarding/complete`                           | Salva escolhas, entra e pede conexões; conclui |
+| POST   | `/me/onboarding/skip`                               | Conclui sem escolher nada                      |
+
+`/auth/me` traz `onboardingCompleted`; `false` leva a pessoa a `/boas-vindas` (ver `docs/rotas.md`).
+
+---
+
 ## Módulo Profile (`src/lib/api/profile.ts`)
 
 **Endpoints:**
