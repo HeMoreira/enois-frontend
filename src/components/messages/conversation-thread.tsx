@@ -49,6 +49,11 @@ export function ConversationThread({
   const [showServices, setShowServices] = useState(false);
   const [selectingMessages, setSelectingMessages] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<{
+    id: string;
+    from: string;
+    text: string;
+  } | null>(null);
 
   // Paginado por cursor: a primeira pagina so traz as mensagens mais recentes — sem carregar as
   // anteriores as de semanas atras ficavam inalcancaveis.
@@ -81,8 +86,15 @@ export function ConversationThread({
   const { messages, decrypting } = useDecryptedMessages(rawMessages);
 
   const sendMessage = useMutation({
-    mutationFn: ({ conversationId, text, mediaIds, mediaSpoiler, e2e }: SendMessageInput) =>
-      messagesApi.sendMessage(conversationId, text, mediaIds, mediaSpoiler, e2e),
+    mutationFn: ({
+      conversationId,
+      text,
+      mediaIds,
+      mediaSpoiler,
+      e2e,
+      replyToId,
+    }: SendMessageInput) =>
+      messagesApi.sendMessage(conversationId, text, mediaIds, mediaSpoiler, e2e, replyToId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -152,7 +164,7 @@ export function ConversationThread({
   };
 
   /** Sobe as imagens (a falha volta para o compositor mostrar) e envia a mensagem. */
-  const send = async ({ text, files, mediaSpoiler }: ConversationSendValues) => {
+  const send = async ({ text, files, mediaSpoiler, replyToId }: ConversationSendValues) => {
     let mediaIds: string[] = [];
     if (files.length > 0) {
       const results = await upload.uploadAll(files.map((file) => ({ file })));
@@ -166,7 +178,14 @@ export function ConversationThread({
         // E2E falhou — envia em texto claro.
       }
     }
-    sendMessage.mutate({ conversationId: conversation.id, text, mediaIds, mediaSpoiler, e2e });
+    sendMessage.mutate({
+      conversationId: conversation.id,
+      text,
+      mediaIds,
+      mediaSpoiler,
+      e2e,
+      replyToId,
+    });
   };
 
   const otherParticipantId = conversation.participantIds.find((id) => id !== currentUserId);
@@ -216,6 +235,16 @@ export function ConversationThread({
         const origin = typeof window === "undefined" ? "" : window.location.origin;
         return `${origin}/servicos#oferta-${serviceId}`;
       }}
+      replyingTo={
+        replyingTo
+          ? {
+              id: replyingTo.id,
+              from: replyingTo.from === currentUserId ? "Você" : (otherUser?.name ?? "..."),
+              text: replyingTo.text,
+            }
+          : null
+      }
+      onCancelReply={() => setReplyingTo(null)}
     >
       {messages.map((m) => (
         <MessageBubble
@@ -243,6 +272,11 @@ export function ConversationThread({
             showingPreviousThread || m.from === currentUserId
               ? undefined
               : () => reportMessage(m.id, conversation.id)
+          }
+          onReply={
+            showingPreviousThread
+              ? undefined
+              : () => setReplyingTo({ id: m.id, from: m.from, text: m.text })
           }
         />
       ))}
