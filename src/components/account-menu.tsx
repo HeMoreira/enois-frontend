@@ -1,20 +1,10 @@
-import { useEffect, useState } from "react";
-
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { texts } from "@/texts";
 import type { AccountMenuProps } from "@/types/components/account/account-menu-props";
-import type { ActiveIdentity } from "@/types/lib/active-identity";
 import { AccountMenu as AccountMenuView } from "@rede-enois/design-system/domain";
 import { useToast } from "@rede-enois/design-system/ui";
 
-import {
-  effectiveIdentity,
-  readActiveIdentity,
-  subscribeActiveIdentity,
-  writeActiveIdentity,
-} from "@/lib/active-identity";
-import { corporateApi } from "@/lib/api";
 import { logout } from "@/lib/logout";
 
 import { ChangeEmailDialog } from "./change-email-dialog";
@@ -40,7 +30,10 @@ const ACCOUNT_MENU_HREFS = {
   notificationPreferences: "/notificacoes/preferencias",
 };
 
-/** Account menu: identity, logout and the account dialogs around the design system menu. */
+/**
+ * Account menu: logout and the account dialogs around the design system menu. The Social /
+ * Profissional switch lives on top of the main navigation (ContextSwitcher).
+ */
 export function AccountMenu({ profile }: AccountMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showChangeEmail, setShowChangeEmail] = useState(false);
@@ -50,30 +43,6 @@ export function AccountMenu({ profile }: AccountMenuProps) {
   const [showHealthyUsage, setShowHealthyUsage] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { toast } = useToast();
-  const [chosenIdentity, setChosenIdentity] = useState<ActiveIdentity>(() => readActiveIdentity());
-
-  useEffect(() => subscribeActiveIdentity(() => setChosenIdentity(readActiveIdentity())), []);
-
-  // O perfil profissional define se a troca de identidade existe e vale.
-  const { data: corporate } = useQuery({
-    queryKey: ["business-profile"],
-    queryFn: () => corporateApi.me(),
-    enabled: menuOpen,
-  });
-  const identity = effectiveIdentity(chosenIdentity, corporate);
-  const chooseIdentity = (next: ActiveIdentity) => {
-    writeActiveIdentity(next);
-    setChosenIdentity(next);
-    // A troca é silenciosa fora do feed: fecha o menu e confirma, senão parece que o clique
-    // não fez nada.
-    setMenuOpen(false);
-    toast(
-      next === "CORPORATE"
-        ? texts.account.menu.identityCorporate
-        : texts.account.menu.identitySocial,
-      "success",
-    );
-  };
 
   const openDialog = (show: (open: boolean) => void) => () => {
     setMenuOpen(false);
@@ -97,12 +66,6 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         hrefs={{ ...ACCOUNT_MENU_HREFS, profile: `/perfil/${profile.username}` }}
         open={menuOpen}
         onOpenChange={setMenuOpen}
-        // Só com perfil ATIVO a escolha vale; em rascunho/desativado o controle ficaria
-        // desabilitado sem explicar nada (issue #376).
-        showIdentitySwitch={corporate?.exists === true && corporate.status === "ACTIVE"}
-        corporateIdentityEnabled={corporate?.status === "ACTIVE"}
-        identity={identity}
-        onChooseIdentity={chooseIdentity}
         onChangeEmail={openDialog(setShowChangeEmail)}
         onChangePassword={openDialog(setShowChangePassword)}
         onOpenLinkedAccounts={openDialog(setShowLinkedAccounts)}
