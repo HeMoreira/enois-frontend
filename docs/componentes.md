@@ -98,8 +98,9 @@ gravada no aparelho; fora do feed, o efeito visível é o toast de confirmação
 
 - **Carteira** (`src/routes/carteira.tsx`): o cartão completo acima do extrato, com o `streak` que
   já vem em `/carteira` (sem pedido extra). Backend sem o campo não desenha nada.
-- **Cabeçalho** (`src/components/streak-badge.tsx`): a versão compacta, de `GET /me/streak`, só a
-  partir de `sm` e só com o dado na mão (carregando ou com erro o cabeçalho fica como estava).
+- **Perfil, só do dono** (`src/components/profile/profile-gamification-panel.tsx`): o cartão
+  completo logo abaixo do painel de presença, de `GET /me/streak`; visitante não vê nem busca.
+- Nunca fica fixo no cabeçalho: sempre à vista, a sequência vira cobrança diária.
 - `today` vem de `hojeNoApp()` (`src/lib/date/format.ts`), o dia no fuso do app, o mesmo em que o
   backend conta.
 
