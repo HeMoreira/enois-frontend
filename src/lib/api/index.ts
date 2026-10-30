@@ -1,4 +1,5 @@
 export { authApi } from "./auth";
+export { onboardingApi } from "./onboarding";
 export { parentalApi } from "./age";
 export { identityApi } from "./identity";
 export { profileApi } from "./profile";

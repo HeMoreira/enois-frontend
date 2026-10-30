@@ -113,11 +113,13 @@ Página pública de autenticação com duas abas.
 
 **Componente:** `Eventos()`
 
-- Grid de cards de eventos
-- Card com data, formato (Online/Presencial/Híbrido), título, host, participantes
-- Botão "Confirmar presença" / "Desconfirmar presença"; card marcado com "Você vai" quando `attending`
-- Dialog de criação de evento (título, data, hora, realizador, formato); presencial e híbrido
+- Grid de `EventCard` (DS): data, formato (Online/Presencial/Híbrido), título, host, local e link ao vivo, cadência da série e próxima data, participantes
+- Botão "Confirmar presença" / "Desconfirmar presença" (otimista em todas as listas em cache); card marcado com "Você vai" quando `attending`
+- Filtro `EventRitualsFilter` (Todos / Rituais → `GET /events?recurring=true`, chave `["events","recurring"]`)
+- Quem criou o evento (`canManageRecurrence`) vê o `EventRecurrenceControl` sob o card para trocar ou parar a série
+- Dialog de criação de evento (título, data, hora, realizador, formato, repetição); evento que se repete exige horário; presencial e híbrido
   pedem também cidade e UF estruturadas (`CityStateField`), além do local livre
+- `?evento=<id>` (notificação `EVENT_NEXT_OCCURRENCE`, via `navigateToHref`, que preserva a query string) rola até o card e o destaca por 4 s
 
 **Componentes auxiliares:**
 
@@ -176,6 +178,24 @@ Página pública (mostra layout mesmo sem auth, mas sem funcionalidade).
 
 - `RequestCard()` - Card de solicitação de conexão
 - `Stat()` - Card de estatística
+
+## `/boas-vindas` - Onboarding (`src/routes/boas-vindas.tsx`)
+
+**Auth:** Obrigatória (também na revalidação central do cliente, `src/lib/require-auth.ts`)
+
+**Componente:** `OnboardingFlow` (`src/components/onboarding/onboarding-flow.tsx`) sobre o
+`OnboardingView` do design system.
+
+- Passo 1: assuntos (os de `TOPICS` sem "Todas") e habilidades, já semeadas com as do perfil.
+- Passo 2: pacote inicial (`GET /me/onboarding/starter-pack`) com comunidades, grupos e pessoas,
+  tudo marcado; a pessoa desmarca o que não quiser.
+- Concluir (`POST /me/onboarding/complete`) ou pular (`POST /me/onboarding/skip`) marca o
+  onboarding em `["auth-me"]`, invalida `["me"]` e o feed e leva ao `/feed`.
+- Quem chega: login, e-mail confirmado e retorno do OAuth vão direto para cá quando
+  `/auth/me` traz `onboardingCompleted: false` (`landingPathFor` em `src/lib/onboarding.ts`). A guarda
+  central `OnboardingRedirect` (montada no root) cobre quem abre o `/feed` por outro caminho. Nos
+  dois casos o desvio acontece **uma vez por sessão** (`sessionStorage`): sair sem concluir nunca
+  prende a pessoa fora do feed.
 
 ## `/notificacoes/preferencias` - Preferências de notificação (`src/routes/notificacoes.preferencias.tsx`)
 
@@ -266,6 +286,7 @@ seguintes; aqui é o mapa completo.
 | `/blog/post/novo`                | `blog.post.new.tsx`                              | Editor de post de blog.                                                       |
 | `/blogs`                         | `blogs.tsx`                                      | Catálogo de blogs.                                                            |
 | `/bloqueados`                    | `bloqueados.tsx`                                 | Lista de usuários bloqueados (desbloquear).                                   |
+| `/boas-vindas`                   | `boas-vindas.tsx`                                | Onboarding: interesses e pacote inicial (uma vez por sessão até concluir).    |
 | `/carteira`                      | `carteira.tsx`                                   | Carteira em faíscas: saldo, transferências, contestações.                     |
 | `/comunidades`                   | `comunidades.tsx`                                | Catálogo de comunidades.                                                      |
 | `/comunidades/:id`               | `comunidades.$communityId.tsx`                   | Página da comunidade (posts, membros, regras).                                |
