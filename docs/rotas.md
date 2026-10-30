@@ -101,10 +101,12 @@ Página pública de autenticação com duas abas.
 
 **Componente:** `Eventos()`
 
-- Grid de cards de eventos
-- Card com data, formato (Online/Presencial/Híbrido), título, host, participantes
-- Botão "Confirmar presença" / "Desconfirmar presença"; card marcado com "Você vai" quando `attending`
-- Dialog de criação de evento (título, data, hora, realizador, formato)
+- Grid de `EventCard` (DS): data, formato (Online/Presencial/Híbrido), título, host, local e link ao vivo, cadência da série e próxima data, participantes
+- Botão "Confirmar presença" / "Desconfirmar presença" (otimista em todas as listas em cache); card marcado com "Você vai" quando `attending`
+- Filtro `EventRitualsFilter` (Todos / Rituais → `GET /events?recurring=true`, chave `["events","recurring"]`)
+- Quem criou o evento (`canManageRecurrence`) vê o `EventRecurrenceControl` sob o card para trocar ou parar a série
+- Dialog de criação de evento (título, data, hora, realizador, formato, repetição); evento que se repete exige horário
+- `?evento=<id>` (notificação `EVENT_NEXT_OCCURRENCE`, via `navigateToHref`, que preserva a query string) rola até o card e o destaca por 4 s
 
 **Componentes auxiliares:**
 

@@ -1,3 +1,5 @@
+import type { EventRecurrence } from "./event-recurrence";
+
 export type Event = {
   id: string;
   title: string;
@@ -15,4 +17,12 @@ export type Event = {
   expired: boolean;
   /** Viewer confirmed attendance (false without session). */
   attending: boolean;
+  /** Missing on older payloads: read as `NONE`. */
+  recurrence?: EventRecurrence;
+  /** Id of the first occurrence of the series; null for a one-off event. */
+  seriesId?: string | null;
+  /** Next date of the series (`YYYY-MM-DD`); null for a one-off event. */
+  nextOccurrenceDate?: string | null;
+  /** True only when the signed-in viewer created the event. */
+  canManageRecurrence?: boolean;
 };

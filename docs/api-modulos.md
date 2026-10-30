@@ -163,13 +163,14 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Events (`src/lib/api/events.ts`)
 
-| Método | Endpoint                 | Descrição                                          |
-| ------ | ------------------------ | -------------------------------------------------- |
-| GET    | `/events`                | Listar eventos (`attending` do viewer com sessão)  |
-| GET    | `/events/{id}`           | Detalhar evento (`attending` do viewer com sessão) |
-| POST   | `/events`                | Criar evento                                       |
-| POST   | `/events/{id}/attendees` | Confirmar presença                                 |
-| DELETE | `/events/{id}/attendees` | Cancelar presença                                  |
+| Método | Endpoint                  | Descrição                                                                      |
+| ------ | ------------------------- | ------------------------------------------------------------------------------ |
+| GET    | `/events`                 | Listar eventos (`attending` do viewer com sessão; `recurring=true` só rituais) |
+| GET    | `/events/{id}`            | Detalhar evento (`attending` do viewer com sessão)                             |
+| POST   | `/events`                 | Criar evento (`recurrence` opcional; recorrente exige horário)                 |
+| PATCH  | `/events/{id}/recurrence` | Mudar ou encerrar a recorrência (só quem criou)                                |
+| POST   | `/events/{id}/attendees`  | Confirmar presença                                                             |
+| DELETE | `/events/{id}/attendees`  | Cancelar presença                                                              |
 
 ---
 
