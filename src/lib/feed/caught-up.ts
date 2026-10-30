@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import type { PostView } from "@/types/application/feed/post-view";
+import type { HomeTab } from "@/types/routes/feed/home-tab";
 
 import { feedApi } from "@/lib/api";
 
 const time = (iso: string) => new Date(iso).getTime();
+
+/** Abas ranqueadas: o backend manda `lastSeenAt` null e o post "mais novo" não é o mais novo. */
+const RANKED_TABS: readonly HomeTab[] = ["FOR_YOU", "TRENDING", "INTERACTED", "CORPORATE"];
+
+/** Só as abas por data (Tudo, Não vistos e as de tipo) mexem no marcador "Você está em dia". */
+export function isDateOrderedTab(tab: HomeTab): boolean {
+  return !RANKED_TABS.includes(tab);
+}
 
 /**
  * Onde entra o divisor "Você está em dia": antes do primeiro post com `createdAt` até o
@@ -29,16 +38,17 @@ export function newestCreatedAt(posts: Pick<PostView, "createdAt">[]): string | 
 
 /**
  * Marca o feed como visto UMA vez por visita, quando o primeiro post sai pelo topo da tela (a
- * pessoa rolou além dele). Devolve o ref para o invólucro do primeiro post.
+ * pessoa rolou além dele), e só numa aba por data (`enabled`). Devolve o ref para o invólucro do
+ * primeiro post.
  */
-export function useMarkFeedSeen(posts: Pick<PostView, "createdAt">[]) {
+export function useMarkFeedSeen(posts: Pick<PostView, "createdAt">[], enabled: boolean) {
   const sent = useRef(false);
   const observer = useRef<IntersectionObserver | null>(null);
   const newest = useRef<string | null>(null);
 
   useEffect(() => {
-    newest.current = newestCreatedAt(posts);
-  }, [posts]);
+    newest.current = enabled ? newestCreatedAt(posts) : null;
+  }, [posts, enabled]);
 
   useEffect(() => () => observer.current?.disconnect(), []);
 

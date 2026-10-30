@@ -29,8 +29,9 @@ Funcionalidades:
 - **Identidade ativa:** escolhida no menu da conta; com a profissional, o compositor publica no feed corporativo (`BUSINESS`) e os tipos de página/artigo saem da seleção — regras em `componentes.md`
 - **Abas de filtro:** Para você, Tudo, Seguindo, Discussões, Projetos
 - **Feed infinito** de `PostCard` components
-- **"Você está em dia":** a primeira página traz `lastSeenAt` (o valor é guardado por visita, um
-  refetch não o move). O `CaughtUpDivider` entra antes do primeiro post com `createdAt` até ele,
+- **"Você está em dia":** a primeira página das abas por data (Tudo, Não vistos e as de tipo) traz
+  `lastSeenAt`; as ranqueadas (Para você, Em alta, Interagidos) recebem sempre null e nunca chamam
+  `POST /feed/seen`. O valor é guardado por visita e por aba (um refetch não o move). O `CaughtUpDivider` entra antes do primeiro post com `createdAt` até ele,
   só quando há marcador e um post mais novo acima. Quando o primeiro post sai pelo topo da tela,
   `POST /feed/seen` vai uma vez por visita com o `createdAt` mais novo carregado
   (`src/lib/feed/caught-up.ts`).

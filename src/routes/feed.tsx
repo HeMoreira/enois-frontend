@@ -72,7 +72,7 @@ import {
 import { authApi, corporateApi, eventsApi, feedApi, networkApi, profileApi } from "@/lib/api";
 import { dataHora, valorDeDataLocal } from "@/lib/date/format";
 import { clearFeedScroll, readFeedScroll } from "@/lib/feed-scroll-restoration";
-import { caughtUpIndex, useMarkFeedSeen } from "@/lib/feed/caught-up";
+import { caughtUpIndex, isDateOrderedTab, useMarkFeedSeen } from "@/lib/feed/caught-up";
 import { litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
@@ -485,13 +485,16 @@ function Home() {
   const mediaType = media.length > 0 ? (media[0].type === "image" ? "image" : "video") : null;
 
   const feedPosts = feedData?.pages.flatMap((page) => page.items) ?? [];
-  // O marcador vale como chegou na primeira página DESTA visita: depois do POST /feed/seen, um
-  // refetch traria o novo valor e o divisor pularia para o topo enquanto a pessoa lê.
+  // O marcador vale como chegou na primeira página DESTA visita, por aba: depois do POST
+  // /feed/seen, um refetch traria o novo valor e o divisor pularia para o topo enquanto a pessoa
+  // lê. Por aba porque as ranqueadas recebem sempre null e não podem apagar o das cronológicas.
   const firstPage = feedData?.pages[0];
-  const [lastSeenAt, setLastSeenAt] = useState<string | null | undefined>(undefined);
-  if (lastSeenAt === undefined && firstPage) setLastSeenAt(firstPage.lastSeenAt ?? null);
-  const caughtUpAt = caughtUpIndex(feedPosts, lastSeenAt ?? null);
-  const firstPostRef = useMarkFeedSeen(feedPosts);
+  const [lastSeenByTab, setLastSeenByTab] = useState<Partial<Record<HomeTab, string | null>>>({});
+  if (!(tab in lastSeenByTab) && firstPage) {
+    setLastSeenByTab((current) => ({ ...current, [tab]: firstPage.lastSeenAt ?? null }));
+  }
+  const caughtUpAt = caughtUpIndex(feedPosts, lastSeenByTab[tab] ?? null);
+  const firstPostRef = useMarkFeedSeen(feedPosts, isDateOrderedTab(tab));
 
   useEffect(() => {
     const updateScrollTopVisibility = () => setShowScrollTop(window.scrollY > 400);

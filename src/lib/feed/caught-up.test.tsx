@@ -4,7 +4,7 @@ import { act } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { caughtUpIndex, newestCreatedAt, useMarkFeedSeen } from "./caught-up";
+import { caughtUpIndex, isDateOrderedTab, newestCreatedAt, useMarkFeedSeen } from "./caught-up";
 
 const mocks = vi.hoisted(() => ({ markSeen: vi.fn() }));
 vi.mock("@/lib/api", () => ({ feedApi: { markSeen: mocks.markSeen } }));
@@ -63,8 +63,8 @@ describe("marcar o feed como visto", () => {
     vi.unstubAllGlobals();
   });
 
-  function Feed({ posts }: { posts: { createdAt: string }[] }) {
-    const ref = useMarkFeedSeen(posts);
+  function Feed({ posts, enabled = true }: { posts: { createdAt: string }[]; enabled?: boolean }) {
+    const ref = useMarkFeedSeen(posts, enabled);
     return <div ref={ref} />;
   }
 
@@ -89,5 +89,23 @@ describe("marcar o feed como visto", () => {
     fire(false, -20);
     expect(mocks.markSeen).toHaveBeenCalledTimes(1);
     expect(mocks.markSeen).toHaveBeenCalledWith("2026-10-30T00:00:00Z");
+  });
+
+  it("aba ranqueada nunca marca", () => {
+    act(() => root.render(<Feed posts={[post("2026-10-30T00:00:00Z")]} enabled={false} />));
+
+    fire(false, -10);
+    expect(mocks.markSeen).not.toHaveBeenCalled();
+  });
+});
+
+describe("abas que mexem no marcador", () => {
+  it("só as ordenadas por data", () => {
+    for (const tab of ["ALL", "UNSEEN", "PROJECTS", "TUTORIALS"] as const) {
+      expect(isDateOrderedTab(tab)).toBe(true);
+    }
+    for (const tab of ["FOR_YOU", "TRENDING", "INTERACTED", "CORPORATE"] as const) {
+      expect(isDateOrderedTab(tab)).toBe(false);
+    }
   });
 });
