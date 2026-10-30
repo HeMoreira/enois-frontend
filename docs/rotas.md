@@ -335,28 +335,28 @@ seguintes; aqui é o mapa completo.
 | `/perfil/:username`              | `perfil.$username.tsx`                           | Perfil público (posts fixados, ranking de chegada, projetos).                   |
 | `/perfil`                        | `perfil.index.tsx`                               | Meu perfil (redireciona/edição).                                                |
 | `/post/:postId`                  | `post.$postId.tsx`                               | Post individual (compartilhamento público).                                     |
+| `/privacidade`                   | `privacidade.tsx`                                | Política de privacidade.                                                        |
+| `/profissional`                  | `profissional.tsx`                               | Perfil profissional (edição).                                                   |
+| `/profissional/:username`        | `profissional_.$username.tsx`                    | Perfil profissional público.                                                    |
+| `/projetos/:username`            | `projetos.$username.tsx`                         | Projetos de um usuário.                                                         |
+| `/projetos/:username/:slug`      | `projetos.$username.$projectSlug.tsx`            | Página de projeto da comunidade.                                                |
+| `/projetos`                      | `projetos.index.tsx`                             | Catálogo de projetos da comunidade.                                             |
+| `/projetos/painel`               | `projetos.painel.tsx`                            | Painel de projetos (criar/editar, fila de revisão).                             |
+| `/rede`                          | `rede.tsx`                                       | Minha rede (conexões, sugestões).                                               |
+| `/responsavel`                   | `responsavel.tsx`                                | Fluxo de responsável parental (ECA).                                            |
+| `/salvos`                        | `salvos.tsx`                                     | Posts salvos.                                                                   |
+| `/seguranca`                     | `seguranca.tsx`                                  | Segurança da conta: senha, 2FA, sessões, contas vinculadas.                     |
+| `/servicos`                      | `servicos.tsx`                                   | Catálogo de serviços (contratar).                                               |
+| `/sobre`                         | `sobre.tsx`                                      | Sobre o projeto.                                                                |
+| `/suporte`                       | `suporte.tsx`                                    | Central de suporte (tickets, FAQ).                                              |
+| `/termos`                        | `termos.tsx`                                     | Termos de uso.                                                                  |
+| `/vagas`                         | `vagas.tsx`                                      | Catálogo de vagas com busca booleana.                                           |
+| `/vagas/:jobId`                  | `vagas.$jobId.tsx`                               | Detalhe da vaga (candidatar, salvar).                                           |
+| `/vagas/:jobId/candidaturas`     | `vagas.$jobId.candidaturas.tsx`                  | Candidaturas da vaga (painel do contratante).                                   |
+| `/vagas/minhas`                  | `vagas.minhas.tsx`                               | Minhas vagas (publicadas e candidaturas).                                       |
 
 `?reacoes=1` em `/post/:postId` abre a lista de quem reagiu (vem da notificação agrupada "Ana e mais
 14 pessoas reagiram ao seu post"); o parâmetro sai do endereço depois de abrir.
-| `/privacidade` | `privacidade.tsx` | Política de privacidade. |
-| `/profissional` | `profissional.tsx` | Perfil profissional (edição). |
-| `/profissional/:username` | `profissional_.$username.tsx` | Perfil profissional público. |
-| `/projetos/:username` | `projetos.$username.tsx` | Projetos de um usuário. |
-| `/projetos/:username/:slug` | `projetos.$username.$projectSlug.tsx` | Página de projeto da comunidade. |
-| `/projetos` | `projetos.index.tsx` | Catálogo de projetos da comunidade. |
-| `/projetos/painel` | `projetos.painel.tsx` | Painel de projetos (criar/editar, fila de revisão). |
-| `/rede` | `rede.tsx` | Minha rede (conexões, sugestões). |
-| `/responsavel` | `responsavel.tsx` | Fluxo de responsável parental (ECA). |
-| `/salvos` | `salvos.tsx` | Posts salvos. |
-| `/seguranca` | `seguranca.tsx` | Segurança da conta: senha, 2FA, sessões, contas vinculadas. |
-| `/servicos` | `servicos.tsx` | Catálogo de serviços (contratar). |
-| `/sobre` | `sobre.tsx` | Sobre o projeto. |
-| `/suporte` | `suporte.tsx` | Central de suporte (tickets, FAQ). |
-| `/termos` | `termos.tsx` | Termos de uso. |
-| `/vagas` | `vagas.tsx` | Catálogo de vagas com busca booleana. |
-| `/vagas/:jobId` | `vagas.$jobId.tsx` | Detalhe da vaga (candidatar, salvar). |
-| `/vagas/:jobId/candidaturas` | `vagas.$jobId.candidaturas.tsx` | Candidaturas da vaga (painel do contratante). |
-| `/vagas/minhas` | `vagas.minhas.tsx` | Minhas vagas (publicadas e candidaturas). |
 
 Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatamente seis dígitos,
 preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
