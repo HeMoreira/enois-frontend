@@ -7,11 +7,11 @@ import type { PostView } from "@/types/application/feed/post-view";
  * aceita — se aqui dissesse 1200 e o servidor recusasse em 401, a pessoa descobriria o limite
  * depois de escrever.
  *
- * O limite é por tipo porque o tipo é o formato da conversa: dúvida é pergunta curta, tutorial é
- * texto de leitura.
+ * O limite é por tipo porque o tipo é o formato da conversa: diversão é recado curto, tutorial é
+ * texto de leitura. Dúvida usa o teto padrão para caber um trecho de código.
  */
 const LIMITS: Record<PostView["type"], number> = {
-  QUESTION: 400,
+  QUESTION: 1200,
   DIVERTIDO: 400,
   MOMENT: 500,
   REVIEW: 600,

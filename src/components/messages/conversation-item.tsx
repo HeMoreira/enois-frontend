@@ -5,11 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { ConversationItemProps } from "@/types/routes/messages/conversation-item-props";
 import { ConversationItem as ConversationItemView } from "@rede-enois/design-system/domain";
 
-import { profileApi } from "@/lib/api";
 import { useCurrentUser } from "@/lib/current-user";
 import { decryptReceived } from "@/lib/e2e/conversation";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { authorNameStyle } from "@/lib/profile-name-style";
+import { profileQueries } from "@/lib/query-options/profiles";
 
 import { formatTime } from "@/components/post/format-time";
 
@@ -25,8 +25,7 @@ export function ConversationItem({
   const currentUserId = currentUser?.id ?? null;
   const otherId = conversation.participantIds.find((id) => id !== currentUserId);
   const { data: otherUser } = useQuery({
-    queryKey: ["profile", "by-id", otherId],
-    queryFn: () => profileApi.getById(otherId ?? ""),
+    ...profileQueries.byId(otherId ?? ""),
     enabled: !!otherId,
   });
 

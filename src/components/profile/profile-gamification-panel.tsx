@@ -6,10 +6,11 @@ import {
   StreakCard,
 } from "@rede-enois/design-system/domain";
 
-import { streakApi, walletApi } from "@/lib/api";
+import { streakApi } from "@/lib/api";
 import { hojeNoApp } from "@/lib/date/format";
 import { formatFaisca } from "@/lib/faisca";
 import { STREAK_QUERY_KEY } from "@/lib/query-client";
+import { walletQueries } from "@/lib/query-options/wallet";
 
 export function ProfileGamificationPanel({
   profile,
@@ -17,8 +18,7 @@ export function ProfileGamificationPanel({
   postsCount,
 }: ProfileGamificationPanelProps) {
   const { data: wallet } = useQuery({
-    queryKey: ["wallet"],
-    queryFn: () => walletApi.wallet(),
+    ...walletQueries.wallet(),
     enabled: isOwner,
     staleTime: 60_000,
   });

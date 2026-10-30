@@ -28,6 +28,9 @@ import {
   ApoieCard,
   CaughtUpDivider,
   PostCardSkeletons,
+  QuestionComposerHint,
+  type QuestionStatus,
+  QuestionStatusFilter,
   SpoilerPreview,
   StyledName,
   UserAvatar,
@@ -118,7 +121,7 @@ const TAB_LABELS: Record<HomeTab, string> = {
 const POST_TYPE_FILTERS = [
   { value: "", label: texts.feed.tabs.allTypes },
   { value: "INSIGHT", label: "Insights" },
-  { value: "QUESTION", label: "Discussões" },
+  { value: "QUESTION", label: "Dúvidas" },
   { value: "PROJECT", label: "Projetos" },
   { value: "NEWS", label: "Notícias" },
   { value: "TUTORIAL", label: "Tutoriais" },
@@ -182,16 +185,23 @@ function rememberTopic(value: string): void {
   }
 }
 
-function useFeed(tab: HomeTab, typeFilter?: string) {
+/** "open" and "resolved" filter the questions feed; "all" sends no filter. */
+const RESOLVED_FILTER: Record<QuestionStatus, boolean | undefined> = {
+  all: undefined,
+  open: false,
+  resolved: true,
+};
+
+function useFeed(tab: HomeTab, typeFilter?: string, resolved?: boolean) {
   const authenticated = useIsAuthenticated();
   const lite = useLiteMode();
   const pageSize = litePageSize(FEED_PAGE_SIZE, lite);
   return useInfiniteQuery({
-    queryKey: ["feed", tab, typeFilter ?? ""],
+    queryKey: ["feed", tab, typeFilter ?? "", resolved ?? ""],
     queryFn: ({ pageParam }): Promise<FeedPage> =>
       tab === "CORPORATE"
         ? feedApi.corporate(pageParam ?? null, pageSize)
-        : feedApi.list(pageParam ?? null, pageSize, tab, typeFilter || undefined),
+        : feedApi.list(pageParam ?? null, pageSize, tab, typeFilter || undefined, resolved),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: authenticated,
@@ -246,6 +256,9 @@ function Home() {
   const [menuTipoFeed, setMenuTipoFeed] = useState(false);
   const [menuTopic, setMenuTopic] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
+  const [questionStatus, setQuestionStatus] = useState<QuestionStatus>("all");
+  // The backend honors type (and resolved) only on the "Tudo" tab.
+  const questionsFeed = tab === "ALL" && typeFilter === "QUESTION";
   const {
     data: feedData,
     isLoading: feedLoading,
@@ -253,7 +266,11 @@ function Home() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFeed(tab, tab === "ALL" ? typeFilter : undefined);
+  } = useFeed(
+    tab,
+    tab === "ALL" ? typeFilter : undefined,
+    questionsFeed ? RESOLVED_FILTER[questionStatus] : undefined,
+  );
   const { data: profile } = useProfile();
   const { data: suggestions } = useSuggestions();
   const { data: eventsData } = useEvents();
@@ -611,6 +628,8 @@ function Home() {
                 />
               )}
             </div>
+
+            {postType === "QUESTION" && <QuestionComposerHint className="mt-2 pl-14" />}
 
             {pageMode && (
               <div className="mt-3 overflow-hidden rounded-2xl border border-border-soft bg-surface-1 p-3">
@@ -1088,6 +1107,7 @@ function Home() {
                   key={f.value}
                   type="button"
                   onClick={() => setTypeFilter(f.value)}
+                  aria-pressed={typeFilter === f.value}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition",
                     typeFilter === f.value
@@ -1099,6 +1119,10 @@ function Home() {
                 </button>
               ))}
             </div>
+          )}
+
+          {questionsFeed && (
+            <QuestionStatusFilter value={questionStatus} onChange={setQuestionStatus} />
           )}
 
           <div className="space-y-4">

@@ -9,6 +9,7 @@ import type { CreateEventRequest } from "@/types/application/event/create-event-
 import type { Event } from "@/types/application/event/event";
 import type { CreateEventFormProps } from "@/types/routes/events/create-event-form-props";
 import type { FieldProps } from "@/types/routes/events/field-props";
+import { CityStateField } from "@rede-enois/design-system/patterns";
 import {
   Badge,
   Button,
@@ -29,6 +30,7 @@ import { ApiError } from "@/lib/api-client";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
 import { safeHref } from "@/lib/safe-url";
+import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
@@ -147,6 +149,12 @@ function Eventos() {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       setOpen(false);
     },
+    // Cidade/UF aparece embaixo do campo; o resto vira aviso (antes a recusa passava calada).
+    onError: (error) => {
+      if (!cityStateErrorCode(error)) {
+        toast(error instanceof ApiError ? error.message : texts.errors.unexpected, "error");
+      }
+    },
   });
 
   return (
@@ -176,6 +184,7 @@ function Eventos() {
                     createEvent.mutate(data);
                   }}
                   isPending={createEvent.isPending}
+                  error={createEvent.error}
                 />
               </DialogContent>
             </Dialog>
@@ -317,7 +326,7 @@ function Eventos() {
   );
 }
 
-function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
+function CreateEventForm({ onSave, isPending, error }: CreateEventFormProps) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -328,6 +337,9 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
   const [location, setLocation] = useState("");
   const coverInputRef = useRef<HTMLInputElement>(null);
   const coverUpload = useMediaUpload();
+  // Cidade/UF estruturadas só para encontro presencial ou híbrido (a API recusa no online).
+  const place = useCityState(null, error);
+  const inPerson = format !== "ONLINE";
 
   const handleCoverChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -452,6 +464,8 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
         </Field>
       )}
 
+      {inPerson && <CityStateField idPrefix="event-place" disabled={isPending} {...place.field} />}
+
       <Field label={texts.events.form.format}>
         <select
           value={format}
@@ -469,7 +483,8 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
       <Button
         className="w-full rounded-full"
         disabled={!title.trim() || !date || !host.trim() || isPending}
-        onClick={() =>
+        onClick={() => {
+          if (inPerson && !place.validate()) return;
           onSave({
             title,
             date,
@@ -479,8 +494,9 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
             cover: cover ?? undefined,
             streamUrl: streamUrl.trim() || undefined,
             location: location.trim() || undefined,
-          })
-        }
+            ...(inPerson && place.payload.state ? place.payload : {}),
+          });
+        }}
       >
         {isPending ? texts.common.creating : texts.events.createEvent}
       </Button>

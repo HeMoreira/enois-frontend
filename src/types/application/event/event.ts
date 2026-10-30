@@ -11,6 +11,9 @@ export type Event = {
   streamUrl: string | null;
   /** Onde o evento acontece (presencial/hibrido). */
   location: string | null;
+  /** Cidade e UF estruturadas (presencial/híbrido); ausentes no evento online. */
+  city?: string | null;
+  state?: string | null;
   /** O evento já aconteceu: sai da vitrine e não aceita mais confirmação de presença. */
   expired: boolean;
   /** Viewer confirmed attendance (false without session). */

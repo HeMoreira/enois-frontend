@@ -357,7 +357,14 @@ function PostCardContainer({
         </>
       }
       comments={
-        showComments ? <PostComments postId={post.id} postAuthorId={post.authorId} /> : null
+        showComments ? (
+          <PostComments
+            postId={post.id}
+            postAuthorId={post.authorId}
+            isQuestion={post.type === "QUESTION"}
+            acceptedCommentId={post.acceptedCommentId ?? null}
+          />
+        ) : null
       }
       renderRichText={(props) => <RichText {...props} />}
       renderMediaGrid={(props) => <MediaGrid {...props} />}

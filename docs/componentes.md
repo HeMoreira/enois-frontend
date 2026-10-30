@@ -104,6 +104,14 @@ gravada no aparelho; fora do feed, o efeito visível é o toast de confirmação
 - `today` vem de `hojeNoApp()` (`src/lib/date/format.ts`), o dia no fuso do app, o mesmo em que o
   backend conta.
 
+## Jogos diários: compartilhar o resultado
+
+`DailyWord`, `DailyMaze` e `DailyBlocks` (`src/components/daily-*.tsx`) compartilham pelo
+`useDailyShare` (`src/lib/daily-share.ts`): o texto vem do `buildDailyShareText` do design system
+(sem a resposta nem o tabuleiro) e termina em `https://enois.ia.br/games?categoria=diarios`. Usa
+`navigator.share` quando existe (fechar o menu é "idle", não erro); senão copia. O `shareStatus` volta
+a "idle" depois de 3 s.
+
 ## `PostCard` (`src/components/post-card.tsx`)
 
 Card de post no feed, com todas as ações sociais.

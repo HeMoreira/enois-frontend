@@ -97,17 +97,19 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Feed (`src/lib/api/feed.ts`)
 
-| Método | Endpoint                         | Descrição                                                       |
-| ------ | -------------------------------- | --------------------------------------------------------------- |
-| GET    | `/feed`                          | Listar feed (cursor, limit, tab); a 1ª página traz `lastSeenAt` |
-| POST   | `/feed/seen`                     | Avança o marcador "Você está em dia" (`seenUntil`)              |
-| POST   | `/feed/posts`                    | Criar post                                                      |
-| DELETE | `/feed/posts/{postId}`           | Excluir post                                                    |
-| POST   | `/feed/posts/bulk-delete`        | Excluir em lote                                                 |
-| GET    | `/feed/saved`                    | Posts salvos                                                    |
-| GET    | `/feed/posts/{postId}/reactions` | Reações de um post                                              |
-| GET    | `/users/{username}/posts`        | Posts por username                                              |
-| GET    | `/users/{userId}/posts`          | Posts por ID                                                    |
+| Método | Endpoint                               | Descrição                                                                                           |
+| ------ | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| GET    | `/feed`                                | Listar feed (cursor, limit, tab; com `tab=ALL`, `type` e `resolved`); a 1ª página traz `lastSeenAt` |
+| POST   | `/feed/seen`                           | Avança o marcador "Você está em dia" (`seenUntil`)                                                  |
+| POST   | `/feed/posts`                          | Criar post                                                                                          |
+| POST   | `/feed/posts/{postId}/accepted-answer` | Marcar a resposta aceita de uma dúvida                                                              |
+| DELETE | `/feed/posts/{postId}/accepted-answer` | Reabrir a dúvida                                                                                    |
+| DELETE | `/feed/posts/{postId}`                 | Excluir post                                                                                        |
+| POST   | `/feed/posts/bulk-delete`              | Excluir em lote                                                                                     |
+| GET    | `/feed/saved`                          | Posts salvos                                                                                        |
+| GET    | `/feed/posts/{postId}/reactions`       | Reações de um post                                                                                  |
+| GET    | `/users/{username}/posts`              | Posts por username                                                                                  |
+| GET    | `/users/{userId}/posts`                | Posts por ID                                                                                        |
 
 **Tipos de Post:** `INSIGHT`, `ARTICLE`, `QUESTION`, `PROJECT`, `OPPORTUNITY`
 
@@ -160,16 +162,22 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Communities (`src/lib/api/communities.ts`)
 
-| Método | Endpoint                    | Descrição            |
-| ------ | --------------------------- | -------------------- |
-| GET    | `/communities`              | Listar comunidades   |
-| GET    | `/communities/{id}`         | Detalhar comunidade  |
-| POST   | `/communities`              | Criar comunidade     |
-| PATCH  | `/communities/{id}`         | Atualizar comunidade |
-| POST   | `/communities/{id}/members` | Entrar               |
-| DELETE | `/communities/{id}/members` | Sair                 |
-| GET    | `/communities/{id}/members` | Listar membros       |
-| GET    | `/communities/{id}/feed`    | Feed da comunidade   |
+| Método | Endpoint                    | Descrição                                                         |
+| ------ | --------------------------- | ----------------------------------------------------------------- |
+| GET    | `/communities`              | Listar comunidades (`topic`, `q`, `city` + `state` ou só `state`) |
+| GET    | `/communities/local`        | Perto de você (cidade do próprio perfil, pede sessão)             |
+| GET    | `/communities/{id}`         | Detalhar comunidade                                               |
+| POST   | `/communities`              | Criar comunidade                                                  |
+| PATCH  | `/communities/{id}`         | Atualizar comunidade                                              |
+| POST   | `/communities/{id}/members` | Entrar                                                            |
+| DELETE | `/communities/{id}/members` | Sair                                                              |
+| GET    | `/communities/{id}/members` | Listar membros                                                    |
+| GET    | `/communities/{id}/feed`    | Feed da comunidade                                                |
+
+Cidade e UF (comunidade, perfil e evento) seguem a regra do backend: as duas juntas ou nenhuma, UF
+entre as 27, cidade até 80 caracteres. Os formulários validam antes com `validateCityState` do DS e
+mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` embaixo do campo
+(`src/lib/use-city-state.ts`). No PATCH, as duas vazias limpam.
 
 ---
 
@@ -228,11 +236,13 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Notifications (`src/lib/api/notifications.ts`)
 
-| Método | Endpoint                   | Descrição               |
-| ------ | -------------------------- | ----------------------- |
-| GET    | `/notifications`           | Listar notificações     |
-| POST   | `/notifications/{id}/read` | Marcar como lida        |
-| POST   | `/notifications/read-all`  | Marcar todas como lidas |
+| Método | Endpoint                       | Descrição                                   |
+| ------ | ------------------------------ | ------------------------------------------- |
+| GET    | `/notifications`               | Listar notificações                         |
+| POST   | `/notifications/{id}/read`     | Marcar como lida                            |
+| POST   | `/notifications/read-all`      | Marcar todas como lidas                     |
+| GET    | `/me/notification-preferences` | Resumo semanal e categorias de push         |
+| PUT    | `/me/notification-preferences` | Atualização parcial (só os campos enviados) |
 
 ---
 

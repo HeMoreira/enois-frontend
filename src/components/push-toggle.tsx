@@ -4,7 +4,13 @@ import { texts } from "@/texts";
 import { PushToggle as PushToggleView } from "@rede-enois/design-system/domain";
 
 import { pushApi } from "@/lib/api/push";
-import { disablePush, enablePush, isPushActive, isPushSupported } from "@/lib/push";
+import {
+  disablePush,
+  enablePush,
+  isPushActive,
+  isPushSupported,
+  pushErrorMessage,
+} from "@/lib/push";
 
 /**
  * Liga/desliga as notificacoes push neste dispositivo. Fica escondido quando o servidor nao tem
@@ -52,14 +58,8 @@ export function PushToggle({ onClose }: { onClose: () => void }) {
         if (result.ok) {
           setActive(true);
           onClose();
-        } else if (result.reason === "denied") {
-          setError(texts.account.menu.pushDenied);
-        } else if (result.reason === "unsupported") {
-          setError(texts.account.menu.pushUnavailable);
-        } else if (result.reason === "server-disabled" || result.reason === "unreachable") {
-          setError(texts.account.menu.pushServerOff);
         } else {
-          setError(texts.account.menu.pushError);
+          setError(pushErrorMessage(result.reason));
         }
       }
     } catch {
