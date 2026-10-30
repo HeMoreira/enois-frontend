@@ -7,6 +7,11 @@ export type Mentor = {
   price: string;
   /** Banner/capa do perfil de mentor (URL do CDN). */
   banner: string | null;
+  /**
+   * Preço da sessão em **milésimos de faísca** (`null` quando o mentor não aceita faíscas). A
+   * conversão para texto está em `@/lib/faisca`.
+   */
+  sparksPrice: number | null;
   /** Sala externa da sessão (Google Meet, Jitsi...) — link https público para quem agenda. */
   meetingUrl: string | null;
   /**
