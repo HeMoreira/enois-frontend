@@ -148,16 +148,22 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Communities (`src/lib/api/communities.ts`)
 
-| Método | Endpoint                    | Descrição            |
-| ------ | --------------------------- | -------------------- |
-| GET    | `/communities`              | Listar comunidades   |
-| GET    | `/communities/{id}`         | Detalhar comunidade  |
-| POST   | `/communities`              | Criar comunidade     |
-| PATCH  | `/communities/{id}`         | Atualizar comunidade |
-| POST   | `/communities/{id}/members` | Entrar               |
-| DELETE | `/communities/{id}/members` | Sair                 |
-| GET    | `/communities/{id}/members` | Listar membros       |
-| GET    | `/communities/{id}/feed`    | Feed da comunidade   |
+| Método | Endpoint                    | Descrição                                                         |
+| ------ | --------------------------- | ----------------------------------------------------------------- |
+| GET    | `/communities`              | Listar comunidades (`topic`, `q`, `city` + `state` ou só `state`) |
+| GET    | `/communities/local`        | Perto de você (cidade do próprio perfil, pede sessão)             |
+| GET    | `/communities/{id}`         | Detalhar comunidade                                               |
+| POST   | `/communities`              | Criar comunidade                                                  |
+| PATCH  | `/communities/{id}`         | Atualizar comunidade                                              |
+| POST   | `/communities/{id}/members` | Entrar                                                            |
+| DELETE | `/communities/{id}/members` | Sair                                                              |
+| GET    | `/communities/{id}/members` | Listar membros                                                    |
+| GET    | `/communities/{id}/feed`    | Feed da comunidade                                                |
+
+Cidade e UF (comunidade, perfil e evento) seguem a regra do backend: as duas juntas ou nenhuma, UF
+entre as 27, cidade até 80 caracteres. Os formulários validam antes com `validateCityState` do DS e
+mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` embaixo do campo
+(`src/lib/use-city-state.ts`). No PATCH, as duas vazias limpam.
 
 ---
 

@@ -264,7 +264,7 @@ export const apiSections: ApiSection[] = [
         path: "/me/profile",
         access: "auth",
         description:
-          "Edita o próprio perfil (nome, headline, skills, bio, bioHtml, bannerHtml, emblema…). Experiências, educação e certificações têm CRUD próprio em /me/experiences, /me/education, /me/certifications.",
+          "Edita o próprio perfil (nome, headline, skills, bio, bioHtml, bannerHtml, emblema, city + state + showCity…). A cidade só aparece no perfil público com showCity. Experiências, educação e certificações têm CRUD próprio em /me/experiences, /me/education, /me/certifications.",
       },
     ],
   },
@@ -279,11 +279,18 @@ export const apiSections: ApiSection[] = [
         path: "/communities",
         access: "public",
         description:
-          "Lista comunidades (topic para filtrar, cursor para paginar). Com sessão, joined reflete participação.",
+          "Lista comunidades (topic para filtrar, cursor para paginar). state (sigla da UF) filtra o estado; city só vale junto com state e compara sem acento. Com sessão, joined reflete participação. city e state vêm no item quando a comunidade tem lugar.",
         request: `curl "${P}/communities?limit=10"`,
         response: `200 OK
 {"items":[{"id":"community_…","name":"Muita IA pouco $","description":"…","members":1,
  "topic":"TECNOLOGIA","cover":null,"bannerHtml":null,"joined":false}],"nextCursor":null}`,
+      },
+      {
+        method: "GET",
+        path: "/communities/local",
+        access: "auth",
+        description:
+          "Perto de você: comunidades da cidade do próprio perfil primeiro, depois o resto da UF (limit até 50). Perfil sem cidade devolve lista vazia.",
       },
       {
         method: "GET",
@@ -315,7 +322,7 @@ export const apiSections: ApiSection[] = [
         path: "/communities",
         access: "auth",
         description:
-          "Cria comunidade (o criador vira ADMIN). PATCH edita; /transfer passa a administração; /favorite + /favorites para favoritas.",
+          "Cria comunidade (o criador vira ADMIN), com city e state opcionais (os dois ou nenhum). PATCH edita (city e state vazios limpam); /transfer passa a administração; /favorite + /favorites para favoritas.",
       },
     ],
   },
@@ -370,7 +377,7 @@ export const apiSections: ApiSection[] = [
         path: "/events",
         access: "public",
         description:
-          "Lista eventos (vitrine). Com sessão, attending reflete se o viewer confirmou presença.",
+          "Lista eventos (vitrine). city + state (ou só state) listam os encontros presenciais e híbridos do lugar. Com sessão, attending reflete se o viewer confirmou presença.",
         response: `200 OK
 {"items":[{"id":"event_…","title":"…","date":"2029-12-31","time":"23:59","format":"ONLINE","attendees":2,"attending":false,"expired":false}]}`,
       },
@@ -380,7 +387,12 @@ export const apiSections: ApiSection[] = [
         access: "public",
         description: "Detalhe do evento (attending do viewer quando autenticado).",
       },
-      { method: "POST", path: "/events", access: "auth", description: "Cria evento." },
+      {
+        method: "POST",
+        path: "/events",
+        access: "auth",
+        description: "Cria evento. city e state opcionais, só para presencial ou híbrido.",
+      },
       {
         method: "POST",
         path: "/events/{eventId}/attendees",
