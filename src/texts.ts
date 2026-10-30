@@ -107,6 +107,7 @@ export const texts = {
       services: "Contratar serviços",
       professionalProfile: "Perfil profissional",
     },
+    context: { social: "Social", professional: "Profissional" },
   },
 
   groups: {

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useChatDockStore } from "@/stores/chat-dock.store";
+import { texts } from "@/texts";
 import { ChatDock as ChatDockView } from "@rede-enois/design-system/domain";
 
 import { authApi, messagesApi } from "@/lib/api";
@@ -80,16 +81,23 @@ function ChatDockInner() {
   });
 
   const totalUnread = unreadData?.count ?? 0;
-  // -1 = ainda nao leu o primeiro valor; so reage a partir da segunda leitura pra nao
-  // expandir o dock toda vez que a pagina carrega com mensagens nao lidas pendentes.
-  const prevUnreadRef = useRef(-1);
+  const contextLabel =
+    context === "PROFESSIONAL"
+      ? texts.navigation.context.professional
+      : texts.navigation.context.social;
+  // The dock opens by itself only when a NEW message arrives: the first reading of each interface
+  // is the baseline (unread messages pending on page load, or in the inbox one switches to, are
+  // not news). The count of the other interface never counts as the baseline of this one.
+  const baselineRef = useRef<{ context: string; count: number } | null>(null);
   useEffect(() => {
-    if (prevUnreadRef.current >= 0 && totalUnread > prevUnreadRef.current) {
+    if (unreadData === undefined) return;
+    const baseline = baselineRef.current;
+    if (baseline?.context === context && unreadData.count > baseline.count) {
       expand();
       queryClient.invalidateQueries({ queryKey: ["conversations", "inbox", context] });
     }
-    prevUnreadRef.current = totalUnread;
-  }, [totalUnread, expand, queryClient, context]);
+    baselineRef.current = { context, count: unreadData.count };
+  }, [unreadData, context, expand, queryClient]);
 
   const markAsRead = useMutation({
     mutationFn: (id: string) => messagesApi.markAsRead(id),
@@ -125,8 +133,11 @@ function ChatDockInner() {
         expanded={expanded}
         onToggleExpanded={toggleExpanded}
         unreadCount={0}
+        contextLabel={contextLabel}
         windows={[]}
-        empty
+        // Not "empty": the list is replaced by the key setup. Saying "Nenhuma conversa ainda" here
+        // hid both the conversations and the setup banner (the view draws one or the other).
+        empty={false}
         hasMore={false}
         loadingMore={false}
         onLoadMore={() => {}}
@@ -148,6 +159,7 @@ function ChatDockInner() {
       expanded={expanded}
       onToggleExpanded={toggleExpanded}
       unreadCount={totalUnread}
+      contextLabel={contextLabel}
       windows={janelasVisiveis.map((id) => (
         <ChatDockWindow key={id} conversationId={id} />
       ))}
