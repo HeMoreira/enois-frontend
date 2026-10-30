@@ -11,6 +11,7 @@ const MODULE_BY_KIND: Record<string, string> = {
   new_work_message: "MESSAGES",
   event: "EVENTS",
   job: "JOBS",
+  company_new_opportunity: "JOBS",
   mentoring: "MENTORING",
   jogo_diario: "DAILY_GAMES",
 };
