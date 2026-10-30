@@ -2944,6 +2944,13 @@ export const texts = {
     notFound: "Publicação não encontrada.",
   },
 
+  notificationPreferences: {
+    seoTitle: "Preferências de notificação · Énóis",
+    title: "Preferências de notificação",
+    description:
+      "Escolha o que chega até você fora do app: o resumo semanal e os avisos no navegador.",
+  },
+
   saved: {
     seoTitle: "Posts salvos · Énóis",
     back: "Voltar",

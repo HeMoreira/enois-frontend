@@ -133,6 +133,7 @@ export function NotificationsPopover() {
     <NotificationsPopoverView
       open={open}
       onOpenChange={setOpen}
+      preferencesHref="/notificacoes/preferencias"
       notifications={notificationList.map(toNotificationData)}
       requests={incomingRequests.map((request) => {
         const profile = profilesByUserId.get(request.fromUserId) ?? null;

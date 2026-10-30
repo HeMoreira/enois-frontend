@@ -536,6 +536,26 @@ export const apiSections: ApiSection[] = [
       },
       {
         method: "GET",
+        path: "/me/notification-preferences",
+        access: "auth",
+        description:
+          "O que chega fora do app: resumo semanal por e-mail e as categorias de push (social, mensagens, grupos, vagas, sistema). Padrão: tudo ligado.",
+        response: `200 OK
+{"weeklyDigest":true,"pushSocial":true,"pushMessages":true,"pushGroups":true,"pushJobs":true,"pushSystem":true,"updatedAt":null}`,
+      },
+      {
+        method: "PUT",
+        path: "/me/notification-preferences",
+        access: "auth",
+        description:
+          "Atualização parcial: só os campos enviados mudam. Devolve todas as preferências.",
+        request: `curl -X PUT ${P}/me/notification-preferences \
+  -H "Content-Type: application/json" \
+  -H "X-Session-Token: $TOKEN" \
+  -d '{"weeklyDigest":false}'`,
+      },
+      {
+        method: "GET",
         path: "/push/config",
         access: "public",
         description: "Chaves públicas para assinar Web Push.",
