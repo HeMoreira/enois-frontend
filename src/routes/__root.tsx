@@ -34,6 +34,7 @@ import { InstallPwaBanner } from "@/components/install-pwa-banner";
 import { LiteModeEffects } from "@/components/lite-mode-effects";
 import { ModuleDisabledGate } from "@/components/module-disabled-gate";
 import { AdminNoticeDialog } from "@/components/notices/admin-notice";
+import { OnboardingRedirect } from "@/components/onboarding/onboarding-redirect";
 
 import appCss from "../styles.css?url";
 
@@ -263,6 +264,7 @@ function RootInsideProvider() {
       <InstallPwaBanner />
       <LiteModeEffects />
       <HealthyUsageGuard />
+      <OnboardingRedirect />
       <AgeGate />
       <AdminNoticeDialog />
     </ToastProvider>
