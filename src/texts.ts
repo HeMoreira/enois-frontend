@@ -1055,6 +1055,8 @@ export const texts = {
       mediaSpoiler: "Marcar mídias como spoiler",
       mediaSpoilerActive: "Mídias marcadas como spoiler",
       uploadProgress: (progress: number) => `Enviando... ${progress}%`,
+      imageChecking: "Verificando imagem...",
+      imageCheckError: "Não foi possível verificar esta imagem. Remova e tente novamente.",
       publishError: "Erro ao publicar. Tente novamente.",
       publishErrorTitle: "Não foi possível publicar:",
       page: "Página",
