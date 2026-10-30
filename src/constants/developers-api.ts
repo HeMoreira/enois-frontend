@@ -102,7 +102,7 @@ export const apiSections: ApiSection[] = [
         path: "/feed",
         access: "auth",
         description:
-          "Feed pessoal por aba: FOR_YOU (comunidades que você participa + posts fora de comunidade), FOLLOWING, ALL, DISCUSSIONS, RECENT, PROJECTS. Pagina por cursor.",
+          "Feed pessoal por aba: FOR_YOU (comunidades que você participa + posts fora de comunidade), FOLLOWING, ALL, DISCUSSIONS, RECENT, PROJECTS. Pagina por cursor. Com tab=ALL, type filtra o tipo (ex.: QUESTION) e resolved=true|false separa dúvidas resolvidas das abertas.",
         request: `curl "${P}/feed?tab=FOR_YOU&limit=20" \\
   -H "X-Session-Token: $TOKEN"`,
         response: `200 OK
@@ -166,6 +166,18 @@ export const apiSections: ApiSection[] = [
   -d '{"content":"Concordo!","parentCommentId":null,"mediaIds":[],"mentionedUserIds":[]}'`,
         response: `201 Created
 {"id":"comment_…","postId":"post_…","content":"Concordo!","mediaIds":[],"createdAt":"…"}`,
+      },
+      {
+        method: "POST",
+        path: "/feed/posts/{postId}/accepted-answer",
+        access: "auth",
+        description:
+          "Quem publicou a dúvida (type QUESTION) marca o comentário de outra pessoa como resposta. DELETE na mesma rota reabre a dúvida. Erros: NOT_A_QUESTION, INVALID_ANSWER_COMMENT, OWN_ANSWER, NOT_QUESTION_AUTHOR, POST_NOT_FOUND.",
+        request: `curl -X POST ${P}/feed/posts/$POST_ID/accepted-answer \\
+  -H "X-Session-Token: $TOKEN" -H "Idempotency-Key: a-1" \\
+  -H "Content-Type: application/json" -d '{"commentId":"comment_…"}'`,
+        response: `200 OK
+{"postId":"post_…","acceptedCommentId":"comment_…","resolved":true}`,
       },
       {
         method: "GET",

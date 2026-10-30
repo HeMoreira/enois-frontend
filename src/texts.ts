@@ -1117,6 +1117,7 @@ export const texts = {
       placeholder: "Comente com contexto, dúvida ou referência...",
       pinError: "Não foi possível fixar o comentário.",
       editError: "Não foi possível salvar a edição. Tente de novo.",
+      acceptError: "Não foi possível atualizar a resposta da dúvida. Tente de novo.",
     },
     notes: {
       sent: "Nota enviada para moderação.",
