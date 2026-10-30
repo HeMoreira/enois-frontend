@@ -57,6 +57,26 @@ export const texts = {
     error: "Não foi possível recalcular a cotação.",
   },
 
+  /** Contas da comunidade no painel de monitorabilidade. */
+  userMetrics: {
+    title: "Contas da comunidade",
+    hint: "O crescimento é a variação sobre a base do dia anterior. A projeção estende o ritmo médio dos últimos 7 dias: o mês inteiro dilui uma semana de lançamento e esconde a tendência atual.",
+    total: "Total de contas",
+    newToday: "Entraram hoje",
+    new7: "Últimos 7 dias",
+    new30: "Últimos 30 dias",
+    growthToday: "Crescimento hoje",
+    growth7: "Ritmo por dia (7d)",
+    growth30: "Ritmo por dia (30d)",
+    average7: "Média por dia (7d)",
+    average30: "Média por dia (30d)",
+    seriesTitle: "Entradas por dia (30 dias)",
+    projection: "Projeção no ritmo de 7 dias",
+    inDays: (days: number) => `Em ${days} dias`,
+    chartLabel: (date: string, novas: string, total: string) =>
+      `${date}: ${novas} novas contas, ${total} no total`,
+  },
+
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
 
