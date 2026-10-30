@@ -1,12 +1,14 @@
 import type { PageResponse } from "@/types/application/api/page-response";
 import type { Notification } from "@/types/application/notification/notification";
 import type { NotificationPreferences } from "@/types/application/notification/notification-preferences";
+import type { InterfaceContext } from "@rede-enois/design-system/domain";
 
 import { api, buildQuery } from "../api-client";
 
 export const notificationsApi = {
-  list: (cursor?: string | null, limit = 20) =>
-    api.get<PageResponse<Notification>>(`/notifications${buildQuery({ cursor, limit })}`),
+  /** `context`: notifications of that interface plus the account-wide ones (omitted = all). */
+  list: (cursor?: string | null, limit = 20, context?: InterfaceContext) =>
+    api.get<PageResponse<Notification>>(`/notifications${buildQuery({ cursor, limit, context })}`),
 
   markAsRead: (notificationId: string) => api.post<void>(`/notifications/${notificationId}/read`),
 

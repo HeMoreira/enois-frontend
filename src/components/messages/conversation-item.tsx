@@ -5,10 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import type { ConversationItemProps } from "@/types/routes/messages/conversation-item-props";
 import { ConversationItem as ConversationItemView } from "@rede-enois/design-system/domain";
 
+import { conversationPeer } from "@/lib/conversation-peer";
 import { useCurrentUser } from "@/lib/current-user";
 import { decryptReceived } from "@/lib/e2e/conversation";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
-import { authorNameStyle } from "@/lib/profile-name-style";
 import { profileQueries } from "@/lib/query-options/profiles";
 
 import { formatTime } from "@/components/post/format-time";
@@ -78,11 +78,13 @@ export function ConversationItem({
     conversation.id,
   ]);
 
+  const { peer, profileHref } = conversationPeer(conversation, otherId, otherUser);
+
   return (
     <ConversationItemView
       conversation={{ ...conversation, lastMessage: preview }}
-      peer={otherUser && { ...otherUser, nameStyle: authorNameStyle(otherUser) }}
-      profileHref={`/perfil/${otherUser?.username ?? otherId ?? ""}`}
+      peer={peer}
+      profileHref={profileHref}
       timeLabel={conversation.time ? formatTime(conversation.time) : ""}
       isActive={isActive}
       onSelect={onSelect}

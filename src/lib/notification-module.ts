@@ -8,6 +8,7 @@
 const MODULE_BY_KIND: Record<string, string> = {
   message: "MESSAGES",
   new_message: "MESSAGES",
+  new_work_message: "MESSAGES",
   event: "EVENTS",
   job: "JOBS",
   mentoring: "MENTORING",
