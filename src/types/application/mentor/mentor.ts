@@ -7,6 +7,8 @@ export type Mentor = {
   price: string;
   /** Banner/capa do perfil de mentor (URL do CDN). */
   banner: string | null;
+  /** Sala externa da sessão (Google Meet, Jitsi...) — link https público para quem agenda. */
+  meetingUrl: string | null;
   /**
    * Próxima vaga livre — **nulo** quando o mentor não tem nenhuma vaga futura (é o que a API
    * devolve: `nextAvailableSlot` termina em `orElse(null)`). Medido na QA em 2026-10-24: 2 de
