@@ -327,6 +327,8 @@ interface ConnectionRequest {
   toUserId: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED";
   createdAt: string;
+  direction: "INCOMING" | "OUTGOING";
+  peer: NetworkUser; // a pessoa do outro lado
 }
 
 type ConnectionStatusResultStatus = "NONE" | "PENDING" | "ACCEPTED" | "REMOVED" | "BLOCKED";

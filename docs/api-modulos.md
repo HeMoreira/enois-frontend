@@ -159,16 +159,16 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ## Módulo Network (`src/lib/api/network.ts`)
 
-| Método | Endpoint                                     | Descrição              |
-| ------ | -------------------------------------------- | ---------------------- |
-| GET    | `/network/users`                             | Listar conexões        |
-| GET    | `/network/suggestions`                       | Sugestões de conexão   |
-| GET    | `/network/summary`                           | Resumo da rede         |
-| GET    | `/network/requests`                          | Solicitações pendentes |
-| POST   | `/network/connections/{targetUserId}`        | Solicitar conexão      |
-| PUT    | `/network/connections/{targetUserId}/accept` | Aceitar conexão        |
-| DELETE | `/network/connections/{targetUserId}`        | Remover conexão        |
-| GET    | `/network/connections/{targetUserId}/status` | Status da conexão      |
+| Método | Endpoint                                     | Descrição                                        |
+| ------ | -------------------------------------------- | ------------------------------------------------ |
+| GET    | `/network/users`                             | Listar conexões                                  |
+| GET    | `/network/suggestions`                       | Sugestões de conexão                             |
+| GET    | `/network/summary`                           | Resumo da rede                                   |
+| GET    | `/network/requests`                          | Solicitações pendentes, com `direction` e `peer` |
+| POST   | `/network/connections/{targetUserId}`        | Solicitar conexão                                |
+| PUT    | `/network/connections/{targetUserId}/accept` | Aceitar conexão                                  |
+| DELETE | `/network/connections/{targetUserId}`        | Remover conexão                                  |
+| GET    | `/network/connections/{targetUserId}/status` | Status da conexão                                |
 
 ---
 

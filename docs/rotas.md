@@ -181,13 +181,15 @@ Página pública (mostra layout mesmo sem auth, mas sem funcionalidade).
 **Componente:** `Rede()`
 
 - Cards com estatísticas (conexões, seguindo, solicitações, sugestões)
-- Solicitações pendentes (recebidas e enviadas) com aceitar/rejeitar/cancelar
+- Painel de convites (`NetworkRequests` do design system): recebidos e enviados em duas abas,
+  resposta na própria linha (progresso, desfecho ou falha). A linha respondida fica no lugar com o
+  desfecho até sair da página (`src/lib/network/network-requests.ts`). A pessoa do outro lado vem
+  pronta do `/network/requests` (`peer`), sem uma busca de perfil por convite.
 - Grid de sugestões de conexão com avatar, nome, headline, interesses em comum
 - Botão Conectar/Remover
 
 **Componentes auxiliares:**
 
-- `RequestCard()` - Card de solicitação de conexão
 - `Stat()` - Card de estatística
 
 ## `/boas-vindas` - Onboarding (`src/routes/boas-vindas.tsx`)
