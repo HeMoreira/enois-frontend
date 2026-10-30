@@ -32,6 +32,8 @@ import { requireAuth } from "@/lib/require-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
+import { MentorAgendaDialog } from "@/components/mentoring/mentor-agenda-dialog";
+import { WeeklyAvailabilityEditor } from "@/components/mentoring/weekly-availability-editor";
 
 export const Route = createFileRoute("/mentoria")({
   head: () => ({ meta: [{ title: texts.mentoring.seoTitle }] }),
@@ -144,6 +146,8 @@ function Mentoria() {
                     initialExpertise={myMentor?.expertise.join(", ")}
                     initialPrice={myMentor?.price}
                     initialBanner={myMentor?.banner ?? undefined}
+                    initialMeetingUrl={myMentor?.meetingUrl ?? undefined}
+                    mentorId={myMentor?.id}
                   />
 
                   {createError && (
@@ -206,10 +210,13 @@ function RegisterMentorForm({
   initialExpertise,
   initialPrice,
   initialBanner,
+  initialMeetingUrl,
+  mentorId,
 }: RegisterMentorFormProps) {
   const [skillsText, setSkillsText] = useState(initialExpertise ?? "");
   const [price, setPrice] = useState(initialPrice ?? texts.mentoring.free);
   const [banner, setBanner] = useState(initialBanner ?? "");
+  const [meetingUrl, setMeetingUrl] = useState(initialMeetingUrl ?? "");
   const [bannerError, setBannerError] = useState<string | null>(null);
   const upload = useMediaUpload();
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -295,19 +302,48 @@ function RegisterMentorForm({
         />
       </div>
 
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">{texts.mentoring.meetingUrl}</Label>
+
+        <Input
+          value={meetingUrl}
+          onChange={(e) => setMeetingUrl(e.target.value)}
+          placeholder={texts.mentoring.meetingUrlPlaceholder}
+          type="url"
+          inputMode="url"
+          className="h-10 border-transparent bg-muted"
+        />
+
+        <p className="text-xs text-text-subtle">{texts.mentoring.meetingUrlHint}</p>
+        {meetingUrl.trim() && !meetingUrl.trim().startsWith("https://") && (
+          <p className="text-xs text-destructive">{texts.mentoring.meetingUrlInvalid}</p>
+        )}
+      </div>
+
       <Button
         className="w-full rounded-full"
-        disabled={!skillsText.trim() || isPending}
+        disabled={
+          !skillsText.trim() ||
+          isPending ||
+          (meetingUrl.trim().length > 0 && !meetingUrl.trim().startsWith("https://"))
+        }
         onClick={() => {
           const expertise = skillsText
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean);
-          onSave({ expertise, price: price || texts.mentoring.free, banner: banner || null });
+          onSave({
+            expertise,
+            price: price || texts.mentoring.free,
+            banner: banner || null,
+            meetingUrl: meetingUrl.trim() || null,
+          });
         }}
       >
         {isPending ? texts.common.saving : texts.common.save}
       </Button>
+
+      {mentorId && <WeeklyAvailabilityEditor mentorId={mentorId} />}
     </div>
   );
 }
@@ -363,11 +399,15 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
         {/* Sidebar de estatísticas */}
         <div className="flex flex-col gap-4 md:col-span-3 text-sm">
           {isOwner ? (
-            <AddSlotDialog mentorId={mentor.id} defaultOpen={openSlots} />
+            <div className="flex flex-col gap-2">
+              <AddSlotDialog mentorId={mentor.id} defaultOpen={openSlots} />
+              <MentorAgendaDialog mentorId={mentor.id} />
+            </div>
           ) : (
             <BookSessionDialog
               mentorId={mentor.id}
               mentorName={user?.name ?? texts.mentoring.mentorFallback}
+              meetingUrl={mentor.meetingUrl}
             />
           )}
         </div>
@@ -428,7 +468,15 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
  * Agendamento real: lista os horarios publicados pelo mentor (so os livres), deixa escolher um e
  * envia a solicitacao com uma mensagem opcional. Antes o botao "Agendar" nao tinha handler nenhum.
  */
-function BookSessionDialog({ mentorId, mentorName }: { mentorId: string; mentorName: string }) {
+function BookSessionDialog({
+  mentorId,
+  mentorName,
+  meetingUrl,
+}: {
+  mentorId: string;
+  mentorName: string;
+  meetingUrl?: string | null;
+}) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [slotId, setSlotId] = useState<string | null>(null);
@@ -509,6 +557,20 @@ function BookSessionDialog({ mentorId, mentorName }: { mentorId: string; mentorN
             {!isLoading && !isError && slots.length === 0 && (
               <p className="rounded-xl border border-border-soft px-4 py-6 text-center text-sm text-muted-foreground">
                 {texts.mentoring.noSlots}
+              </p>
+            )}
+
+            {meetingUrl && (
+              <p className="rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+                {texts.mentoring.meetingRoom}:{" "}
+                <a
+                  href={meetingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="break-all text-primary underline"
+                >
+                  {meetingUrl}
+                </a>
               </p>
             )}
 
