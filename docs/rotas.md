@@ -164,6 +164,18 @@ Página pública (mostra layout mesmo sem auth, mas sem funcionalidade).
 - `RequestCard()` - Card de solicitação de conexão
 - `Stat()` - Card de estatística
 
+## `/notificacoes/preferencias` - Preferências de notificação (`src/routes/notificacoes.preferencias.tsx`)
+
+**Auth:** Obrigatória (também na revalidação central do cliente)
+
+**Componente:** `NotificationPreferencesPanel` (`src/components/notifications/notification-preferences-panel.tsx`)
+sobre o `NotificationPreferences` do design system.
+
+- Resumo semanal por e-mail e as categorias de push; cada switch salva sozinho (PUT parcial),
+  muda na hora e volta ao valor anterior se o servidor recusar.
+- Push desligado neste aparelho: as categorias continuam editáveis e a tela oferece ligar.
+- Entrada pelo menu da conta ("Preferências de notificação").
+
 ## `/salvos` - Posts Salvos (`src/routes/salvos.tsx`)
 
 **Auth:** Obrigatória
@@ -266,6 +278,7 @@ seguintes; aqui é o mapa completo.
 | `/moderacao`                     | `moderacao.tsx`                                  | Fila de recursos de penalidades e votação de punição.                         |
 | `/moderacao/:reportId`           | `moderacao.$reportId.tsx`                        | Decisão de recurso/fila filha da moderação.                                   |
 | `/moderador`                     | `moderador.tsx`                                  | Painel do moderador: todas as filas + monitoramento (candidatura é só admin). |
+| `/notificacoes/preferencias`     | `notificacoes.preferencias.tsx`                  | Resumo semanal e categorias de push.                                          |
 | `/penalidades`                   | `penalidades.tsx`                                | Minhas penalidades e recursos.                                                |
 | `/perfil/:username`              | `perfil.$username.tsx`                           | Perfil público (posts fixados, ranking de chegada, projetos).                 |
 | `/perfil`                        | `perfil.index.tsx`                               | Meu perfil (redireciona/edição).                                              |

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { type ReactNode, act } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -17,6 +17,9 @@ vi.mock("@/lib/api", () => ({ corporateApi: { me: mocks.me } }));
 vi.mock("@/lib/logout", () => ({ logout: vi.fn() }));
 vi.mock("@rede-enois/design-system/ui", () => ({
   useToast: () => ({ toast: mocks.toast }),
+  AppLink: ({ href, children }: { href: string; children: ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 // Fiel ao AccountMenu do design system: a seção "Identidade" existe só quando o app manda, a opção
@@ -30,8 +33,11 @@ vi.mock("@rede-enois/design-system/domain", () => ({
     identity,
     onChooseIdentity,
     onOpenChange,
+    pushToggle,
   }: AccountMenuViewProps) => (
     <div data-open={String(open)} data-identity={identity}>
+      {pushToggle}
+
       <button type="button" onClick={() => onOpenChange(true)}>
         Abrir menu
       </button>
@@ -194,6 +200,14 @@ describe("menu da conta: identidade social x profissional", () => {
     expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("SOCIAL");
     expect(host.querySelector("[data-open]")?.getAttribute("data-open")).toBe("false");
     expect(mocks.toast).toHaveBeenCalledWith(expect.stringContaining("social"), "success");
+  });
+
+  it("leva às preferências de notificação", async () => {
+    mocks.me.mockResolvedValue(empresa());
+    await montar();
+
+    const link = host.querySelector<HTMLAnchorElement>('a[href="/notificacoes/preferencias"]');
+    expect(link?.textContent).toBe("Preferências de notificação");
   });
 
   it("falha ao carregar o perfil não oferece a troca nem derruba o menu", async () => {
