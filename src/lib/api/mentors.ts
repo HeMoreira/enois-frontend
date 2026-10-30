@@ -1,8 +1,10 @@
 import type { PageResponse } from "@/types/application/api/page-response";
 import type { StatusResponse } from "@/types/application/api/status-response";
+import type { AvailabilityRule } from "@/types/application/mentor/availability-rule";
 import type { BookSessionResponse } from "@/types/application/mentor/book-session-response";
 import type { CreateMentorInput } from "@/types/application/mentor/create-mentor-input";
 import type { CreateSlotInput } from "@/types/application/mentor/create-slot-input";
+import type { MenteeSession } from "@/types/application/mentor/mentee-session";
 import type { Mentor } from "@/types/application/mentor/mentor";
 import type { TimeSlot } from "@/types/application/mentor/time-slot";
 import type { UpdateMentorInput } from "@/types/application/mentor/update-mentor-input";
@@ -36,4 +38,13 @@ export const mentorsApi = {
       slotId,
       message,
     }),
+
+  /** Inscrições recebidas (só o dono da agenda). */
+  getSessions: (mentorId: string) => api.get<MenteeSession[]>(`/mentors/${mentorId}/sessions`),
+
+  getAvailability: (mentorId: string) =>
+    api.get<AvailabilityRule[]>(`/mentors/${mentorId}/availability`),
+
+  saveAvailability: (mentorId: string, items: AvailabilityRule[]) =>
+    api.put<AvailabilityRule[]>(`/mentors/${mentorId}/availability`, { items }),
 };
