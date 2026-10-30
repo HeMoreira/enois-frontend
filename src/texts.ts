@@ -2073,6 +2073,47 @@ export const texts = {
     expertisePlaceholder: "Java, Spring, React",
     investment: "Investimento",
     free: "Gratuito",
+    /** Pagamento em faíscas (a moeda interna, retida em escrow). */
+    acceptSparks: "Aceitar faíscas como pagamento",
+    acceptSparksHint:
+      "O valor fica retido quando alguém agenda e só é liberado para você quando a sessão é concluída. A plataforma fica com 10% e o resto é seu.",
+    sparksPrice: "Preço da sessão em faíscas",
+    sparksPricePlaceholder: "50",
+    sparksPriceHint:
+      "Entre 50 e 10.000 faíscas. A taxa da plataforma (10%) já é descontada do seu lado.",
+    sparksPriceInvalid: "Informe um preço entre 50 e 10.000 faíscas.",
+    sparksAccepted: (price: string) => `aceita faíscas · ${price}`,
+    sparksBalance: (balance: string) => `Seu saldo: ${balance} faíscas`,
+    sparksBalanceLow: (balance: string, needed: string) =>
+      `Saldo insuficiente: você tem ${balance} e a sessão custa ${needed} faíscas.`,
+    sparksFeeNote: "Da liberação, a plataforma retém 10% e o mentor recebe o resto.",
+    sparksEscrowNote:
+      "O valor fica retido na sua carteira ao confirmar e volta integral se você cancelar antes do horário começar.",
+    paidWithSparks: (price: string) => `pago com ${price} faíscas`,
+    sparksInsufficientError: "Saldo de faíscas insuficiente para esta sessão.",
+    sparksPriceRange: (min: string, max: string) => `${min} a ${max} faíscas`,
+    freeSession: "Sessão gratuita",
+    completeSession: "Concluir sessão",
+    completeConfirm:
+      "Confirma que a sessão aconteceu? O valor retido é liberado para o mentor, já com a taxa da plataforma descontada. Isso não pode ser desfeito.",
+    completingSession: "Concluindo...",
+    completeSuccess:
+      "Sessão concluída. O valor foi liberado para o mentor, já com a taxa da plataforma descontada.",
+    completeError: "Não foi possível concluir a sessão agora.",
+    cancelSession: "Cancelar sessão",
+    cancelConfirm:
+      "Confirma o cancelamento? Se a sessão foi paga em faíscas, o valor volta integral para quem pagou. O horário futuro volta para a agenda.",
+    cancellingSession: "Cancelando...",
+    agendaKeep: "Voltar",
+    cancelSuccess:
+      "Sessão cancelada. Se houve pagamento em faíscas, o valor voltou integral para quem pagou.",
+    cancelError: "Não foi possível cancelar a sessão agora.",
+    mySessionsTitle: "Minhas sessões",
+    mySessionsHint: "As mentorias que você agendou e em que pé estão.",
+    mySessionsLoading: "Carregando suas sessões...",
+    mySessionsError: "Não foi possível carregar suas sessões.",
+    mySessionsEmpty: "Você ainda não agendou nenhuma mentoria.",
+    mySessionsButton: "Minhas sessões",
     mentorFallback: "Mentor",
     schedule: "Agendar",
     rating: "Avaliação",

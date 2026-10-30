@@ -6,6 +6,7 @@ import type { CreateMentorInput } from "@/types/application/mentor/create-mentor
 import type { CreateSlotInput } from "@/types/application/mentor/create-slot-input";
 import type { MenteeSession } from "@/types/application/mentor/mentee-session";
 import type { Mentor } from "@/types/application/mentor/mentor";
+import type { MySession } from "@/types/application/mentor/my-session";
 import type { TimeSlot } from "@/types/application/mentor/time-slot";
 import type { UpdateMentorInput } from "@/types/application/mentor/update-mentor-input";
 
@@ -41,6 +42,17 @@ export const mentorsApi = {
 
   /** Inscrições recebidas (só o dono da agenda). */
   getSessions: (mentorId: string) => api.get<MenteeSession[]>(`/mentors/${mentorId}/sessions`),
+
+  /** Minhas sessões como mentorado: o que eu agendei e em que pé está. */
+  getMySessions: () => api.get<MySession[]>("/mentors/sessions/mine"),
+
+  /** O mentor confirma a sessão: libera o valor retido (menos a taxa) para ele. */
+  completeSession: (mentorId: string, sessionId: string) =>
+    api.post<StatusResponse>(`/mentors/${mentorId}/sessions/${sessionId}/complete`, {}),
+
+  /** Cancela a sessão: o valor retido volta integral para quem pagou. */
+  cancelSession: (mentorId: string, sessionId: string) =>
+    api.post<StatusResponse>(`/mentors/${mentorId}/sessions/${sessionId}/cancel`, {}),
 
   getAvailability: (mentorId: string) =>
     api.get<AvailabilityRule[]>(`/mentors/${mentorId}/availability`),
