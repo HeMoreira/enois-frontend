@@ -20,4 +20,6 @@ export type MessageBubbleProps = {
   readByOther?: boolean;
   /** Denunciar esta mensagem. */
   onReport?: () => void;
+  /** Responder esta mensagem. */
+  onReply?: () => void;
 };

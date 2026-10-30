@@ -29,12 +29,14 @@ export const messagesApi = {
     mediaIds: string[] = [],
     mediaSpoiler = false,
     e2e?: { ciphertext: string; iv: string },
+    replyToId?: string,
   ) =>
     api.post<Message>(`/conversations/${conversationId}/messages`, {
       text: e2e ? e2e.ciphertext : text,
       mediaIds,
       mediaSpoiler,
       ...(e2e ? { e2e: true, iv: e2e.iv } : {}),
+      ...(replyToId ? { replyToId } : {}),
     }),
 
   /** Reage a uma mensagem (o backend alterna: mesmo emoji remove). */
