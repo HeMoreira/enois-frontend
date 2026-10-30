@@ -17,6 +17,7 @@ import {
   EventRecurrenceField,
   EventRitualsFilter,
 } from "@rede-enois/design-system/domain";
+import { CityStateField, formatLocation } from "@rede-enois/design-system/patterns";
 import {
   Button,
   Dialog,
@@ -37,6 +38,7 @@ import { eventsApi } from "@/lib/api";
 import { ApiError } from "@/lib/api-client";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { requireAuth } from "@/lib/require-auth";
+import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
@@ -58,6 +60,15 @@ function withAttendance(event: Event, attending: boolean): Event {
   if (event.attending === attending) return event;
   const attendees = Math.max(0, (event.attendees ?? 0) + (attending ? 1 : -1));
   return { ...event, attending, attendees };
+}
+
+/**
+ * The card has one place line: the free-text location plus the structured "Cidade, UF" when the
+ * event has one (the DS card does not read city/state on its own).
+ */
+function withPlace(event: Event): Event {
+  const place = [event.location, formatLocation(event.city, event.state)].filter(Boolean);
+  return place.length > 0 ? { ...event, location: place.join(" · ") } : event;
 }
 
 function recurrenceErrorMessage(error: unknown): string {
@@ -187,12 +198,16 @@ function Eventos() {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       setOpen(false);
     },
+    // Cidade/UF aparece embaixo do campo; o resto vira aviso (antes a recusa passava calada).
     onError: (error) => {
+      if (cityStateErrorCode(error)) return;
       const code = error instanceof ApiError ? error.code : undefined;
       toast(
         code === "INVALID_EVENT_TIME"
           ? texts.events.recurrence.timeRequired
-          : texts.events.createError,
+          : error instanceof ApiError
+            ? error.message
+            : texts.events.createError,
         "error",
       );
     },
@@ -225,6 +240,7 @@ function Eventos() {
                     createEvent.mutate(data);
                   }}
                   isPending={createEvent.isPending}
+                  error={createEvent.error}
                 />
               </DialogContent>
             </Dialog>
@@ -246,7 +262,7 @@ function Eventos() {
             {events.map((e) => (
               <div key={e.id} className="min-w-0 space-y-2">
                 <EventCard
-                  event={e}
+                  event={withPlace(e)}
                   dateTimeLabel={texts.events.dateTime(e.date ?? "", e.time ?? "")}
                   attendancePending={attendancePending}
                   onAttend={() => {
@@ -284,7 +300,7 @@ function Eventos() {
   );
 }
 
-function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
+function CreateEventForm({ onSave, isPending, error }: CreateEventFormProps) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -299,6 +315,9 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
   const timeMissing = recurrence !== "NONE" && !time;
   const coverInputRef = useRef<HTMLInputElement>(null);
   const coverUpload = useMediaUpload();
+  // Cidade/UF estruturadas só para encontro presencial ou híbrido (a API recusa no online).
+  const place = useCityState(null, error);
+  const inPerson = format !== "ONLINE";
 
   const handleCoverChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -423,6 +442,8 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
         </Field>
       )}
 
+      {inPerson && <CityStateField idPrefix="event-place" disabled={isPending} {...place.field} />}
+
       <EventRecurrenceField
         value={recurrence}
         onChange={setRecurrence}
@@ -450,6 +471,7 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
         onClick={() => {
           setTriedSave(true);
           if (timeMissing) return;
+          if (inPerson && !place.validate()) return;
           onSave({
             title,
             date,
@@ -460,6 +482,7 @@ function CreateEventForm({ onSave, isPending }: CreateEventFormProps) {
             streamUrl: streamUrl.trim() || undefined,
             location: location.trim() || undefined,
             recurrence,
+            ...(inPerson && place.payload.state ? place.payload : {}),
           });
         }}
       >

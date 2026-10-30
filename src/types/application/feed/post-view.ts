@@ -89,4 +89,8 @@ export type PostView = {
   editedAt?: string | null;
   /** Prazo do Momento (some sozinho em 24h); null nos demais tipos. */
   expiresAt?: string | null;
+  /** QUESTION only: the answer the asker accepted; null while the question is open. */
+  acceptedCommentId?: string | null;
+  /** QUESTION only: true once an answer is accepted. */
+  resolved?: boolean;
 };

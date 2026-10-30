@@ -40,6 +40,8 @@ const routeDefinitions = [
   { source: "feed", to: "/feed" },
   { source: "rede", to: "/rede" },
   { source: "mensagens", to: "/mensagens" },
+  // JOB_APPLICATION_STATUS manda "/vagas/{jobId}": abre a vaga; "/vagas" sozinho cai na lista abaixo.
+  { source: "vagas", to: "/vagas/$jobId", params: ["jobId"] },
   { source: "vagas", to: "/vagas" },
   { source: "eventos", to: "/eventos" },
   { source: "mentoria", to: "/mentoria" },
@@ -63,14 +65,19 @@ export function navigateToHref(href: string, navigate: Navigate) {
     return;
   }
 
-  const route = routes.find(({ source }) => path === source || path.startsWith(`${source}/`));
+  const valuesAfter = (source: string) => path.slice(source.length).split("/").filter(Boolean);
+  // Mesma origem pode ter mais de uma rota (com e sem id): vale a primeira cujos parâmetros o href
+  // preenche, então href incompleto cai na versão sem parâmetro ou em nenhuma.
+  const route = routes.find(
+    (candidate) =>
+      (path === candidate.source || path.startsWith(`${candidate.source}/`)) &&
+      valuesAfter(candidate.source).length >= ("params" in candidate ? candidate.params.length : 0),
+  );
 
   if (!route) return;
 
-  const values = path.slice(route.source.length).split("/").filter(Boolean);
+  const values = valuesAfter(route.source);
   const paramNames = "params" in route ? route.params : [];
-
-  if (values.length < paramNames.length) return;
 
   const params = Object.fromEntries(paramNames.map((name, index) => [name, values[index]]));
 

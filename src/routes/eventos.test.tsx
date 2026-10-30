@@ -93,13 +93,20 @@ describe("/eventos", () => {
 
   it("renders a hybrid event with both place and stream, and the series cadence", async () => {
     mocks.list.mockResolvedValue({
-      items: [event({ recurrence: "WEEKLY", nextOccurrenceDate: "2026-11-13" })],
+      items: [
+        event({
+          recurrence: "WEEKLY",
+          nextOccurrenceDate: "2026-11-13",
+          city: "Belo Horizonte",
+          state: "MG",
+        }),
+      ],
       nextCursor: null,
     });
     await render();
 
     const card = host.querySelector("#evento-ev-1");
-    expect(card?.textContent).toContain("Praça da Liberdade");
+    expect(card?.textContent).toContain("Praça da Liberdade · Belo Horizonte, MG");
     expect(card?.textContent).toContain("Toda semana");
     expect(card?.textContent).toContain("13/11");
     // Not the creator: no series control.

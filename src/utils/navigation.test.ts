@@ -47,6 +47,18 @@ describe("navigateToHref", () => {
     });
   });
 
+  it("abre a vaga na mudança de status da candidatura e mantém a lista para /vagas", () => {
+    expect(resolve("/vagas/job_1")).toHaveBeenCalledWith({
+      to: "/vagas/$jobId",
+      params: { jobId: "job_1" },
+    });
+    expect(resolve("/api/vagas/job_1/")).toHaveBeenCalledWith({
+      to: "/vagas/$jobId",
+      params: { jobId: "job_1" },
+    });
+    expect(resolve("/vagas")).toHaveBeenCalledWith({ to: "/vagas" });
+  });
+
   it("leva ao marketplace no pedido de desculpa da comunidade", () => {
     expect(resolve("/marketplace")).toHaveBeenCalledWith({ to: "/marketplace" });
   });

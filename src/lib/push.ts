@@ -8,6 +8,7 @@
  * iOS: so funciona no PWA instalado (16.4+). No navegador do iOS, `PushManager` existe mas
  * assinar falha — por isso o erro e tratado e mostrado ao usuario.
  */
+import { texts } from "@/texts";
 import type { EnablePushResult } from "@/types/application/push/enable-push-result";
 import type { PushState } from "@/types/application/push/push-state";
 
@@ -115,4 +116,13 @@ export async function isPushActive(): Promise<boolean> {
   if (!registration) return false;
   const subscription = await registration.pushManager.getSubscription();
   return Boolean(subscription);
+}
+
+/** Mensagem de tela para uma falha de `enablePush`. */
+export function pushErrorMessage(reason: string): string {
+  if (reason === "denied") return texts.account.menu.pushDenied;
+  if (reason === "unsupported") return texts.account.menu.pushUnavailable;
+  if (reason === "server-disabled" || reason === "unreachable")
+    return texts.account.menu.pushServerOff;
+  return texts.account.menu.pushError;
 }
