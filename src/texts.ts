@@ -100,7 +100,14 @@ export const texts = {
       events: "Eventos",
       groups: "Grupos",
       studyPairs: "Par de estudo",
+      freelances: "Freelances",
+      games: "Jogos",
+      communityProjects: "Projetos da comunidade",
+      marketplace: "Marketplace",
+      services: "Contratar serviços",
+      professionalProfile: "Perfil profissional",
     },
+    context: { social: "Social", professional: "Profissional" },
   },
 
   groups: {
@@ -651,8 +658,6 @@ export const texts = {
       pushUnavailable: "Este dispositivo não suporta notificações no celular.",
       pushServerOff: "As notificações no celular ainda não estão disponíveis.",
       pushError: "Não foi possível ativar as notificações. Tente novamente.",
-      identitySocial: "Identidade ativa: social.",
-      identityCorporate: "Identidade ativa: profissional.",
     },
     changeEmail: {
       error: "Não foi possível alterar o e-mail. Tente novamente.",
@@ -1058,8 +1063,12 @@ export const texts = {
       pageDescription:
         "Uma página é uma coisa ou outra: o HTML dela é o conteúdo do post, sem texto separado. Imagem, vídeo e áudio por link https tocam dentro dela; scripts, formulários e requisições externas não rodam. Link de YouTube, Vimeo, Twitch, Dailymotion ou Spotify vira player embutido logo abaixo da página — o quadro em si não executa script, então o player é montado pelo próprio énóis. Documento (PDF) vira link e abre no visualizador do navegador.",
       pageEmpty: "Cole um HTML para ver a pré-visualização.",
+      professionalSetupTitle: "Publique como profissional",
+      professionalSetupBody:
+        "Aqui no Profissional, o que você publica sai pelo seu perfil profissional. Crie ou ative o seu para começar.",
+      professionalSetupCta: "Configurar perfil profissional",
       corporateDestination: (name: string) =>
-        `Publicando como ${name} — esta publicação vai para o feed corporativo.`,
+        `Publicando como ${name}. Esta publicação vai para o feed profissional.`,
     },
     tabs: {
       forYou: "Para você",
@@ -2212,8 +2221,8 @@ export const texts = {
     tabs: {
       all: "Todas",
       jobs: "Vagas",
+      freelances: "Freelas",
       services: "Serviços",
-      people: "Pessoas",
       archived: "Arquivadas",
     },
     selectMode: "Selecionar",

@@ -7,10 +7,10 @@ import { MediaGrid } from "@/components/post/media-grid";
 import { RichText } from "@/components/post/rich-text";
 
 /** Um balão da conversa: avatar do outro, texto, mídia, hora e reações. */
-export function MessageBubble({ message, otherUser, otherId, isMe, ...props }: MessageBubbleProps) {
+export function MessageBubble({ message, peer, profileHref, isMe, ...props }: MessageBubbleProps) {
   const replyQuote = message.replyTo
     ? {
-        from: message.replyTo.from === message.from ? "Você" : (otherUser?.name ?? "..."),
+        from: message.replyTo.from === message.from ? "Você" : (peer?.name ?? "..."),
         text: message.replyTo.e2e ? "[Mensagem cifrada]" : message.replyTo.text,
         isMe: message.replyTo.from === message.from,
       }
@@ -21,8 +21,8 @@ export function MessageBubble({ message, otherUser, otherId, isMe, ...props }: M
       {...props}
       message={message}
       isMe={isMe}
-      peer={otherUser}
-      profileHref={`/perfil/${otherUser?.username ?? otherId ?? ""}`}
+      peer={peer}
+      profileHref={profileHref}
       emojis={REACTION_EMOJIS}
       timeLabel={formatTime(message.time)}
       replyQuote={replyQuote}
