@@ -389,9 +389,9 @@ export const apiSections: ApiSection[] = [
         path: "/events",
         access: "public",
         description:
-          "Lista eventos (vitrine). city + state (ou só state) listam os encontros presenciais e híbridos do lugar. Com sessão, attending reflete se o viewer confirmou presença.",
+          "Lista eventos (vitrine). city + state (ou só state) listam os encontros presenciais e híbridos do lugar. Com sessão, attending reflete se o viewer confirmou presença. recurring=true lista só eventos recorrentes (rituais); recurrence, seriesId, nextOccurrenceDate e canManageRecurrence descrevem a série.",
         response: `200 OK
-{"items":[{"id":"event_…","title":"…","date":"2029-12-31","time":"23:59","format":"ONLINE","attendees":2,"attending":false,"expired":false}]}`,
+{"items":[{"id":"event_…","title":"…","date":"2029-12-31","time":"23:59","format":"ONLINE","attendees":2,"attending":false,"expired":false,"recurrence":"WEEKLY","seriesId":"event_…","nextOccurrenceDate":"2030-01-07","canManageRecurrence":false}]}`,
       },
       {
         method: "GET",
@@ -403,7 +403,18 @@ export const apiSections: ApiSection[] = [
         method: "POST",
         path: "/events",
         access: "auth",
-        description: "Cria evento. city e state opcionais, só para presencial ou híbrido.",
+        description:
+          "Cria evento. city e state opcionais, só para presencial ou híbrido. recurrence: NONE (padrão) | WEEKLY | BIWEEKLY | MONTHLY; evento recorrente precisa de horário HH:MM (400 INVALID_RECURRENCE / INVALID_EVENT_TIME).",
+      },
+      {
+        method: "PATCH",
+        path: "/events/{eventId}/recurrence",
+        access: "auth",
+        description:
+          "Liga, troca ou encerra (NONE) a recorrência da série. Só quem criou (403 NOT_EVENT_OWNER).",
+        request: `curl -X PATCH ${P}/events/$EVENT_ID/recurrence \\
+  -H "X-Session-Token: $TOKEN" -H "Idempotency-Key: rec-1" \\
+  -H "Content-Type: application/json" -d '{"recurrence":"WEEKLY"}'`,
       },
       {
         method: "POST",

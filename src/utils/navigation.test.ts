@@ -70,6 +70,23 @@ describe("navigateToHref", () => {
     expect(resolve("/configuracoes/seguranca")).toHaveBeenCalledWith({ to: "/seguranca" });
   });
 
+  it("keeps the query string of the href (event notification highlights the event)", () => {
+    expect(resolve("/eventos?evento=ev-1")).toHaveBeenCalledWith({
+      to: "/eventos",
+      search: { evento: "ev-1" },
+    });
+    expect(resolve("/api/feed/posts/abc?x=1")).toHaveBeenCalledWith({
+      to: "/post/$postId",
+      params: { postId: "abc" },
+      search: { x: "1" },
+    });
+  });
+
+  it("does not send an empty search when the href has none", () => {
+    expect(resolve("/eventos")).toHaveBeenCalledWith({ to: "/eventos" });
+    expect(resolve("/eventos?")).toHaveBeenCalledWith({ to: "/eventos" });
+  });
+
   it("nao navega para href desconhecido nem incompleto", () => {
     expect(resolve("/desconhecido")).not.toHaveBeenCalled();
     expect(resolve("/games/so-username")).not.toHaveBeenCalled();
