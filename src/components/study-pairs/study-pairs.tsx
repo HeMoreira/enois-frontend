@@ -12,7 +12,7 @@ import {
 } from "@rede-enois/design-system/domain";
 import { useToast } from "@rede-enois/design-system/ui";
 
-import { studyPairsApi } from "@/lib/api";
+import { ApiError, studyPairsApi } from "@/lib/api";
 import { studyPairsErrorCode, toStudyPair, topicLabel } from "@/lib/study-pairs/to-study-pair";
 
 const ME_KEY = ["study-pairs", "me"] as const;
@@ -44,7 +44,15 @@ export function StudyPairs() {
       if (result.status === "MATCHED") toast(texts.studyPairs.matched, "success");
       void refresh();
     },
-    onError: (error) => setRequestError(studyPairsErrorCode(error)),
+    onError: (error) => {
+      // The module was turned off (maybe in another tab): the gate takes over after the refetch.
+      if (error instanceof ApiError && error.code === "STUDY_PAIRS_DISABLED") {
+        toast(texts.studyPairs.disabled);
+        void queryClient.invalidateQueries({ queryKey: ["personalization"] });
+        return;
+      }
+      setRequestError(studyPairsErrorCode(error));
+    },
   });
 
   const cancelRequest = useMutation({

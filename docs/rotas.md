@@ -104,7 +104,7 @@ Página pública de autenticação com duas abas.
 - Pares ativos com o check-in da semana dos dois (`""` = check-in sem comentário, `null` = ainda não), semanas anteriores e encerrar par
 - Pedido em espera (cancelar) e formulário de pedido com assunto opcional e objetivos populares
 - Erros do pedido explicados pelo código do backend; `BIRTH_DATE_REQUIRED` leva a `/perfil` e `EMAIL_NOT_VERIFIED` a `/seguranca`
-- Entrada no menu lateral (sem módulo desativável: o backend ainda não tem um para pares de estudo); notificações `STUDY_PAIR_*` abrem esta rota pelo `navigateToHref`
+- Módulo desativável `STUDY_PAIRS` (`disabledModules`): desligado, some do menu, a rota cai no `ModuleDisabledGate` e as notificações `STUDY_PAIR_*` ficam ocultas; um `409 STUDY_PAIRS_DISABLED` no pedido avisa e recarrega a personalização. Ligado, as notificações abrem esta rota pelo `navigateToHref`
 
 ## `/eventos` - Eventos (`src/routes/eventos.tsx`)
 

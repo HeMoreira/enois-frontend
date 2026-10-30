@@ -1666,6 +1666,7 @@ export const texts = {
     matched: "Encontramos um par para você.",
     cancelError: "Não foi possível cancelar o pedido. Tente de novo.",
     endError: "Não foi possível encerrar o par. Tente de novo.",
+    disabled: "Par de estudo está desativado nas suas preferências.",
   },
 
   events: {

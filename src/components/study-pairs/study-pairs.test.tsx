@@ -32,7 +32,10 @@ vi.mock("@rede-enois/design-system/domain", () => ({
   },
 }));
 vi.mock("@rede-enois/design-system/ui", () => ({ useToast: () => ({ toast: mocks.toast }) }));
-vi.mock("@/lib/api", () => ({ studyPairsApi: mocks.api }));
+vi.mock("@/lib/api", async () => ({
+  ApiError: (await import("@/lib/api-client")).ApiError,
+  studyPairsApi: mocks.api,
+}));
 
 const me: MyStudyPairs = {
   openRequest: null,
@@ -112,6 +115,20 @@ describe("StudyPairs container", () => {
 
     expect(mocks.api.request).toHaveBeenCalledWith("Aprender Go", null);
     expect(props().requestError).toBe("BIRTH_DATE_REQUIRED");
+  });
+
+  it("hands over to the module gate when study pairs are turned off", async () => {
+    mocks.api.request.mockRejectedValue(new ApiError(409, "STUDY_PAIRS_DISABLED", "x"));
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+
+    await act(async () => props().onRequest({ goal: "Aprender Go", topic: null }));
+    await settle();
+
+    expect(props().requestError).toBeNull();
+    expect(mocks.toast).toHaveBeenCalledWith(
+      "Par de estudo está desativado nas suas preferências.",
+    );
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["personalization"] });
   });
 
   it("tracks the check-in save per pair and refetches on success", async () => {

@@ -400,7 +400,7 @@ export const apiSections: ApiSection[] = [
         path: "/study-pairs/requests",
         access: "auth",
         description:
-          "Pede um par para um objetivo (goal até 120, topic opcional da taxonomia). Casa na hora (MATCHED) ou fica na fila (OPEN). Erros: STUDY_GOAL_REQUIRED, STUDY_GOAL_TOO_LONG, INVALID_TOPIC, STUDY_PAIRS_ADULTS_ONLY, BIRTH_DATE_REQUIRED, EMAIL_NOT_VERIFIED, ACCOUNT_RESTRICTED, STUDY_REQUEST_ALREADY_OPEN, STUDY_PAIR_LIMIT.",
+          "Pede um par para um objetivo (goal até 120, topic opcional da taxonomia). Casa na hora (MATCHED) ou fica na fila (OPEN). Erros: STUDY_GOAL_REQUIRED, STUDY_GOAL_TOO_LONG, INVALID_TOPIC, STUDY_PAIRS_ADULTS_ONLY, BIRTH_DATE_REQUIRED, EMAIL_NOT_VERIFIED, ACCOUNT_RESTRICTED, STUDY_REQUEST_ALREADY_OPEN, STUDY_PAIR_LIMIT, STUDY_PAIRS_DISABLED (módulo desligado em /me/preferences).",
         request: `curl -X POST ${P}/study-pairs/requests \\
   -H "X-Session-Token: $TOKEN" -H "Idempotency-Key: sp-1" \\
   -H "Content-Type: application/json" -d '{"goal":"Aprender Rust","topic":null}'`,
