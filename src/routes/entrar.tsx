@@ -31,6 +31,7 @@ import { z } from "zod";
 
 import { ApiError, authApi, clearSession } from "@/lib/api";
 import { anoAtual } from "@/lib/date/format";
+import { landingPathForStoredUser } from "@/lib/onboarding";
 import { ogMetas } from "@/lib/seo";
 import { storeSession } from "@/lib/session";
 import { twoFactorLockedMessage } from "@/lib/two-factor-locked";
@@ -161,7 +162,7 @@ function Auth() {
               <SignupForm onDone={() => navigate({ to: "/feed" })} />
             ) : (
               <LoginForm
-                onDone={() => navigate({ to: "/feed" })}
+                onDone={() => navigate({ to: landingPathForStoredUser() })}
                 onForgot={() => setForgotOpen(true)}
               />
             )}

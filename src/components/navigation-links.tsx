@@ -6,6 +6,7 @@ import type { NavigationLinksProps } from "@/types/components/navigation/navigat
 import { NavigationLinks as NavigationLinksView } from "@rede-enois/design-system/domain";
 
 import { communitiesApi } from "@/lib/api";
+import { communityQueries } from "@/lib/query-options/communities";
 import { hasSessionFlag } from "@/lib/session";
 import { useDisabledModules } from "@/lib/use-personalization";
 
@@ -24,8 +25,7 @@ export function NavigationLinks({
   // Comunidades do usuário no menu: sem isso a pessoa só encontrava as suas indo em /comunidades
   // e procurando na lista.
   const { data: mine } = useQuery({
-    queryKey: ["my-communities"],
-    queryFn: () => communitiesApi.mine(8),
+    ...communityQueries.mine(8),
     enabled: hasSessionFlag(),
     staleTime: 30_000,
   });

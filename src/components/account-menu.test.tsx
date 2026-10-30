@@ -30,8 +30,11 @@ vi.mock("@rede-enois/design-system/domain", () => ({
     identity,
     onChooseIdentity,
     onOpenChange,
+    hrefs,
   }: AccountMenuViewProps) => (
     <div data-open={String(open)} data-identity={identity}>
+      {hrefs.notificationPreferences && <a href={hrefs.notificationPreferences}>Notificações</a>}
+
       <button type="button" onClick={() => onOpenChange(true)}>
         Abrir menu
       </button>
@@ -194,6 +197,13 @@ describe("menu da conta: identidade social x profissional", () => {
     expect(host.querySelector("[data-identity]")?.getAttribute("data-identity")).toBe("SOCIAL");
     expect(host.querySelector("[data-open]")?.getAttribute("data-open")).toBe("false");
     expect(mocks.toast).toHaveBeenCalledWith(expect.stringContaining("social"), "success");
+  });
+
+  it("leva às preferências de notificação", async () => {
+    mocks.me.mockResolvedValue(empresa());
+    await montar();
+
+    expect(host.querySelector('a[href="/notificacoes/preferencias"]')).not.toBeNull();
   });
 
   it("falha ao carregar o perfil não oferece a troca nem derruba o menu", async () => {

@@ -9,10 +9,12 @@ import type { MediaItem } from "@/types/routes/feed/media-item";
 import {
   type CommentsError,
   PostComments as PostCommentsView,
+  orderCommentsWithAccepted,
 } from "@rede-enois/design-system/domain";
 
 import { commentsApi } from "@/lib/api";
 import { updatePostInQueryCache } from "@/lib/feed/post-query-cache";
+import { useAcceptedAnswer } from "@/lib/feed/use-accepted-answer";
 import { litePageSize } from "@/lib/lite-mode";
 import { useAuth } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
@@ -30,7 +32,18 @@ const PAGE_SIZE = 20;
  * envia. Como a API devolve os mais recentes primeiro, "ver comentarios anteriores" carrega a
  * proxima pagina e acrescenta no fim.
  */
-export function PostComments({ postId, postAuthorId }: { postId: string; postAuthorId: string }) {
+export function PostComments({
+  postId,
+  postAuthorId,
+  isQuestion = false,
+  acceptedCommentId = null,
+}: {
+  postId: string;
+  postAuthorId: string;
+  /** QUESTION post: the asker can mark one answer, which goes to the top. */
+  isQuestion?: boolean;
+  acceptedCommentId?: string | null;
+}) {
   // Em modo lite a primeira página (e cada "carregar mais") já vem maior.
   const lite = useLiteMode();
   const pageSize = litePageSize(PAGE_SIZE, lite);
@@ -55,6 +68,17 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
   const [gifOpen, setGifOpen] = useState(false);
   const [posting, setPosting] = useState(false);
   const upload = useMediaUpload();
+  const acceptedAnswer = useAcceptedAnswer(postId, acceptedCommentId);
+  // The accepted flag follows the optimistic answer, not the flag each comment was loaded with.
+  const shownComments = isQuestion
+    ? orderCommentsWithAccepted(
+        comments.map((comment) => ({
+          ...comment,
+          accepted: comment.id === acceptedAnswer.acceptedId,
+        })),
+        acceptedAnswer.acceptedId,
+      )
+    : comments;
 
   const addMediaFiles = (incoming: File[]) => {
     const files = incoming.filter((f) => f.type.startsWith("image/"));
@@ -190,6 +214,7 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
 
   const handleCommentDeleted = (commentId: string) => {
     setComments((current) => current.filter((comment) => comment.id !== commentId));
+    acceptedAnswer.commentDeleted(commentId);
     updatePostInQueryCache(queryClient, postId, (current) => ({
       ...current,
       counters: { ...current.counters, comments: Math.max(0, current.counters.comments - 1) },
@@ -199,7 +224,7 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
   return (
     <PostCommentsView
       formId={`comment-form-${postId}`}
-      comments={comments}
+      comments={shownComments}
       loading={loading}
       loadingMore={loadingMore}
       hasMore={hasMore}
@@ -214,6 +239,15 @@ export function PostComments({ postId, postAuthorId }: { postId: string; postAut
           postAuthorId={postAuthorId}
           onPinChanged={() => void loadFirstPage()}
           onDeleted={handleCommentDeleted}
+          acceptance={
+            isQuestion
+              ? {
+                  pending: acceptedAnswer.pending,
+                  onAccept: () => acceptedAnswer.accept(comment.id),
+                  onUnaccept: acceptedAnswer.unaccept,
+                }
+              : undefined
+          }
         />
       )}
       replyToId={replyToId}

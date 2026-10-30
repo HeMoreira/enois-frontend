@@ -57,6 +57,26 @@ export const texts = {
     error: "Não foi possível recalcular a cotação.",
   },
 
+  /** Contas da comunidade no painel de monitorabilidade. */
+  userMetrics: {
+    title: "Contas da comunidade",
+    hint: "O crescimento é a variação sobre a base do dia anterior. A projeção estende o ritmo médio dos últimos 7 dias: o mês inteiro dilui uma semana de lançamento e esconde a tendência atual.",
+    total: "Total de contas",
+    newToday: "Entraram hoje",
+    new7: "Últimos 7 dias",
+    new30: "Últimos 30 dias",
+    growthToday: "Crescimento hoje",
+    growth7: "Ritmo por dia (7d)",
+    growth30: "Ritmo por dia (30d)",
+    average7: "Média por dia (7d)",
+    average30: "Média por dia (30d)",
+    seriesTitle: "Entradas por dia (30 dias)",
+    projection: "Projeção no ritmo de 7 dias",
+    inDays: (days: number) => `Em ${days} dias`,
+    chartLabel: (date: string, novas: string, total: string) =>
+      `${date}: ${novas} novas contas, ${total} no total`,
+  },
+
   /** Origem pública usada para montar links absolutos (miniatura de compartilhamento). */
   siteUrl: import.meta.env.VITE_SITE_URL ?? "https://enois.ia.br",
 
@@ -79,6 +99,7 @@ export const texts = {
       mentoring: "Mentoria",
       events: "Eventos",
       groups: "Grupos",
+      studyPairs: "Par de estudo",
     },
   },
 
@@ -480,6 +501,33 @@ export const texts = {
     alreadyReviewed: "Esta denúncia já foi revisada.",
     forbidden: "Sessão sem acesso de admin para esta fila.",
   },
+  onboarding: {
+    seoTitle: "Boas-vindas · Énóis",
+    /** Sugestões de habilidade no primeiro passo: amplas, porque a rede não é só de tecnologia. */
+    skillSuggestions: [
+      "Comunicação",
+      "Design",
+      "Programação",
+      "Fotografia",
+      "Escrita",
+      "Gestão de projetos",
+      "Marketing",
+      "Dados",
+      "Música",
+      "Ensino",
+    ],
+    errors: {
+      INVALID_ASSUNTO:
+        "Um dos assuntos escolhidos não existe mais. Revise a lista e tente de novo.",
+      TOO_MANY_SKILLS: "Escolha até 20 habilidades.",
+      TOO_MANY_ITEMS: "Você marcou mais itens do que o limite. Desmarque alguns e tente de novo.",
+      SKILL_TOO_LONG: "Uma das habilidades ficou longa demais. Encurte e tente de novo.",
+      CONFLICTING_PREFERENCE:
+        "Um dos assuntos está na sua lista de assuntos que você não quer ver. Ajuste em Personalização.",
+      generic: "Não deu pra salvar agora. Tente de novo em instantes.",
+    } as Record<string, string>,
+  },
+
   personalization: {
     saved: "Preferências salvas.",
     saveError: "Não foi possível salvar as preferências. Tente novamente.",
@@ -1117,6 +1165,7 @@ export const texts = {
       placeholder: "Comente com contexto, dúvida ou referência...",
       pinError: "Não foi possível fixar o comentário.",
       editError: "Não foi possível salvar a edição. Tente de novo.",
+      acceptError: "Não foi possível atualizar a resposta da dúvida. Tente de novo.",
     },
     notes: {
       sent: "Nota enviada para moderação.",
@@ -1140,6 +1189,14 @@ export const texts = {
     loadError: "Não foi possível carregar este perfil.",
     editProfile: "Editar perfil",
     message: "Mensagem",
+    city: {
+      add: "Informar cidade",
+      edit: (place: string) => `Editar cidade: ${place}`,
+      title: "Sua cidade",
+      description:
+        "Usamos sua cidade para sugerir comunidades e encontros por perto. Ela é separada do campo de localização livre.",
+      saved: "Cidade atualizada.",
+    },
     resume: {
       removed: "Currículo removido.",
       saved: "Currículo atualizado.",
@@ -1555,6 +1612,7 @@ export const texts = {
     actionError: "Não foi possível concluir. Tente novamente.",
     mineTitle: "Minhas comunidades",
     favoritesTitle: "Favoritas",
+    emptyFiltered: "Nenhuma comunidade neste local.",
     topics: {
       all: "Todas",
       TECNOLOGIA: "Tecnologia",
@@ -1656,6 +1714,19 @@ export const texts = {
     },
   },
 
+  studyPairs: {
+    seoTitle: "Par de estudo · Énóis",
+    seoDescription:
+      "Encontre alguém com o mesmo objetivo e façam um check-in curto por semana sobre os estudos.",
+    /** "Semana de 26 de out." */
+    weekLabel: (monday: string) => `Semana de ${monday}`,
+    matched: "Encontramos um par para você.",
+    cancelError: "Não foi possível cancelar o pedido. Tente de novo.",
+    endError: "Não foi possível encerrar o par. Tente de novo.",
+    reenable: "Ligar par de estudo",
+    reenableError: "Não foi possível ligar o par de estudo. Tente de novo.",
+  },
+
   events: {
     seoTitle: "Eventos · Énóis",
     title: "Eventos da comunidade",
@@ -1666,33 +1737,21 @@ export const texts = {
       IN_PERSON: "Presencial",
       HYBRID: "Híbrido",
     },
-    months: [
-      "",
-      "JAN",
-      "FEV",
-      "MAR",
-      "ABR",
-      "MAI",
-      "JUN",
-      "JUL",
-      "AGO",
-      "SET",
-      "OUT",
-      "NOV",
-      "DEZ",
-    ],
-    hostedBy: (host: string) => `por ${host}`,
-    watchLive: "Assistir ao vivo",
     /** "23 out · 08:00"; o ano só aparece quando não é o atual ("31 dez 2029 · 23:59"). */
     dateTime: (date: string, time: string) => `${dataDeEvento(date)} · ${time}`,
-    attend: "Confirmar presença",
-    cancelAttend: "Desconfirmar presença",
-    youAreGoing: "Você vai",
+    loading: "Carregando eventos...",
+    empty: "Nenhum evento por aqui ainda.",
+    emptyRituals: "Nenhum ritual por aqui ainda.",
+    createError: "Não foi possível criar o evento. Confira os dados e tente de novo.",
+    recurrence: {
+      timeRequired: "Eventos que se repetem precisam de horário.",
+      notOwner: "Só quem criou o evento muda a repetição.",
+      updateError: "Não foi possível mudar a repetição. Tente de novo.",
+    },
     attendSuccess: "Presença confirmada.",
     attendError: "Não foi possível confirmar a presença.",
     cancelAttendanceSuccess: "Presença cancelada.",
     cancelAttendanceError: "Não foi possível cancelar a presença.",
-    finished: "Encerrado",
     form: {
       title: "Título",
       date: "Data",
@@ -2974,6 +3033,13 @@ export const texts = {
     seoDescription: "Veja esta publicação no Énóis — rede humana gratuita, sem anúncios.",
     back: "Voltar",
     notFound: "Publicação não encontrada.",
+  },
+
+  notificationPreferences: {
+    seoTitle: "Preferências de notificação · Énóis",
+    title: "Preferências de notificação",
+    description:
+      "Escolha o que chega até você fora do app: o resumo semanal e os avisos no navegador.",
   },
 
   saved: {

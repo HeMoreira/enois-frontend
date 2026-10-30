@@ -19,6 +19,7 @@ import {
 
 import { ApiError, preferencesApi, profileApi } from "@/lib/api";
 import { ISO_DATE, hasMinAge } from "@/lib/min-age";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { BadgeMediaProvider } from "./badge-media-provider";
@@ -71,6 +72,7 @@ export function EditProfileDialog({ profile, children }: Props) {
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ["me"] });
       queryClient.invalidateQueries({ queryKey: ["profile", profile.username] });
+      queryClient.invalidateQueries({ queryKey: profileQueries.byId(profile.id).queryKey });
       if (updated.username && updated.username !== profile.username) {
         queryClient.invalidateQueries({ queryKey: ["profile", updated.username] });
         router.navigate({

@@ -12,6 +12,7 @@ import { companiesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { getCurrentUser } from "@/lib/current-user";
 import { dataCurta } from "@/lib/date/format";
+import { companyQueries } from "@/lib/query-options/companies";
 
 import { AppContainer } from "@/components/app-container";
 import { CompanyEditDialog } from "@/components/company-edit-dialog";
@@ -77,7 +78,7 @@ function Empresa() {
         deadline: "",
       });
       toast(texts.empresa.published, "success");
-      void queryClient.invalidateQueries({ queryKey: ["empresa", slug] });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.detail(slug).queryKey });
     },
     onError: () => toast(texts.empresa.projectError, "error"),
   });
@@ -101,7 +102,7 @@ function Empresa() {
       companiesApi.selectProposal(ids.projectId, ids.proposalId),
     onSuccess: () => {
       toast(texts.empresa.selected, "success");
-      void queryClient.invalidateQueries({ queryKey: ["empresa", slug] });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.detail(slug).queryKey });
       loadCandidatures.mutate(candidaturesFor!);
     },
   });
@@ -110,14 +111,13 @@ function Empresa() {
     mutationFn: (projectId: string) => companiesApi.complete(projectId),
     onSuccess: () => {
       toast(texts.empresa.completed, "success");
-      void queryClient.invalidateQueries({ queryKey: ["empresa", slug] });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.detail(slug).queryKey });
       setCandidaturesFor(null);
     },
   });
 
   const { data: company } = useQuery({
-    queryKey: ["empresa", slug],
-    queryFn: () => companiesApi.bySlug(slug),
+    ...companyQueries.detail(slug),
   });
   const [editOpen, setEditOpen] = useState(false);
 
@@ -127,7 +127,7 @@ function Empresa() {
       setProposalFor(null);
       setProposalMessage("");
       toast(texts.empresa.applySent, "success");
-      void queryClient.invalidateQueries({ queryKey: ["empresa", slug] });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.detail(slug).queryKey });
     },
     onError: () => toast(texts.empresa.applyError, "error"),
   });

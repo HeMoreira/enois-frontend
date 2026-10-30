@@ -33,11 +33,12 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { ApiError, mentorsApi, profileApi, walletApi } from "@/lib/api";
+import { ApiError, mentorsApi, walletApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { useCurrentUser } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
 import { FAIS_SCALE, formatFaisca, parseFaiscaInput } from "@/lib/faisca";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { requireAuth } from "@/lib/require-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
@@ -427,8 +428,7 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
   const isOwner = me?.id != null && me.id === mentor.userId;
 
   const { data: user } = useQuery({
-    queryKey: ["profile", mentor.userId],
-    queryFn: () => profileApi.getById(mentor.userId),
+    ...profileQueries.byId(mentor.userId),
   });
 
   return (

@@ -23,7 +23,7 @@ import type { CommunityCropPurpose } from "@/types/routes/communities/community-
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
 import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
-import { ImageCropDialog } from "@rede-enois/design-system/patterns";
+import { CityStateField, ImageCropDialog, LocationLine } from "@rede-enois/design-system/patterns";
 import {
   Badge,
   Button,
@@ -53,10 +53,12 @@ import {
   X,
 } from "lucide-react";
 
-import { communitiesApi, feedApi } from "@/lib/api";
+import { ApiError, communitiesApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { buildShareTags } from "@/lib/open-graph";
+import { communityQueries } from "@/lib/query-options/communities";
 import { useAuth } from "@/lib/use-auth";
+import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
@@ -183,7 +185,7 @@ function CommunityDetail() {
       toast(texts.communities.joined);
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["community", community.id, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => toast(texts.communities.actionError, "error"),
   });
@@ -194,7 +196,7 @@ function CommunityDetail() {
       setLeaveOpen(false);
       toast(texts.communities.left);
       invalidate();
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => {
       // O dono não sai sem transferir: em vez de um erro seco, oferecemos a transferência.
@@ -216,7 +218,7 @@ function CommunityDetail() {
     mutationFn: () => communitiesApi.remove(community.id),
     onSuccess: () => {
       setDeleteOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
       navigate({ to: "/comunidades" });
     },
   });
@@ -366,12 +368,14 @@ function CommunityDetail() {
                     />
                   )}
 
-                  <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-4 w-4" />
 
                       <>{texts.communities.memberCount(live.members)}</>
                     </span>
+
+                    <LocationLine city={live.city} state={live.state} />
                     {admins.length > 0 && (
                       <span>
                         <>{texts.communities.detail.createdBy}</>
@@ -873,8 +877,9 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
   };
 
   const update = useMutation({
-    mutationFn: () =>
+    mutationFn: (place: { city: string; state: string }) =>
       communitiesApi.update(community.id, {
+        ...place,
         name: name !== community.name ? name : undefined,
         description: description !== community.description ? description : undefined,
         topic: topic !== community.topic ? topic : undefined,
@@ -888,6 +893,14 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
       onClose();
     },
   });
+  const place = useCityState(community, update.error);
+  // Cidade/UF aparece embaixo do campo; qualquer outra recusa aparece acima do salvar.
+  const generalError =
+    update.error && !cityStateErrorCode(update.error)
+      ? update.error instanceof ApiError
+        ? update.error.message
+        : texts.errors.unexpected
+      : null;
 
   return (
     <div className="space-y-4 pt-2">
@@ -1062,10 +1075,18 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
         />
       </div>
 
+      <CityStateField idPrefix="community-edit" disabled={update.isPending} {...place.field} />
+
+      <p role="alert" aria-live="polite" className="text-sm text-destructive empty:hidden">
+        {generalError}
+      </p>
+
       <Button
         className="w-full rounded-full"
         disabled={!name.trim() || update.isPending}
-        onClick={() => update.mutate()}
+        onClick={() => {
+          if (place.validate()) update.mutate(place.payload);
+        }}
       >
         {update.isPending ? texts.common.saving : texts.common.save}
       </Button>
