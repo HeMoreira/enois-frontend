@@ -55,12 +55,19 @@ export function ConversationItem({
         text: conversation.lastMessage!,
         iv: conversation.lastMessageIv!,
         conversationId: conversation.id,
-      } as Parameters<typeof decryptReceived>[0]).then((plain) => {
-        if (!cancelled) {
-          setPreview(plain);
-          setDecryptingPreview(false);
-        }
-      });
+      } as Parameters<typeof decryptReceived>[0])
+        .then((plain) => {
+          if (!cancelled) {
+            setPreview(plain);
+            setDecryptingPreview(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setPreview("[Mensagem cifrada]");
+            setDecryptingPreview(false);
+          }
+        });
     });
     return () => {
       cancelled = true;

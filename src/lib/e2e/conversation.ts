@@ -63,15 +63,21 @@ async function createOrFetchKey(
   const existing = await e2eApi.myConversationKey(conversationId);
   if (existing.encryptedKey) {
     const privateKeyBase64 = await getLocalPrivateKey();
-    if (!privateKeyBase64) throw new Error("Chave privada não encontrada. Configure o E2E.");
-    const privateKey = await importPrivateKey(privateKeyBase64);
-    const symmetricKeyBase64 = await decryptWithPrivateKey(existing.encryptedKey, privateKey);
-    const key = await importSymmetricKey(symmetricKeyBase64);
-    conversationKeyCache.set(conversationId, key);
-    return key;
+    if (privateKeyBase64) {
+      try {
+        const privateKey = await importPrivateKey(privateKeyBase64);
+        const symmetricKeyBase64 = await decryptWithPrivateKey(existing.encryptedKey, privateKey);
+        const key = await importSymmetricKey(symmetricKeyBase64);
+        conversationKeyCache.set(conversationId, key);
+        return key;
+      } catch {
+        // Keypair diferente (outro device gerou) — gera nova chave pra esta conversa.
+        // Mensagens antigas cifradas com a chave anterior ficam indecifráveis neste device.
+      }
+    }
   }
 
-  // Não existe: gera e distribui.
+  // Não existe ou não conseguiu decifrar: gera e distribui.
   const newKey = await generateConversationKey();
   const symmetricKeyBase64 = await exportSymmetricKey(newKey);
 
@@ -121,15 +127,14 @@ export async function decryptReceived(message: Message): Promise<string> {
   const privateKeyBase64 = await getLocalPrivateKey();
   if (!privateKeyBase64) return "[Mensagem cifrada — configure o E2E]";
 
-  const privateKey = await importPrivateKey(privateKeyBase64);
-  const symmetricKeyBase64 = await decryptWithPrivateKey(existing.encryptedKey, privateKey);
-  const key = await importSymmetricKey(symmetricKeyBase64);
-  conversationKeyCache.set(message.conversationId, key);
-
   try {
+    const privateKey = await importPrivateKey(privateKeyBase64);
+    const symmetricKeyBase64 = await decryptWithPrivateKey(existing.encryptedKey, privateKey);
+    const key = await importSymmetricKey(symmetricKeyBase64);
+    conversationKeyCache.set(message.conversationId, key);
     return await decryptMessage(message.text, message.iv, key);
   } catch {
-    return "[Não foi possível decifrar esta mensagem]";
+    return "[Mensagem cifrada — chave não disponível]";
   }
 }
 
