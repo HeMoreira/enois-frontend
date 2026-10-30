@@ -342,7 +342,7 @@ seguintes; aqui é o mapa completo.
 | `/projetos/:username/:slug`      | `projetos.$username.$projectSlug.tsx`            | Página de projeto da comunidade.                                                |
 | `/projetos`                      | `projetos.index.tsx`                             | Catálogo de projetos da comunidade.                                             |
 | `/projetos/painel`               | `projetos.painel.tsx`                            | Painel de projetos (criar/editar, fila de revisão).                             |
-| `/rede`                          | `rede.tsx`                                       | Minha rede (conexões, sugestões).                                               |
+| `/rede`                          | `rede.tsx`                                       | Minha rede (convites, sugestões e conexões).                                    |
 | `/responsavel`                   | `responsavel.tsx`                                | Fluxo de responsável parental (ECA).                                            |
 | `/salvos`                        | `salvos.tsx`                                     | Posts salvos.                                                                   |
 | `/seguranca`                     | `seguranca.tsx`                                  | Segurança da conta: senha, 2FA, sessões, contas vinculadas.                     |
