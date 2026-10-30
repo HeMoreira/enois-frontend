@@ -32,6 +32,8 @@ import { requireAuth } from "@/lib/require-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
+import { MentorAgendaDialog } from "@/components/mentoring/mentor-agenda-dialog";
+import { WeeklyAvailabilityEditor } from "@/components/mentoring/weekly-availability-editor";
 
 export const Route = createFileRoute("/mentoria")({
   head: () => ({ meta: [{ title: texts.mentoring.seoTitle }] }),
@@ -144,6 +146,7 @@ function Mentoria() {
                     initialExpertise={myMentor?.expertise.join(", ")}
                     initialPrice={myMentor?.price}
                     initialBanner={myMentor?.banner ?? undefined}
+                    mentorId={myMentor?.id}
                   />
 
                   {createError && (
@@ -206,6 +209,7 @@ function RegisterMentorForm({
   initialExpertise,
   initialPrice,
   initialBanner,
+  mentorId,
 }: RegisterMentorFormProps) {
   const [skillsText, setSkillsText] = useState(initialExpertise ?? "");
   const [price, setPrice] = useState(initialPrice ?? texts.mentoring.free);
@@ -308,6 +312,8 @@ function RegisterMentorForm({
       >
         {isPending ? texts.common.saving : texts.common.save}
       </Button>
+
+      {mentorId && <WeeklyAvailabilityEditor mentorId={mentorId} />}
     </div>
   );
 }
@@ -363,7 +369,10 @@ function MentorCard({ mentor, openSlots = false }: MentorCardProps & { openSlots
         {/* Sidebar de estatísticas */}
         <div className="flex flex-col gap-4 md:col-span-3 text-sm">
           {isOwner ? (
-            <AddSlotDialog mentorId={mentor.id} defaultOpen={openSlots} />
+            <div className="flex flex-col gap-2">
+              <AddSlotDialog mentorId={mentor.id} defaultOpen={openSlots} />
+              <MentorAgendaDialog mentorId={mentor.id} />
+            </div>
           ) : (
             <BookSessionDialog
               mentorId={mentor.id}

@@ -6,4 +6,6 @@ export type RegisterMentorFormProps = {
   initialExpertise?: string;
   initialPrice?: string;
   initialBanner?: string;
+  /** Presente ao editar: mostra a disponibilidade semanal dentro do card de edição. */
+  mentorId?: string;
 };
