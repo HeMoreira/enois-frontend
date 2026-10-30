@@ -314,6 +314,14 @@ seguintes; aqui é o mapa completo.
 | `/vagas/:jobId/candidaturas`     | `vagas.$jobId.candidaturas.tsx`                  | Candidaturas da vaga (painel do contratante).                                 |
 | `/vagas/minhas`                  | `vagas.minhas.tsx`                               | Minhas vagas (publicadas e candidaturas).                                     |
 
+Na ativação do segundo fator por e-mail em `/seguranca`, o campo exige exatamente seis dígitos,
+preserva zeros iniciais e remove caracteres não numéricos na digitação e na colagem. O preenchimento
+automático usa `one-time-code`.
+
+O campo usa o `Input` de `@rede-enois/design-system/ui` na versão `0.12.0`, com `maxLength={6}` e
+`showCounter={false}`. O limite nativo de seis caracteres permanece ativo, sem exibir o contador
+ou o aviso de limite atingido.
+
 ## Nametag do perfil profissional
 
 O `:username` de `/profissional/:username` é o **nametag** do perfil profissional: ele é o `@` e o
