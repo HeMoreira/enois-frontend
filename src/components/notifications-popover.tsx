@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 import type { Notification } from "@/types/application/notification/notification";
@@ -9,11 +9,9 @@ import { formatNotificationTime } from "@/utils/notification-time";
 import { NotificationsPopover as NotificationsPopoverView } from "@rede-enois/design-system/domain";
 
 import { networkApi, notificationsApi } from "@/lib/api";
-import { getCurrentUserId } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
 import { isNotificationHidden } from "@/lib/notification-module";
 import { networkQueries } from "@/lib/query-options/network";
-import { profileQueries } from "@/lib/query-options/profiles";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useDisabledModules } from "@/lib/use-personalization";
 
@@ -93,34 +91,11 @@ export function NotificationsPopover() {
       notification.kind.toLowerCase() !== "new_message",
   );
 
-  const currentUserId = getCurrentUserId();
-  const rawIncoming = (pendingRequests.data?.items ?? []).filter(
-    (r) => r.status === "PENDING" && r.fromUserId !== currentUserId,
+  // The server already resolves the other person and leaves out blocked or removed accounts
+  // (`peer` is missing only on a backend older than that).
+  const incomingRequests = (pendingRequests.data?.items ?? []).filter(
+    (r) => r.status === "PENDING" && r.direction === "INCOMING" && r.peer,
   );
-
-  // Busca perfis em batch — so depois de carregar filtramos os removidos/inexistentes.
-  const incomingProfiles = useQueries({
-    queries: rawIncoming.map((r) => ({
-      ...profileQueries.byId(r.fromUserId),
-      retry: 1,
-      staleTime: 60_000,
-    })),
-  });
-  const profilesLoading = rawIncoming.length > 0 && incomingProfiles.some((q) => q.isLoading);
-  const profilesByUserId = new Map(
-    incomingProfiles.filter((q) => q.data).map((q) => [q.data!.id, q.data!]),
-  );
-
-  // Filtra removidos/banidos/inexistentes ANTES de contar — badge e lista ja nascem corretos.
-  const incomingRequests = profilesLoading
-    ? []
-    : rawIncoming.filter((r) => {
-        const p = profilesByUserId.get(r.fromUserId);
-        if (!p) return false;
-        if (p.username?.startsWith("removed-")) return false;
-        if (p.name === "Usuario removido") return false;
-        return true;
-      });
 
   const rejectConnection = useMutation({
     mutationFn: (targetUserId: string) => networkApi.remove(targetUserId),
@@ -135,20 +110,17 @@ export function NotificationsPopover() {
       onOpenChange={setOpen}
       preferencesHref="/notificacoes/preferencias"
       notifications={notificationList.map(toNotificationData)}
-      requests={incomingRequests.map((request) => {
-        const profile = profilesByUserId.get(request.fromUserId) ?? null;
-        return {
-          id: request.id,
-          fromUserId: request.fromUserId,
-          dateLabel: formatarData(request.createdAt, {
-            day: "numeric",
-            month: "short",
-          }),
-          profileHref: profile?.username ? `/perfil/${profile.username}` : null,
-          profile,
-        };
-      })}
-      requestsLoading={profilesLoading}
+      requests={incomingRequests.map((request) => ({
+        id: request.id,
+        fromUserId: request.fromUserId,
+        dateLabel: formatarData(request.createdAt, {
+          day: "numeric",
+          month: "short",
+        }),
+        profileHref: `/perfil/${request.peer.username}`,
+        profile: request.peer,
+      }))}
+      requestsLoading={pendingRequests.isLoading}
       stillPendingActorIds={pendingActorIds}
       acceptingActorId={acceptConnection.isPending ? acceptConnection.variables : null}
       rejectingActorId={rejectConnection.isPending ? rejectConnection.variables : null}
