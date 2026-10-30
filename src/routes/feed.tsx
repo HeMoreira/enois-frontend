@@ -1,4 +1,12 @@
-import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -9,6 +17,7 @@ import { PAGE_HTML_MAX_LENGTH } from "@/constants/post-page";
 import { ARTICLE_BODY_MAX_LENGTH, POST_TYPES } from "@/constants/post-types";
 import { texts } from "@/texts";
 import type { CreatePostInput } from "@/types/application/feed/create-post-input";
+import type { FeedPage } from "@/types/application/feed/feed-page";
 import type { FeedTab } from "@/types/application/feed/feed-tab";
 import type { PostView } from "@/types/application/feed/post-view";
 import type { ActiveIdentity } from "@/types/lib/active-identity";
@@ -17,6 +26,7 @@ import type { HomeTab } from "@/types/routes/feed/home-tab";
 import type { MediaItem } from "@/types/routes/feed/media-item";
 import {
   ApoieCard,
+  CaughtUpDivider,
   PostCardSkeletons,
   SpoilerPreview,
   StyledName,
@@ -62,6 +72,7 @@ import {
 import { authApi, corporateApi, eventsApi, feedApi, networkApi, profileApi } from "@/lib/api";
 import { dataHora, valorDeDataLocal } from "@/lib/date/format";
 import { clearFeedScroll, readFeedScroll } from "@/lib/feed-scroll-restoration";
+import { caughtUpIndex, useMarkFeedSeen } from "@/lib/feed/caught-up";
 import { litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { ogMetas } from "@/lib/seo";
@@ -177,7 +188,7 @@ function useFeed(tab: HomeTab, typeFilter?: string) {
   const pageSize = litePageSize(FEED_PAGE_SIZE, lite);
   return useInfiniteQuery({
     queryKey: ["feed", tab, typeFilter ?? ""],
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam }): Promise<FeedPage> =>
       tab === "CORPORATE"
         ? feedApi.corporate(pageParam ?? null, pageSize)
         : feedApi.list(pageParam ?? null, pageSize, tab, typeFilter || undefined),
@@ -474,6 +485,13 @@ function Home() {
   const mediaType = media.length > 0 ? (media[0].type === "image" ? "image" : "video") : null;
 
   const feedPosts = feedData?.pages.flatMap((page) => page.items) ?? [];
+  // O marcador vale como chegou na primeira página DESTA visita: depois do POST /feed/seen, um
+  // refetch traria o novo valor e o divisor pularia para o topo enquanto a pessoa lê.
+  const firstPage = feedData?.pages[0];
+  const [lastSeenAt, setLastSeenAt] = useState<string | null | undefined>(undefined);
+  if (lastSeenAt === undefined && firstPage) setLastSeenAt(firstPage.lastSeenAt ?? null);
+  const caughtUpAt = caughtUpIndex(feedPosts, lastSeenAt ?? null);
+  const firstPostRef = useMarkFeedSeen(feedPosts);
 
   useEffect(() => {
     const updateScrollTopVisibility = () => setShowScrollTop(window.scrollY > 400);
@@ -1091,7 +1109,20 @@ function Home() {
               </div>
             )}
 
-            {!feedLoading && feedPosts.map((p) => <PostCard key={p.id} post={p} feedTab={tab} />)}
+            {!feedLoading &&
+              feedPosts.map((p, index) => (
+                <Fragment key={p.id}>
+                  {index === caughtUpAt && <CaughtUpDivider />}
+
+                  {index === 0 ? (
+                    <div ref={firstPostRef}>
+                      <PostCard post={p} feedTab={tab} />
+                    </div>
+                  ) : (
+                    <PostCard post={p} feedTab={tab} />
+                  )}
+                </Fragment>
+              ))}
 
             {!feedLoading && feedPosts.length === 0 && <EmptyState title={texts.feed.empty} />}
 

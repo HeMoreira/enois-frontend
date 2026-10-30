@@ -106,7 +106,19 @@ export const apiSections: ApiSection[] = [
         request: `curl "${P}/feed?tab=FOR_YOU&limit=20" \\
   -H "X-Session-Token: $TOKEN"`,
         response: `200 OK
-{"items":[{"id":"post_…","type":"INSIGHT","content":"…","counters":{"reactions":26,"comments":23,"saves":3,"shares":4},"createdAt":"2026-10-15T02:16:48Z"}],"nextCursor":"2026-10-15T02:16:48Z"}`,
+{"items":[{"id":"post_…","type":"INSIGHT","content":"…","counters":{"reactions":26,"comments":23,"saves":3,"shares":4},"createdAt":"2026-10-15T02:16:48Z"}],"nextCursor":"2026-10-15T02:16:48Z","lastSeenAt":"2026-10-14T21:03:10Z"}`,
+      },
+      {
+        method: "POST",
+        path: "/feed/seen",
+        access: "auth",
+        description:
+          'Avança o marcador "Você está em dia" (só anda para frente; valor no futuro vira agora). O GET /feed devolve o marcador anterior em lastSeenAt, só na primeira página.',
+        request: `curl -X POST ${P}/feed/seen \\
+  -H "Content-Type: application/json" \\
+  -H "X-Session-Token: $TOKEN" \\
+  -d '{"seenUntil":"2026-10-15T02:16:48Z"}'`,
+        response: "204 No Content",
       },
       {
         method: "GET",
