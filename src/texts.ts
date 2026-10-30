@@ -242,6 +242,12 @@ export const texts = {
       SESSION_EXPIRED: "Sua sessão expirou. Entre novamente.",
       MEDIA_TYPE_NOT_ALLOWED:
         "Esse tipo de arquivo não é aceito aqui. Foto de perfil, capa, banner e ícones só aceitam imagem; currículo só aceita PDF.",
+      IMAGE_CONTENT_NOT_ALLOWED:
+        "Esta imagem parece conter conteúdo pornográfico e não pode ser enviada. Se acredita que houve um engano, tente outra imagem.",
+      IMAGE_CANNOT_BE_VERIFIED:
+        "Não foi possível verificar esta imagem. Tente outro arquivo ou converta para JPG ou PNG.",
+      IMAGE_MODERATION_UNAVAILABLE:
+        "A verificação de imagens está indisponível no momento. Tente novamente mais tarde.",
       IMPORT_TOO_LARGE:
         "Esse arquivo do LinkedIn é grande demais para importar. Baixe de novo só os dados do perfil (sem mensagens e conexões) e tente outra vez.",
       IDEMPOTENCY_KEY_REQUIRED:
