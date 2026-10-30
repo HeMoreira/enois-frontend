@@ -60,6 +60,7 @@ import { communityQueries } from "@/lib/query-options/communities";
 import { useAuth } from "@/lib/use-auth";
 import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
+import { uploadComposerMedia } from "@/lib/upload-composer-media";
 
 import { AppContainer } from "@/components/app-container";
 import { CommunityChannels } from "@/components/communities/community-channels";
@@ -120,6 +121,9 @@ function CommunityDetail() {
   // comunidade só dava erro).
   const [postType, setPostType] = useState<PostView["type"]>("INSIGHT");
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const mediaReady = media.every(
+    (item) => item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
+  );
   const [mediaSpoiler, setMediaSpoiler] = useState(false);
   const [pageHtml, setPageHtml] = useState("");
   const [articleBody, setArticleBody] = useState("");
@@ -243,6 +247,7 @@ function CommunityDetail() {
 
   const publish = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!mediaReady) return;
     const content = draft.trim();
     // Pagina e uma coisa OU outra (o HTML e o conteudo); artigo precisa do texto de cima E do corpo
     // — as mesmas regras do composer do feed.
@@ -253,8 +258,7 @@ function CommunityDetail() {
     try {
       let mediaIds: string[] = [];
       if (!pageMode && media.length > 0) {
-        const results = await upload.uploadAll(media.map((item) => ({ file: item.file })));
-        mediaIds = results.map((result) => result.mediaId);
+        mediaIds = await uploadComposerMedia(media, upload.uploadAll);
       }
       await createPost.mutateAsync({
         type: postType,
@@ -287,7 +291,40 @@ function CommunityDetail() {
       if (isImage && media.length >= 4) break;
 
       const preview = URL.createObjectURL(file);
-      setMedia((current) => [...current, { type: isVideo ? "video" : "image", file, preview }]);
+      const item: MediaItem = {
+        type: isVideo ? "video" : "image",
+        file,
+        preview,
+        ...(isImage ? { moderationStatus: "checking" } : {}),
+      };
+      setMedia((current) => [...current, item]);
+      if (isImage) {
+        void upload
+          .upload(file, "POST_IMAGE")
+          .then((result) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? { ...entry, mediaId: result.mediaId, moderationStatus: "allowed" }
+                  : entry,
+              ),
+            ),
+          )
+          .catch((error: unknown) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? {
+                      ...entry,
+                      moderationStatus: "blocked",
+                      moderationError:
+                        error instanceof Error ? error.message : texts.feed.composer.imageCheckError,
+                    }
+                  : entry,
+              ),
+            ),
+          );
+      }
     }
     event.target.value = "";
   };
@@ -701,7 +738,8 @@ function CommunityDetail() {
                   (pageMode ? !pageHtml.trim() : !draft.trim()) ||
                   (articleMode && !articleBody.trim()) ||
                   createPost.isPending ||
-                  upload.status === "uploading"
+                  upload.status === "uploading" ||
+                  !mediaReady
                 }
               >
                 <Send className="h-4 w-4" />
@@ -730,6 +768,18 @@ function CommunityDetail() {
                     >
                       <img src={item.preview} alt="" className="h-full w-full object-cover" />
                     </SpoilerPreview>
+                    {item.moderationStatus === "checking" && (
+                      <div className="absolute inset-0 grid place-items-center bg-surface-card/70 backdrop-blur-sm">
+                        <span className="rounded-full bg-surface-card px-2 py-1 text-[10px] text-text-strong">
+                          {texts.feed.composer.imageChecking}
+                        </span>
+                      </div>
+                    )}
+                    {item.moderationStatus === "blocked" && (
+                      <div className="absolute inset-x-1 bottom-1 rounded bg-destructive/90 px-1 py-0.5 text-[9px] leading-tight text-white">
+                        {item.moderationError ?? texts.feed.composer.imageCheckError}
+                      </div>
+                    )}
 
                     <button
                       type="button"

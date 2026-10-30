@@ -82,6 +82,7 @@ import { ogMetas } from "@/lib/seo";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
+import { uploadComposerMedia } from "@/lib/upload-composer-media";
 import { cn } from "@/lib/utils";
 
 import { AppContainer } from "@/components/app-container";
@@ -358,6 +359,7 @@ function Home() {
   });
 
   const schedulePublish = async () => {
+    if (!mediaReady) return;
     const content = draft.trim();
     if (pageMode ? !pageHtml.trim() : !content) return;
     if (articleMode && !articleBody.trim()) return;
@@ -368,8 +370,7 @@ function Home() {
       let mediaIds: string[] = [];
       let finalContent = content;
       if (!pageMode && media.length > 0) {
-        const results = await upload.uploadAll(media.map((m) => ({ file: m.file })));
-        mediaIds = results.map((r) => r.mediaId);
+        mediaIds = await uploadComposerMedia(media, upload.uploadAll);
         // Mídia NO MEIO do texto (item 9): pendentes viram ids reais no upload.
         finalContent = finalContent.replace(/\{\{media:pendente-(\d+)\}\}/g, (_mk, index) => {
           const uploaded = mediaIds[Number(index)];
@@ -410,6 +411,7 @@ function Home() {
 
   const publishPost = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!mediaReady) return;
     const content = draft.trim();
     // Pagina e uma coisa OU outra: o HTML e o conteudo e o texto do post nao e exigido. Artigo
     // precisa de titulo (o texto de cima) E do corpo. Nos demais, o texto de cima e o post.
@@ -421,8 +423,7 @@ function Home() {
     try {
       let mediaIds: string[] = [];
       if (!pageMode && media.length > 0) {
-        const results = await upload.uploadAll(media.map((m) => ({ file: m.file })));
-        mediaIds = results.map((r) => r.mediaId);
+        mediaIds = await uploadComposerMedia(media, upload.uploadAll);
       }
       const created = await createPost.mutateAsync({
         content: pageMode ? "" : content,
@@ -481,7 +482,40 @@ function Home() {
       if (isImage && media.length >= 4) break;
 
       const preview = URL.createObjectURL(file);
-      setMedia((prev) => [...prev, { type: isVideo ? "video" : "image", file, preview }]);
+      const item: MediaItem = {
+        type: isVideo ? "video" : "image",
+        file,
+        preview,
+        ...(isImage ? { moderationStatus: "checking" } : {}),
+      };
+      setMedia((prev) => [...prev, item]);
+      if (isImage) {
+        void upload
+          .upload(file, "POST_IMAGE")
+          .then((result) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? { ...entry, mediaId: result.mediaId, moderationStatus: "allowed" }
+                  : entry,
+              ),
+            ),
+          )
+          .catch((error: unknown) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? {
+                      ...entry,
+                      moderationStatus: "blocked",
+                      moderationError:
+                        error instanceof Error ? error.message : texts.feed.composer.imageCheckError,
+                    }
+                  : entry,
+              ),
+            ),
+          );
+      }
     }
   };
 
@@ -500,6 +534,9 @@ function Home() {
   };
 
   const mediaType = media.length > 0 ? (media[0].type === "image" ? "image" : "video") : null;
+  const mediaReady = media.every(
+    (item) => item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
+  );
 
   const feedPosts = feedData?.pages.flatMap((page) => page.items) ?? [];
   // O marcador vale como chegou na primeira página DESTA visita, por aba: depois do POST
@@ -694,6 +731,18 @@ function Home() {
                             className="h-48 w-full object-cover bg-surface-1"
                           />
                         </SpoilerPreview>
+                        {item.moderationStatus === "checking" && (
+                          <div className="absolute inset-0 grid place-items-center bg-surface-card/70 backdrop-blur-sm">
+                            <span className="rounded-full bg-surface-card px-3 py-1 text-xs text-text-strong">
+                              {texts.feed.composer.imageChecking}
+                            </span>
+                          </div>
+                        )}
+                        {item.moderationStatus === "blocked" && (
+                          <div className="absolute inset-x-2 bottom-2 rounded-lg bg-destructive/90 px-2 py-1 text-xs text-white">
+                            {item.moderationError ?? texts.feed.composer.imageCheckError}
+                          </div>
+                        )}
 
                         <button
                           type="button"
@@ -931,7 +980,8 @@ function Home() {
                     (pageMode ? !pageHtml.trim() : !draft.trim()) ||
                     (articleMode && !articleBody.trim()) ||
                     createPost.isPending ||
-                    upload.status === "uploading"
+                    upload.status === "uploading" ||
+                    !mediaReady
                   }
                   onClick={() => setSchedulingOpen((open) => !open)}
                   title={texts.feed.composer.scheduleHint}
@@ -948,7 +998,8 @@ function Home() {
                     (pageMode ? !pageHtml.trim() : !draft.trim()) ||
                     (articleMode && !articleBody.trim()) ||
                     createPost.isPending ||
-                    upload.status === "uploading"
+                    upload.status === "uploading" ||
+                    !mediaReady
                   }
                 >
                   {createPost.isPending || upload.status === "uploading" ? (
@@ -985,7 +1036,9 @@ function Home() {
                   type="button"
                   size="sm"
                   className="rounded-full"
-                  disabled={!scheduleAt || schedulePost.isPending || upload.status === "uploading"}
+                  disabled={
+                    !scheduleAt || schedulePost.isPending || upload.status === "uploading" || !mediaReady
+                  }
                   onClick={schedulePublish}
                 >
                   {schedulePost.isPending ? (
