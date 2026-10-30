@@ -2014,6 +2014,11 @@ export const texts = {
     sessions: "Sessões",
     nextSlot: "Próxima vaga",
     /** Disponibilidade semanal (card de edição). */
+    meetingUrl: "Sala da sessão (opcional)",
+    meetingRoom: "A sessão acontece nesta sala",
+    meetingUrlPlaceholder: "https://meet.google.com/...",
+    meetingUrlHint: "Google Meet, Jitsi ou outra sala externa. Quem agendar vê o link.",
+    meetingUrlInvalid: "O link precisa começar com https://",
     availabilityTitle: "Disponibilidade semanal",
     availabilityHint:
       "Marque os dias e horários em que você atende. Publicamos as próximas quatro semanas automaticamente — horário já reservado não é removido.",
