@@ -72,6 +72,7 @@ import { profileCardData } from "@/lib/cosmetics";
 import { connectionAction } from "@/lib/network/connection-action";
 import { buildShareTags } from "@/lib/open-graph";
 import { authorNameStyle } from "@/lib/profile-name-style";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { isApprovedSoundCloudEmbed } from "@/lib/soundcloud-embed";
 import { useAuth } from "@/lib/use-auth";
 import { useMediaUpload } from "@/lib/use-media-upload";
@@ -263,6 +264,7 @@ function Profile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["me"] });
       queryClient.invalidateQueries({ queryKey: ["profile", user.username] });
+      queryClient.invalidateQueries({ queryKey: profileQueries.byId(user.id).queryKey });
     },
   });
 
@@ -619,6 +621,9 @@ function Profile() {
                     onSaved={() => {
                       queryClient.invalidateQueries({ queryKey: ["me"] });
                       queryClient.invalidateQueries({ queryKey: ["profile", user.username] });
+                      queryClient.invalidateQueries({
+                        queryKey: profileQueries.byId(user.id).queryKey,
+                      });
                       queryClient.invalidateQueries({ queryKey: ["auth-me"] });
                     }}
                   />
@@ -1106,6 +1111,7 @@ function Profile() {
         onSaved={() => {
           queryClient.invalidateQueries({ queryKey: ["me"] });
           queryClient.invalidateQueries({ queryKey: ["profile", user.username] });
+          queryClient.invalidateQueries({ queryKey: profileQueries.byId(user.id).queryKey });
           queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         }}
       />
@@ -1124,6 +1130,7 @@ function Profile() {
           open={statusOpen}
           onOpenChange={setStatusOpen}
           username={user.username}
+          userId={user.id}
           statusText={user.statusText}
           statusIcon={user.statusIcon}
         />
@@ -1163,8 +1170,7 @@ function Section({ title, icon: Icon, children, id }: SectionProps & { id?: stri
 
 function RecommendationItem({ recommendation }: RecommendationItemProps) {
   const { data: recommender } = useQuery({
-    queryKey: ["profile", "by-id", recommendation.recommenderId],
-    queryFn: () => profileApi.getById(recommendation.recommenderId),
+    ...profileQueries.byId(recommendation.recommenderId),
   });
 
   return (

@@ -56,6 +56,7 @@ import {
 import { ApiError, communitiesApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { buildShareTags } from "@/lib/open-graph";
+import { communityQueries } from "@/lib/query-options/communities";
 import { useAuth } from "@/lib/use-auth";
 import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
@@ -184,7 +185,7 @@ function CommunityDetail() {
       toast(texts.communities.joined);
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["community", community.id, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => toast(texts.communities.actionError, "error"),
   });
@@ -195,7 +196,7 @@ function CommunityDetail() {
       setLeaveOpen(false);
       toast(texts.communities.left);
       invalidate();
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => {
       // O dono não sai sem transferir: em vez de um erro seco, oferecemos a transferência.
@@ -217,7 +218,7 @@ function CommunityDetail() {
     mutationFn: () => communitiesApi.remove(community.id),
     onSuccess: () => {
       setDeleteOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
       navigate({ to: "/comunidades" });
     },
   });

@@ -13,8 +13,9 @@ import {
 } from "@rede-enois/design-system/ui";
 import { ArrowLeft, Building2, Plus, Search } from "lucide-react";
 
-import { companiesApi, jobsApi } from "@/lib/api";
+import { companiesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
+import { companyQueries } from "@/lib/query-options/companies";
 import { useIsAuthenticated } from "@/lib/use-auth";
 
 import { AppContainer } from "@/components/app-container";
@@ -42,13 +43,11 @@ function Empresas() {
   const logged = useIsAuthenticated();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["companies", search],
-    queryFn: () => jobsApi.companies(search || undefined, 120),
+    ...companyQueries.directory(search),
   });
 
   const { data: mine } = useQuery({
-    queryKey: ["my-companies"],
-    queryFn: () => companiesApi.mine(),
+    ...companyQueries.mine(),
     enabled: logged,
   });
 
@@ -57,7 +56,8 @@ function Empresas() {
     onSuccess: (created) => {
       setCreateOpen(false);
       toast(texts.empresa.created, "success");
-      void queryClient.invalidateQueries({ queryKey: ["my-companies"] });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.mine().queryKey });
+      void queryClient.invalidateQueries({ queryKey: companyQueries.directoryKey });
       navigate({ to: "/empresa/$slug", params: { slug: created.slug } });
     },
     onError: () => toast(texts.empresa.projectError, "error"),

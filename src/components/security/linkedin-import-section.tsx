@@ -8,6 +8,7 @@ import { LinkedinImportSection as LinkedinImportSectionView } from "@rede-enois/
 import { useToast } from "@rede-enois/design-system/ui";
 
 import { preferencesApi, profileApi, projectsApi, resumeImportApi } from "@/lib/api";
+import { projectQueries } from "@/lib/query-options/projects";
 
 import { LinkedinContactsSection } from "./linkedin-contacts-section";
 
@@ -268,7 +269,7 @@ export function LinkedinImportSection({
       }
       setPreview(null);
       void queryClient.invalidateQueries({ queryKey: ["me"] });
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: projectQueries.all });
       void queryClient.invalidateQueries({ queryKey: ["experiences"] });
     },
     onError: (error) => toast(error.message, "error"),
