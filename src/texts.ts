@@ -79,6 +79,7 @@ export const texts = {
       mentoring: "Mentoria",
       events: "Eventos",
       groups: "Grupos",
+      studyPairs: "Par de estudo",
     },
   },
 
@@ -1654,6 +1655,17 @@ export const texts = {
         frameTitle: "Pré-visualização da capa da comunidade",
       },
     },
+  },
+
+  studyPairs: {
+    seoTitle: "Par de estudo · Énóis",
+    seoDescription:
+      "Encontre alguém com o mesmo objetivo e façam um check-in curto por semana sobre os estudos.",
+    /** "Semana de 26 de out." */
+    weekLabel: (monday: string) => `Semana de ${monday}`,
+    matched: "Encontramos um par para você.",
+    cancelError: "Não foi possível cancelar o pedido. Tente de novo.",
+    endError: "Não foi possível encerrar o par. Tente de novo.",
   },
 
   events: {

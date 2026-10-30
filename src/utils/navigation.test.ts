@@ -58,6 +58,10 @@ describe("navigateToHref", () => {
     expect(resolve("/configuracoes/seguranca")).toHaveBeenCalledWith({ to: "/seguranca" });
   });
 
+  it("opens the study pairs page from its notifications", () => {
+    expect(resolve("/par-de-estudo")).toHaveBeenCalledWith({ to: "/par-de-estudo" });
+  });
+
   it("nao navega para href desconhecido nem incompleto", () => {
     expect(resolve("/desconhecido")).not.toHaveBeenCalled();
     expect(resolve("/games/so-username")).not.toHaveBeenCalled();

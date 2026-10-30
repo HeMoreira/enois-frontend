@@ -13,6 +13,7 @@ import {
   Home,
   Joystick,
   MessageCircle,
+  NotebookPen,
   ShoppingBag,
   Users,
   UsersRound,
@@ -58,6 +59,13 @@ export const navigationItems: {
     module: "MENTORING",
   },
   { to: "/eventos", label: texts.navigation.items.events, icon: Calendar, module: "EVENTS" },
+  // No backend module toggles study pairs yet (ContentTaxonomy.MODULES): always visible.
+  {
+    to: "/par-de-estudo",
+    label: texts.navigation.items.studyPairs,
+    icon: NotebookPen,
+    module: null,
+  },
   { to: "/games", label: "Jogos", icon: Joystick, module: "COMMUNITY_GAMES" },
   {
     to: "/projetos",
