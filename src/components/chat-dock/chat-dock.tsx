@@ -9,6 +9,7 @@ import { authApi, messagesApi } from "@/lib/api";
 import { janelasQueCabem } from "@/lib/chat-dock/chat-dock-layout";
 import { useLarguraDaJanela } from "@/lib/chat-dock/use-largura-da-janela";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
+import { useInterfaceContext } from "@/lib/interface-context";
 import { hasSession } from "@/lib/require-auth";
 import { useIsAuthenticated } from "@/lib/use-auth";
 
@@ -57,22 +58,24 @@ function ChatDockInner() {
   const expand = useChatDockStore((s) => s.expand);
   const openChat = useChatDockStore((s) => s.openChat);
 
+  const context = useInterfaceContext();
   const {
     data: conversationsData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["conversations", "inbox"],
-    queryFn: ({ pageParam }) => messagesApi.listConversations(pageParam, 20),
+    // The dock follows the active interface: work conversations never pop up in the social one.
+    queryKey: ["conversations", "inbox", context],
+    queryFn: ({ pageParam }) => messagesApi.listConversations(pageParam, 20, context),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     staleTime: 120_000,
   });
 
   const { data: unreadData } = useQuery({
-    queryKey: ["conversations", "unread-count"],
-    queryFn: () => messagesApi.unreadCount(),
+    queryKey: ["conversations", "unread-count", context],
+    queryFn: () => messagesApi.unreadCount(context),
     refetchInterval: 15_000,
   });
 
@@ -83,10 +86,10 @@ function ChatDockInner() {
   useEffect(() => {
     if (prevUnreadRef.current >= 0 && totalUnread > prevUnreadRef.current) {
       expand();
-      queryClient.invalidateQueries({ queryKey: ["conversations", "inbox"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", "inbox", context] });
     }
     prevUnreadRef.current = totalUnread;
-  }, [totalUnread, expand, queryClient]);
+  }, [totalUnread, expand, queryClient, context]);
 
   const markAsRead = useMutation({
     mutationFn: (id: string) => messagesApi.markAsRead(id),
