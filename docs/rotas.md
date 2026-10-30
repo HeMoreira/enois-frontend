@@ -71,7 +71,11 @@ Página pública de autenticação com duas abas.
 - Grid de cards de comunidades com cover, avatar, nome, descrição, membros
 - Botão "Entrar"/"Participando" com mutation
 - Load more com cursor
-- Dialog de criação de comunidade (nome, descrição, tópico)
+- Dialog de criação de comunidade (nome, descrição, tópico, cidade e UF opcionais)
+- "Perto de você" (com sessão): `LocalCommunitiesSection` do DS com `/communities/local`; sem
+  cidade no perfil, o convite abre `ProfileCityDialog` ali mesmo
+- Filtro de local (`CommunityLocationFilter`) na URL: `?uf=MG&cidade=Belo%20Horizonte` (UF sozinha
+  filtra o estado; cidade só vale com UF). As seções fixas (minhas, favoritas) seguem o filtro
 
 **Componentes auxiliares:**
 
@@ -87,7 +91,8 @@ Página pública de autenticação com duas abas.
 
 - Cover, avatar, nome, descrição, tópico, membros
 - Botão Entrar/Sair
-- Admin pode editar (nome, descrição, cover, avatar com crop)
+- Admin pode editar (nome, descrição, cover, avatar com crop, cidade e UF)
+- Cidade/UF no cabeçalho (`LocationLine`) quando a comunidade tem lugar
 - Feed da comunidade com posts (membros podem postar)
 - Lista de membros na sidebar
 
@@ -104,7 +109,8 @@ Página pública de autenticação com duas abas.
 - Grid de cards de eventos
 - Card com data, formato (Online/Presencial/Híbrido), título, host, participantes
 - Botão "Confirmar presença" / "Desconfirmar presença"; card marcado com "Você vai" quando `attending`
-- Dialog de criação de evento (título, data, hora, realizador, formato)
+- Dialog de criação de evento (título, data, hora, realizador, formato); presencial e híbrido
+  pedem também cidade e UF estruturadas (`CityStateField`), além do local livre
 
 **Componentes auxiliares:**
 
@@ -202,6 +208,9 @@ Página pública (qualquer um pode ver). Loader busca dados ou `notFound`.
 - Seções: Sobre, Habilidades, Objetivos, Publicações
 - Sidebar: Disponibilidade, Recomendar, Recomendações recebidas, Ranking, Links externos
 - Dono do perfil: botão "Editar perfil" com dialog multi-aba
+- Cidade estruturada: o dono vê a sua (de `/me`) e abre `ProfileCityDialog` (cidade, UF e
+  "mostrar no perfil"); quem visita só vê `LocationLine` quando o dono escolheu mostrar. O campo
+  livre "local" continua separado
 - Outros usuários: botões "Mensagem" e "Conectar"
 - Recomendação com dialog
 
