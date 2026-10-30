@@ -11,6 +11,7 @@ import { NotificationsPopover as NotificationsPopoverView } from "@rede-enois/de
 import { networkApi, notificationsApi } from "@/lib/api";
 import { getCurrentUserId } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
+import { useInterfaceContext } from "@/lib/interface-context";
 import { isNotificationHidden } from "@/lib/notification-module";
 import { networkQueries } from "@/lib/query-options/network";
 import { profileQueries } from "@/lib/query-options/profiles";
@@ -21,7 +22,11 @@ import { useDisabledModules } from "@/lib/use-personalization";
 function toNotificationData(notification: Notification) {
   return {
     ...notification,
-    actorHref: notification.actorUsername ? `/perfil/${notification.actorUsername}` : null,
+    actorHref: notification.actorUsername
+      ? notification.actorIdentity === "CORPORATE"
+        ? `/profissional/${notification.actorUsername}`
+        : `/perfil/${notification.actorUsername}`
+      : null,
     timeLabel: formatNotificationTime(notification.createdAt),
   };
 }
@@ -34,9 +39,12 @@ export function NotificationsPopover() {
   const disabledModules = useDisabledModules();
   const authenticated = useIsAuthenticated();
 
+  // The bell follows the active interface: work notices in the professional one, community ones in
+  // the social one, account-wide ones (security, moderation) in both.
+  const context = useInterfaceContext();
   const { data: notificationsData } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: () => notificationsApi.list(),
+    queryKey: ["notifications", context],
+    queryFn: () => notificationsApi.list(null, 20, context),
     enabled: authenticated,
     staleTime: 30_000,
   });
