@@ -57,9 +57,9 @@ import { ApiError, communitiesApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { buildShareTags } from "@/lib/open-graph";
 import { communityQueries } from "@/lib/query-options/communities";
+import { uploadComposerMedia } from "@/lib/upload-composer-media";
 import { useAuth } from "@/lib/use-auth";
 import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
-import { uploadComposerMedia } from "@/lib/upload-composer-media";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
