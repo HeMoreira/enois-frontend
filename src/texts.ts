@@ -597,6 +597,8 @@ export const texts = {
       pushUnavailable: "Este dispositivo não suporta notificações no celular.",
       pushServerOff: "As notificações no celular ainda não estão disponíveis.",
       pushError: "Não foi possível ativar as notificações. Tente novamente.",
+      identitySocial: "Identidade ativa: social.",
+      identityCorporate: "Identidade ativa: profissional.",
     },
     changeEmail: {
       error: "Não foi possível alterar o e-mail. Tente novamente.",
@@ -905,6 +907,10 @@ export const texts = {
       seals: "Selos",
       about: "Sobre o énóis",
       home: "Início",
+      emotesTitle: "De onde vêm as figurinhas",
+      emotes:
+        "As figurinhas das conversas não são nossas nem foram feitas por nós: vêm do BetterTTV e do FrankerFaceZ, e cada uma continua pertencendo a quem a criou. O énóis não vende, não licencia e não usa essas imagens fora do site — mantém só uma cópia em cache, para elas abrirem na hora nas conversas. Se você é autor de uma figurinha e quer que ela saia do ar aqui, escreva pela página de contato e ela sai.",
+      emotesRemoval: "Pedir a remoção de uma figurinha",
     },
   },
 
@@ -1302,6 +1308,15 @@ export const texts = {
     purchaseHeld:
       "As faíscas ficam retidas com segurança até você confirmar que recebeu o conteúdo. Se algo der errado, o reembolso devolve tudo.",
     keepShopping: "Continuar comprando",
+    details: "Ver detalhes",
+    previewHint:
+      "Amostra com as cores do pacote. O item pode incluir outros ajustes além da paleta.",
+    soldBy: "Vendido por",
+    noDescription: "Quem vende não escreveu uma descrição para este item.",
+    escrowHint: "As faíscas ficam retidas até você confirmar que recebeu (ou por 7 dias).",
+    buy: "Comprar",
+    buying: "Retendo faíscas…",
+    buyError: "Não foi possível comprar agora. Confira seu saldo e tente de novo.",
   },
   projects: {
     seoTitle: "Projetos da comunidade · Énóis",
@@ -2050,6 +2065,8 @@ export const texts = {
     openError: "Não foi possível abrir a conversa. Tente novamente.",
     selectConversation: "Selecione uma conversa ou comece uma nova para exibir as mensagens",
     sendError: "Não foi possível enviar a mensagem. Tente de novo.",
+    e2eRequired:
+      "Ative a criptografia ponta a ponta para enviar e ler mensagens. Suas conversas ficam protegidas e só você e o destinatário podem ler.",
     loadMoreConversations: "Carregar conversas antigas",
     tabs: {
       all: "Todas",
@@ -2191,6 +2208,7 @@ export const texts = {
       JOB: "Vaga",
     } as Record<string, string>,
     reason: {
+      SEXUAL_CONTENT: "Nudez ou conteúdo sexual",
       AI_GENERATED: "Conteúdo gerado por IA",
       FAKE_CONTENT: "Conteúdo falso",
       SCAM: "Golpe",
@@ -2214,10 +2232,12 @@ export const texts = {
       "Restrições ativas na sua conta e o andamento dos seus recursos. A decisão final é sempre de uma pessoa do time.",
     empty: "Nenhuma penalidade na sua conta.",
     emptyHint: "Isto não é um histórico de elogios — é só o que de fato restringiu a conta.",
-    type: { RESTRICTION: "Restrição", SUSPENDED: "Suspensão", BAN: "Banimento" } as Record<
-      string,
-      string
-    >,
+    type: {
+      RESTRICTION: "Restrição",
+      SUSPENDED: "Suspensão",
+      BAN: "Banimento",
+      PERMABAN: "Banimento permanente",
+    } as Record<string, string>,
     statusLabel: {
       ACTIVE: "Ativa",
       REMOVED: "Removida",
@@ -2316,6 +2336,7 @@ export const texts = {
       actionError: "Não foi possível concluir a ação.",
       filterAll: "Todas",
       reasons: {
+        SEXUAL_CONTENT: "Nudez ou conteúdo sexual",
         AI_GENERATED: "IA gerada",
         FAKE_CONTENT: "Conteúdo falso",
         SCAM: "Golpe",
@@ -2516,6 +2537,43 @@ export const texts = {
       done: (username: string, type: "RESTRICTION" | "BAN") =>
         `@${username} punido com ${type === "BAN" ? "banimento" : "restrição"}.`,
       error: "Não foi possível aplicar a punição.",
+    },
+    penalties: {
+      title: "Penalidades aplicadas",
+      description:
+        "Quem está penalizado agora. Remova uma penalidade aplicada por engano ou corrija o tipo e o motivo sem apagar o registro — a decisão fica registrada na conta de quem levou.",
+      filterActive: "Ativas",
+      filterRemoved: "Removidas",
+      emptyActive: "Nenhuma conta penalizada agora.",
+      emptyRemoved: "Nenhuma penalidade removida.",
+      loadError: "Não foi possível carregar as penalidades.",
+      removedAt: (date: string) => `Removida em ${date}`,
+      createdAt: (date: string) => `Aplicada em ${date}`,
+      typeRestriction: "Restrição",
+      typeSuspended: "Suspensão",
+      typeBan: "Banimento",
+      typePermaban: "Banimento permanente",
+      revoke: "Remover penalidade",
+      edit: "Corrigir",
+      revokeTitle: "Remover a penalidade",
+      revokeBody: (username: string) =>
+        `A conta de @${username} volta ao normal e a denúncia de origem é descartada. Se a penalidade era um banimento, o conteúdo que já saiu não volta.`,
+      revokeReason: "Por que esta penalidade foi aplicada por engano?",
+      revokeReasonPlaceholder: "Explique a correção (pelo menos 10 caracteres).",
+      revoked: (username: string) => `Penalidade de @${username} removida.`,
+      revokeError: "Não foi possível remover a penalidade.",
+      editTitle: "Corrigir a penalidade",
+      editBody: (username: string) =>
+        `Ajustar a penalidade de @${username}. O registro é o mesmo: só o tipo e o motivo mudam.`,
+      editType: "Tipo correto",
+      editReason: "Motivo registrado",
+      editReasonPlaceholder: "Descreva o motivo correto (pelo menos 10 caracteres).",
+      save: "Salvar correção",
+      edited: (username: string) => `Penalidade de @${username} corrigida.`,
+      editError: "Não foi possível corrigir a penalidade.",
+      reasonRequired: "Explique em pelo menos 10 caracteres.",
+      cancel: "Cancelar",
+      pending: "Salvando…",
     },
   },
 
@@ -2806,6 +2864,7 @@ export const texts = {
       "Racismo, homofobia, transfobia, intolerância religiosa, xenofobia ou qualquer forma de discriminação.",
       "Assédio, ameaça ou incitação à violência contra uma pessoa ou grupo.",
       "Golpes, fraudes e esquemas financeiros que prejudiquem outras pessoas.",
+      "Nudez, pornografia e conteúdo sexual explícito, inclusive quando a imagem é o conteúdo e o texto não diz nada.",
       "Conteúdo ilegal, exploração ou sexualização de menores.",
     ],
     notWelcomeTitle: "O que não é bem-vindo",
@@ -2856,7 +2915,7 @@ export const texts = {
       backPrefix: "Voltar para a ",
       home: "página inicial",
     },
-    updatedAt: "24 de outubro de 2026",
+    updatedAt: "29 de outubro de 2026",
     terms: {
       seoTitle: "Termos de Uso · Énóis",
       seoDescription:
@@ -2877,7 +2936,7 @@ export const texts = {
         },
         {
           title: "4. Conduta do usuário",
-          text: "Você concorda em não usar a plataforma para: (a) publicar conteúdo ilegal, difamatório, discriminatório, assediador ou que incite violência; (b) violar direitos de propriedade intelectual de terceiros; (c) enviar spam, phishing ou conteúdo malicioso; (d) tentar acessar sistemas ou contas de outros usuários sem autorização; (e) coletar dados de usuários sem consentimento.\n\nPublicações que violem estas regras de conduta podem ser removidas, e a conta do infrator pode ser suspensa ou encerrada, sem prejuízo das medidas legais cabíveis.",
+          text: "Você concorda em não usar a plataforma para: (a) publicar conteúdo ilegal, difamatório, discriminatório, assediador, pornográfico, de nudez explícita ou que incite violência; (b) violar direitos de propriedade intelectual de terceiros; (c) enviar spam, phishing ou conteúdo malicioso; (d) tentar acessar sistemas ou contas de outros usuários sem autorização; (e) coletar dados de usuários sem consentimento.\n\nConteúdo sexual explícito, inclusive em imagens enviadas sem texto de apoio, é removido assim que identificado e a conta responsável é banida. Publicações que violem estas regras de conduta podem ser removidas, e a conta do infrator pode ser suspensa ou encerrada, sem prejuízo das medidas legais cabíveis.",
         },
         {
           title: "5. Conteúdo publicado",
@@ -2918,6 +2977,10 @@ export const texts = {
         {
           title: "14. Contribuição open source",
           text: "O código do Énóis é aberto e recebe contribuições pelo GitHub. Contribuir não cria vínculo empregatício, sociedade, participação societária, direito a remuneração ou expectativa de retorno financeiro. A decisão sobre aceitar, revisar ou mesclar uma contribuição é dos mantenedores, conforme o guia de contribuição e o código de conduta.\n\nO formulário de contribuição da landing existe para organizar e documentar quem procura o projeto. Ao enviar, você declara que os dados são verdadeiros e autoriza o contato pelo GitHub ou pelo e-mail informado. O envio não garante aprovação, atribuição ou prioridade; o processo segue as regras publicadas no repositório.\n\nContribuições devem vir com issue ou discussão prévia quando mudarem arquitetura, contrato público, segurança ou dados. Mudanças pequenas, com teste e descrição clara, têm prioridade. O projeto não é uma bagunça: é aberto, com processo, revisão e responsabilidade sobre o que entra.",
+        },
+        {
+          title: "15. Figurinhas de terceiros",
+          text: "As figurinhas disponíveis nas conversas do Énóis não são criadas nem de propriedade da plataforma. Elas vêm de dois catálogos públicos de emotes, o BetterTTV e o FrankerFaceZ, e cada imagem continua pertencendo a quem a criou. A plataforma não reivindica direito autoral sobre essas artes.\n\nO Énóis não vende, não licencia, não sublicencia e não explora comercialmente essas imagens. O uso é acessório e não comercial: a plataforma mantém uma cópia temporária em cache, para que a figurinha abra imediatamente nas conversas em vez de depender do tempo de resposta dos sites de origem. Essa cópia não é oferecida para download, para redistribuição nem para uso fora do Énóis.\n\nSe você é autor ou titular de uma figurinha e não quer que ela apareça na plataforma, escreva pela página de contato (enois.ia.br/contato) informando o código e o endereço da figurinha. A remoção é feita assim que o pedido é confirmado, sem necessidade de justificativa, e o código correspondente passa a não ser mais exibido nas conversas.\n\nAs marcas, os nomes e os logotipos do BetterTTV e do FrankerFaceZ pertencem aos seus respectivos titulares. O Énóis não tem vínculo, patrocínio ou endosso dessas plataformas.",
         },
       ],
     },

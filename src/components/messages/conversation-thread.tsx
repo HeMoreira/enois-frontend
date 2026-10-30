@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   keepPreviousData,
@@ -18,7 +18,6 @@ import {
 import { useToast } from "@rede-enois/design-system/ui";
 
 import { messagesApi, profileApi, reportsApi, servicesApi } from "@/lib/api";
-import { authApi } from "@/lib/api/auth";
 import { encryptForSend } from "@/lib/e2e/conversation";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { useDecryptedMessages } from "@/lib/e2e/use-decrypted-messages";
@@ -27,7 +26,6 @@ import { authorNameStyle } from "@/lib/profile-name-style";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
-import { E2eSetupBanner } from "./e2e-setup-banner";
 import { MessageBubble } from "./message-bubble";
 
 /** Tamanho que o app sempre usou; em modo lite cada página vem maior (menos idas ao servidor). */
@@ -51,6 +49,11 @@ export function ConversationThread({
   const [showServices, setShowServices] = useState(false);
   const [selectingMessages, setSelectingMessages] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<{
+    id: string;
+    from: string;
+    text: string;
+  } | null>(null);
 
   // Paginado por cursor: a primeira pagina so traz as mensagens mais recentes — sem carregar as
   // anteriores as de semanas atras ficavam inalcancaveis.
@@ -77,23 +80,21 @@ export function ConversationThread({
   const peerLastReadAt = conversation.otherLastReadAt
     ? new Date(conversation.otherLastReadAt).getTime()
     : null;
-  const { data: authMe } = useQuery({
-    queryKey: ["auth-me"],
-    queryFn: () => authApi.me(),
-  });
-  const [e2eReady, setE2eReady] = useState<boolean | null>(null);
-  useEffect(() => {
-    hasLocalKeys().then(setE2eReady);
-  }, []);
-
   const rawMessages = (messagesData?.pages.flatMap((page) => page.items) ?? []).sort(
     (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime(),
   );
   const { messages, decrypting } = useDecryptedMessages(rawMessages);
 
   const sendMessage = useMutation({
-    mutationFn: ({ conversationId, text, mediaIds, mediaSpoiler, e2e }: SendMessageInput) =>
-      messagesApi.sendMessage(conversationId, text, mediaIds, mediaSpoiler, e2e),
+    mutationFn: ({
+      conversationId,
+      text,
+      mediaIds,
+      mediaSpoiler,
+      e2e,
+      replyToId,
+    }: SendMessageInput) =>
+      messagesApi.sendMessage(conversationId, text, mediaIds, mediaSpoiler, e2e, replyToId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -163,7 +164,7 @@ export function ConversationThread({
   };
 
   /** Sobe as imagens (a falha volta para o compositor mostrar) e envia a mensagem. */
-  const send = async ({ text, files, mediaSpoiler }: ConversationSendValues) => {
+  const send = async ({ text, files, mediaSpoiler, replyToId }: ConversationSendValues) => {
     let mediaIds: string[] = [];
     if (files.length > 0) {
       const results = await upload.uploadAll(files.map((file) => ({ file })));
@@ -177,7 +178,14 @@ export function ConversationThread({
         // E2E falhou — envia em texto claro.
       }
     }
-    sendMessage.mutate({ conversationId: conversation.id, text, mediaIds, mediaSpoiler, e2e });
+    sendMessage.mutate({
+      conversationId: conversation.id,
+      text,
+      mediaIds,
+      mediaSpoiler,
+      e2e,
+      replyToId,
+    });
   };
 
   const otherParticipantId = conversation.participantIds.find((id) => id !== currentUserId);
@@ -202,15 +210,6 @@ export function ConversationThread({
       peer={otherUser && { ...otherUser, nameStyle: authorNameStyle(otherUser) }}
       profileHref={`/perfil/${otherUser?.username ?? otherParticipantId ?? ""}`}
       onBack={onBack}
-      banner={
-        e2eReady === false && authMe ? (
-          <E2eSetupBanner
-            hasPassword={authMe.hasPassword}
-            onSetupComplete={() => setE2eReady(true)}
-          />
-        ) : undefined
-      }
-      e2eRequired={e2eReady === false}
       loading={isLoadingMessages || decrypting}
       empty={messages.length === 0}
       newestMessageId={messages.length > 0 ? messages[messages.length - 1].id : null}
@@ -236,6 +235,16 @@ export function ConversationThread({
         const origin = typeof window === "undefined" ? "" : window.location.origin;
         return `${origin}/servicos#oferta-${serviceId}`;
       }}
+      replyingTo={
+        replyingTo
+          ? {
+              id: replyingTo.id,
+              from: replyingTo.from === currentUserId ? "Você" : (otherUser?.name ?? "..."),
+              text: replyingTo.text,
+            }
+          : null
+      }
+      onCancelReply={() => setReplyingTo(null)}
     >
       {messages.map((m) => (
         <MessageBubble
@@ -263,6 +272,11 @@ export function ConversationThread({
             showingPreviousThread || m.from === currentUserId
               ? undefined
               : () => reportMessage(m.id, conversation.id)
+          }
+          onReply={
+            showingPreviousThread
+              ? undefined
+              : () => setReplyingTo({ id: m.id, from: m.from, text: m.text })
           }
         />
       ))}

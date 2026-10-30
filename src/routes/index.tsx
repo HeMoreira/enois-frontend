@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 
 import { SIGNUP_OPEN } from "@/constants/account";
 import { texts } from "@/texts";
@@ -11,11 +11,17 @@ import { ArrowRight, ArrowUpRight, GitPullRequest, ShieldAlert } from "lucide-re
 
 import { statsApi } from "@/lib/api";
 import { anoAtual } from "@/lib/date/format";
+import { hasSessionFlag } from "@/lib/session";
 
 import { ContributionForm } from "@/components/contribution-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && hasSessionFlag()) {
+      throw redirect({ to: "/feed" });
+    }
+  },
   head: () => {
     // Cartão de marca usado ao compartilhar a página inicial.
     const shareImage = `${texts.siteUrl}/landing/brand-og.png`;
@@ -742,6 +748,31 @@ function Landing() {
             <p className="max-w-3xl text-xs font-normal leading-relaxed text-muted-foreground">
               {texts.about.disclaimer}
             </p>
+
+            {/*
+              Procedência das figurinhas. O catálogo do backend guarda cópia das artes do BetterTTV e do
+              FrankerFaceZ para servir de memória; nenhuma das duas plataformas licencia o conteúdo sob
+              Creative Commons, e as duas proíbem redistribuição sem autorização. O aviso existe para
+              deixar claro que a arte não é nossa, e o link de contato é a via de remoção.
+            */}
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                {texts.landing.footer.emotesTitle}
+              </p>
+
+              <p className="mt-2 text-xs font-normal leading-relaxed text-muted-foreground">
+                {texts.landing.footer.emotes}
+              </p>
+
+              <Link
+                to="/contato"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+              >
+                {texts.landing.footer.emotesRemoval}
+
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

@@ -72,6 +72,28 @@ O limite da navegação é 1024px (`lg`): abaixo, hambúrguer/drawer; a partir, 
 - `SearchBox()` - Input de busca global com debounce (250ms), resultados em popover, suporte mobile
 - `formatTime(iso)` - Formata ISO timestamp para relativo em português
 
+## Menu da conta e identidade ativa (`src/components/account-menu.tsx`)
+
+Menu do avatar no header, renderizado pelo `AccountMenu` do design system. Além dos atalhos da
+conta, ele escolhe qual identidade o `/feed` usa: **social** ou **profissional**. A escolha fica
+gravada no aparelho; fora do feed, o efeito visível é o toast de confirmação.
+
+**Regras da troca:**
+
+- A seção "Identidade" só aparece com o perfil profissional **`ACTIVE`**. Em `DRAFT` (rascunho) ou
+  `DISABLED`, ela não é exibida — o controle ficaria desabilitado sem explicar o motivo. O item
+  "Perfil profissional" do menu leva a `/profissional` para criar ou ativar o perfil.
+- A escolha é gravada em `localStorage('connect-grow-active-identity')` (como o tema) e sincroniza
+  entre abas pelo evento `storage` — ver `src/lib/active-identity.ts`.
+- `effectiveIdentity()` faz o **fallback de leitura** para `SOCIAL` quando o perfil não existe ou
+  não está ativo: a interface nunca exibe um perfil inativo. A preferência continua gravada — se o
+  perfil voltar a ficar ativo, a identidade profissional volta a valer.
+- Ao escolher, o menu fecha e um toast confirma a identidade ativa. No `/feed`, a identidade
+  profissional deixa o compositor só com publicações `BUSINESS` (feed corporativo), removendo
+  também os tipos de página e artigo da seleção; a social remove o `BUSINESS`.
+- É conveniência de interface, **não autorização**: o backend decide a autoria de cada publicação e
+  valida permissões em toda requisição.
+
 ## `PostCard` (`src/components/post-card.tsx`)
 
 Card de post no feed, com todas as ações sociais.
@@ -119,7 +141,11 @@ Dialog multi-aba para edição completa do perfil.
 **Componentes internos:**
 
 - `Field()` - Wrapper de campo com label e erro
-- `SubList()` - Componente genérico de CRUD para listas aninhadas
+- `SubList()` - Componente genérico de CRUD para listas aninhadas. Antes de salvar, valida com
+  `subListErrors` (no design system, `src/domain/profile/sub-list-errors.ts`): campos obrigatórios, data que o
+  navegador recusou (ex.: 31/11) e, nas listas com "atualmente aqui", data de fim quando o item foi
+  encerrado — o backend deriva "atual" de `endDate == null` e não lê `currentlyHere`. Erro da API
+  aparece no formulário, que só fecha quando salvou.
 
 ## `ImageCropDialog` (`@rede-enois/design-system/patterns`)
 
@@ -173,6 +199,17 @@ a troca por imagem acontece na leitura (`useEmoteText` dentro do `RichText`), en
 - **Tamanho no chat:** `src/styles.css` casa pelo caminho `/emotes/image/` e dá a toda figurinha a
   mesma caixa quadrada de 28px com `object-fit: contain` (os CDNs dos provedores continuam na regra
   para texto antigo).
+- **Procedência e crédito:** as artes não são nossas. O BetterTTV e o FrankerFaceZ **não** licenciam
+  os emotes sob Creative Commons — os termos dos dois proíbem copiar, hospedar ou redistribuir sem
+  autorização expressa (FFZ: "users are forbidden from downloading, hosting, modifying, or
+  redistributing content hosted on FFZ servers without explicit permission from both FFZ and the
+  original owner(s)"; BetterTTV: "You may not distribute, modify, transmit, reuse, download, repost,
+  copy, or use said Content… for commercial purposes or for personal gain, without express advance
+  written permission"), e o uso da API do FFZ por aplicação não ligada ao Twitch também depende de
+  permissão. Por isso o rodapé da landing declara a origem (`texts.landing.footer.emotesTitle` /
+  `emotes`) e oferece a via de remoção pela página de contato; os Termos de Uso têm a seção
+  "15. Figurinhas de terceiros". O aviso não substitui a autorização dos provedores: enquanto ela não
+  existir, o uso é acessório e não comercial, sem venda nem licenciamento das imagens.
 
 ## `UserAvatar` (`@rede-enois/design-system/domain`)
 

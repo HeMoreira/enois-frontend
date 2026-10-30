@@ -61,6 +61,7 @@ import { MonitoringSection } from "@/components/moderation/monitoring-section";
 import { NotesSection } from "@/components/moderation/notes-section";
 import { NoticesSection } from "@/components/moderation/notices-section";
 import { PanicModeSection } from "@/components/moderation/panic-mode-section";
+import { PenaltiesSection } from "@/components/moderation/penalties-section";
 import { ProjectsReviewSection } from "@/components/moderation/projects-review-section";
 import { PullRequestsSection } from "@/components/moderation/pull-requests-section";
 import { SupportTicketsSection } from "@/components/moderation/support-tickets-section";
@@ -1169,6 +1170,9 @@ function SanctionSection({ me }: { me: ModeratorMeView }) {
         ))}
 
       <SanctionProposalQueue me={me} votingEnabled={votingEnabled} />
+
+      {/* Só o admin corrige penalidade já aplicada; o moderador vê o que a API libera. */}
+      {me.admin && <PenaltiesSection />}
     </div>
   );
 }

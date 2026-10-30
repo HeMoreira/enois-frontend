@@ -8,9 +8,10 @@ import { ConversationListSkeletons, UserAvatar } from "@rede-enois/design-system
 import { Button, ConfirmDialog, Input, useToast } from "@rede-enois/design-system/ui";
 import { Search } from "lucide-react";
 
-import { messagesApi, networkApi } from "@/lib/api";
+import { authApi, messagesApi, networkApi } from "@/lib/api";
 import { conversationErrorMessage } from "@/lib/conversation-error";
 import { useCurrentUser } from "@/lib/current-user";
+import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { liteInterval, litePageSize } from "@/lib/lite-mode";
 import { requireAuth } from "@/lib/require-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
@@ -19,6 +20,7 @@ import { AppContainer } from "@/components/app-container";
 import { SaciSpot } from "@/components/events/saci-spot";
 import { ConversationItem } from "@/components/messages/conversation-item";
 import { ConversationThread } from "@/components/messages/conversation-thread";
+import { E2eSetupBanner } from "@/components/messages/e2e-setup-banner";
 
 export const Route = createFileRoute("/mensagens")({
   beforeLoad: requireAuth,
@@ -36,10 +38,19 @@ const CONVERSATIONS_PAGE_SIZE = 20;
 function Mensagens() {
   const { conversation } = Route.useSearch();
   const lite = useLiteMode();
-  // Inscrito na query do /me: quando a resposta chega, a tela redesenha com o id certo (sem
-  // isso, a busca de "outro participante" ficava com o id de quem esta olhando).
   const { data: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id ?? null;
+
+  // Gate E2E: verifica se tem chave local antes de mostrar qualquer conversa.
+  const [e2eReady, setE2eReady] = useState<boolean | null>(null);
+  useEffect(() => {
+    hasLocalKeys().then(setE2eReady);
+  }, []);
+  const { data: authMe } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: () => authApi.me(),
+    enabled: e2eReady === false,
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -150,6 +161,23 @@ function Mensagens() {
     mutationFn: (conversationId: string) => messagesApi.markAsRead(conversationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conversations"] }),
   });
+
+  if (e2eReady === false && authMe) {
+    return (
+      <AppContainer>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 rounded-2xl border border-border-soft bg-surface-card p-8">
+          <E2eSetupBanner
+            hasPassword={authMe.hasPassword}
+            onSetupComplete={() => setE2eReady(true)}
+          />
+
+          <p className="max-w-md text-center text-xs text-text-subtle">
+            {texts.messages.e2eRequired}
+          </p>
+        </div>
+      </AppContainer>
+    );
+  }
 
   return (
     <AppContainer>
