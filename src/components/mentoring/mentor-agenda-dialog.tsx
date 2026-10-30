@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
@@ -9,18 +9,21 @@ import { UserAvatar } from "@rede-enois/design-system/domain";
 import {
   Badge,
   Button,
+  ConfirmDialog,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
   EmptyState,
+  useToast,
 } from "@rede-enois/design-system/ui";
-import { CalendarDays, MessageCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Coins, MessageCircle, X } from "lucide-react";
 
 import { mentorsApi, messagesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { formatarData } from "@/lib/date/format";
+import { formatFaisca } from "@/lib/faisca";
 
 const STATUS_LABELS: Record<MenteeSession["status"], string> = {
   SCHEDULED: texts.mentoring.statusScheduled,
@@ -46,9 +49,16 @@ const formatWhen = (value: string | null) => {
  */
 export function MentorAgendaDialog({ mentorId }: { mentorId: string }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [contacting, setContacting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Ação pendente de confirmação (concluir/cancelar) — uma por vez, com o diálogo do design system. */
+  const [pending, setPending] = useState<{
+    kind: "complete" | "cancel";
+    session: MenteeSession;
+  } | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mentor-sessions", mentorId],
@@ -59,6 +69,40 @@ export function MentorAgendaDialog({ mentorId }: { mentorId: string }) {
   const sessions = data ?? [];
   const upcoming = sessions.filter((session) => session.status === "SCHEDULED");
   const others = sessions.filter((session) => session.status !== "SCHEDULED");
+
+  const refreshAfterAction = () => {
+    queryClient.invalidateQueries({ queryKey: ["mentor-sessions", mentorId] });
+    queryClient.invalidateQueries({ queryKey: ["mentors"] });
+    queryClient.invalidateQueries({ queryKey: ["wallet"] });
+  };
+
+  const complete = useMutation({
+    mutationFn: (session: MenteeSession) => mentorsApi.completeSession(mentorId, session.id),
+    onSuccess: () => {
+      refreshAfterAction();
+      toast(texts.mentoring.completeSuccess, "success");
+      setPending(null);
+    },
+    onError: () => {
+      toast(texts.mentoring.completeError, "error");
+      setPending(null);
+    },
+  });
+
+  const cancel = useMutation({
+    mutationFn: (session: MenteeSession) => mentorsApi.cancelSession(mentorId, session.id),
+    onSuccess: () => {
+      refreshAfterAction();
+      toast(texts.mentoring.cancelSuccess, "success");
+      setPending(null);
+    },
+    onError: () => {
+      toast(texts.mentoring.cancelError, "error");
+      setPending(null);
+    },
+  });
+
+  const confirming = pending?.kind === "complete" ? complete : cancel;
 
   const openConversation = async (menteeId: string) => {
     setError(null);
@@ -115,6 +159,8 @@ export function MentorAgendaDialog({ mentorId }: { mentorId: string }) {
                 emptyLabel={texts.mentoring.agendaNoUpcoming}
                 contacting={contacting}
                 onMessage={openConversation}
+                onComplete={(session) => setPending({ kind: "complete", session })}
+                onCancel={(session) => setPending({ kind: "cancel", session })}
               />
 
               {others.length > 0 && (
@@ -134,6 +180,34 @@ export function MentorAgendaDialog({ mentorId }: { mentorId: string }) {
             </p>
           )}
         </div>
+
+        <ConfirmDialog
+          open={pending != null}
+          onOpenChange={(next) => {
+            if (!next) setPending(null);
+          }}
+          title={
+            pending?.kind === "complete"
+              ? texts.mentoring.completeSession
+              : texts.mentoring.cancelSession
+          }
+          description={
+            pending?.kind === "complete"
+              ? texts.mentoring.completeConfirm
+              : texts.mentoring.cancelConfirm
+          }
+          confirmLabel={
+            pending?.kind === "complete"
+              ? texts.mentoring.completeSession
+              : texts.mentoring.cancelSession
+          }
+          cancelLabel={texts.mentoring.agendaKeep}
+          destructive={pending?.kind === "cancel"}
+          pending={confirming.isPending}
+          onConfirm={() => {
+            if (pending) confirming.mutate(pending.session);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -145,12 +219,17 @@ function SessionGroup({
   emptyLabel,
   contacting,
   onMessage,
+  onComplete,
+  onCancel,
 }: {
   title: string;
   sessions: MenteeSession[];
   emptyLabel?: string;
   contacting: string | null;
   onMessage: (menteeId: string) => void;
+  /** Só o grupo das agendadas oferece as ações de conclusão e cancelamento. */
+  onComplete?: (session: MenteeSession) => void;
+  onCancel?: (session: MenteeSession) => void;
 }) {
   return (
     <section className="space-y-2">
@@ -185,6 +264,14 @@ function SessionGroup({
                   </p>
 
                   <p className="text-xs text-muted-foreground">{formatWhen(session.startsAt)}</p>
+
+                  {session.priceSparks != null && (
+                    <p className="inline-flex items-center gap-1 text-xs text-primary">
+                      <Coins className="h-3 w-3" />
+
+                      <>{texts.mentoring.paidWithSparks(formatFaisca(session.priceSparks))}</>
+                    </p>
+                  )}
                 </div>
 
                 <Badge variant="secondary" className="shrink-0 rounded-full text-xs font-normal">
@@ -198,18 +285,44 @@ function SessionGroup({
                 </p>
               )}
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full"
-                disabled={contacting === session.menteeId}
-                onClick={() => onMessage(session.menteeId)}
-              >
-                <MessageCircle className="mr-1 h-3.5 w-3.5" />
-                {contacting === session.menteeId
-                  ? texts.mentoring.agendaOpening
-                  : texts.mentoring.agendaMessage}
-              </Button>
+              <div className="flex flex-wrap items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={contacting === session.menteeId}
+                  onClick={() => onMessage(session.menteeId)}
+                >
+                  <MessageCircle className="mr-1 h-3.5 w-3.5" />
+                  {contacting === session.menteeId
+                    ? texts.mentoring.agendaOpening
+                    : texts.mentoring.agendaMessage}
+                </Button>
+
+                {onComplete && session.status === "SCHEDULED" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => onComplete(session)}
+                  >
+                    <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                    {texts.mentoring.completeSession}
+                  </Button>
+                )}
+
+                {onCancel && session.status === "SCHEDULED" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full text-destructive"
+                    onClick={() => onCancel(session)}
+                  >
+                    <X className="mr-1 h-3.5 w-3.5" />
+                    {texts.mentoring.cancelSession}
+                  </Button>
+                )}
+              </div>
             </li>
           ))}
         </ul>

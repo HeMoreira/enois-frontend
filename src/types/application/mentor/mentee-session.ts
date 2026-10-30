@@ -12,5 +12,7 @@ export type MenteeSession = {
   endsAt: string | null;
   message: string | null;
   status: SessionStatus;
+  /** Preço pago em milésimos de faísca (`null` quando a sessão é gratuita). */
+  priceSparks: number | null;
   createdAt: string;
 };

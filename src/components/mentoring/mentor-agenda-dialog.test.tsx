@@ -18,12 +18,18 @@ import { MentorAgendaDialog } from "./mentor-agenda-dialog";
  */
 const mocks = vi.hoisted(() => ({
   getSessions: vi.fn(),
+  completeSession: vi.fn(),
+  cancelSession: vi.fn(),
   openDirect: vi.fn(),
   navigate: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
-  mentorsApi: { getSessions: mocks.getSessions },
+  mentorsApi: {
+    getSessions: mocks.getSessions,
+    completeSession: mocks.completeSession,
+    cancelSession: mocks.cancelSession,
+  },
   messagesApi: { openDirect: mocks.openDirect },
 }));
 vi.mock("@/lib/api/media", () => ({ resolveCdnUrl: (url: string) => url }));
@@ -42,6 +48,7 @@ const session: MenteeSession = {
   endsAt: "2026-11-02T23:00:00Z",
   message: "Quero revisar meu portfólio",
   status: "SCHEDULED",
+  priceSparks: 300_000,
   createdAt: "2026-10-30T12:00:00Z",
 };
 
@@ -53,6 +60,8 @@ beforeEach(() => {
   document.body.append(container);
   root = createRoot(container);
   mocks.getSessions.mockReset();
+  mocks.completeSession.mockReset();
+  mocks.cancelSession.mockReset();
   mocks.openDirect.mockReset();
   mocks.navigate.mockReset();
 });
@@ -96,6 +105,49 @@ describe("MentorAgendaDialog", () => {
     expect(document.body.textContent).toContain("@ana-silva");
     expect(document.body.textContent).toContain("Quero revisar meu portfólio");
     expect(document.body.textContent).toContain("Agendada");
+    // A sessão paga mostra de quanto foi o escrow (300.000 mf = 300 faíscas).
+    expect(document.body.textContent).toContain("pago com 300 faíscas");
+  });
+
+  it("conclui a sessão paga e reabre o valor para o mentor", async () => {
+    mocks.completeSession.mockResolvedValue({ id: "mentor_session_1", status: "COMPLETED" });
+    await openAgenda([session]);
+
+    await act(async () => {
+      buttonByText("Concluir sessão")?.click();
+      await Promise.resolve();
+    });
+
+    // A ação passa pelo diálogo de confirmação do design system antes de chamar a API.
+    const confirm = Array.from(document.querySelectorAll("button")).filter((item) =>
+      item.textContent?.includes("Concluir sessão"),
+    );
+    await act(async () => {
+      confirm.at(-1)?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.completeSession).toHaveBeenCalledWith("mentor_1", "mentor_session_1");
+  });
+
+  it("cancela a sessão pelo diálogo de confirmação", async () => {
+    mocks.cancelSession.mockResolvedValue({ id: "mentor_session_1", status: "CANCELLED" });
+    await openAgenda([session]);
+
+    await act(async () => {
+      buttonByText("Cancelar sessão")?.click();
+      await Promise.resolve();
+    });
+
+    const confirm = Array.from(document.querySelectorAll("button")).filter((item) =>
+      item.textContent?.includes("Cancelar sessão"),
+    );
+    await act(async () => {
+      confirm.at(-1)?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.cancelSession).toHaveBeenCalledWith("mentor_1", "mentor_session_1");
   });
 
   it("abre a conversa direta com o mentorado", async () => {
