@@ -16,7 +16,12 @@ import {
   StyledName,
   UserAvatar,
 } from "@rede-enois/design-system/domain";
-import { ImageCropDialog, InfiniteScroll } from "@rede-enois/design-system/patterns";
+import {
+  ImageCropDialog,
+  InfiniteScroll,
+  LocationLine,
+  formatLocation,
+} from "@rede-enois/design-system/patterns";
 import {
   Button,
   Dialog,
@@ -84,6 +89,7 @@ import { ProfileBioDialog } from "@/components/profile-bio-dialog";
 import { ProfileResumeDialog } from "@/components/profile-resume-dialog";
 import { ProfileSeals } from "@/components/profile-seals";
 import { ProfileExperiencesSection } from "@/components/profile/experiences-section";
+import { ProfileCityDialog } from "@/components/profile/profile-city-dialog";
 import { ProfileCommunityShelf } from "@/components/profile/profile-community-shelf";
 import { ProfileExplorePanel } from "@/components/profile/profile-explore-panel";
 import { ProfileGamificationPanel } from "@/components/profile/profile-gamification-panel";
@@ -170,6 +176,7 @@ function Profile() {
   const [statusOpen, setStatusOpen] = useState(false);
   // A capa tem duas formas (foto ou HTML/CSS): o dialogo escolhe, e o clique na capa abre ele.
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
   const [networkDialogKind, setNetworkDialogKind] = useState<"connections" | "followers" | null>(
     null,
   );
@@ -488,6 +495,28 @@ function Profile() {
 
                     <>{user.location}</>
                   </span>
+                )}
+                {/* Cidade estruturada: o dono vê a sua (vinda de /me, mesmo privada) e edita;
+                    quem visita só recebe a cidade quando o dono escolheu mostrar. */}
+                {isOwnProfile ? (
+                  <button
+                    type="button"
+                    onClick={() => setCityOpen(true)}
+                    aria-label={
+                      myProfile?.city
+                        ? texts.profile.city.edit(formatLocation(myProfile.city, myProfile.state))
+                        : texts.profile.city.add
+                    }
+                    className="inline-flex min-w-0 items-center gap-1.5 rounded-full underline-offset-4 transition hover:text-text-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+
+                    <span className="truncate">
+                      {formatLocation(myProfile?.city, myProfile?.state) || texts.profile.city.add}
+                    </span>
+                  </button>
+                ) : (
+                  <LocationLine city={user.city} state={user.state} />
                 )}
                 <span>{texts.profile.connectionsMeta(user.connectionsCount ?? 0)}</span>
                 {(user.reputation ?? 0) > 0 && (
@@ -1049,6 +1078,7 @@ function Profile() {
           statusIcon={user.statusIcon}
         />
       )}
+      {isOwnProfile && <ProfileCityDialog open={cityOpen} onOpenChange={setCityOpen} />}
       <ProfileNetworkDialog
         username={user.username}
         name={user.name}

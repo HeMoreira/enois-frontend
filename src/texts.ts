@@ -1140,6 +1140,14 @@ export const texts = {
     loadError: "Não foi possível carregar este perfil.",
     editProfile: "Editar perfil",
     message: "Mensagem",
+    city: {
+      add: "Informar cidade",
+      edit: (place: string) => `Editar cidade: ${place}`,
+      title: "Sua cidade",
+      description:
+        "Usamos sua cidade para sugerir comunidades e encontros por perto. Ela é separada do campo de localização livre.",
+      saved: "Cidade atualizada.",
+    },
     resume: {
       removed: "Currículo removido.",
       saved: "Currículo atualizado.",
@@ -1555,6 +1563,7 @@ export const texts = {
     actionError: "Não foi possível concluir. Tente novamente.",
     mineTitle: "Minhas comunidades",
     favoritesTitle: "Favoritas",
+    emptyFiltered: "Nenhuma comunidade neste local.",
     topics: {
       all: "Todas",
       TECNOLOGIA: "Tecnologia",
