@@ -33,6 +33,10 @@ describe("mediaUploadResponseError", () => {
   it("keeps an HTTP fallback when the proxy body is not JSON", () => {
     const error = mediaUploadResponseError(503, "temporarily unavailable", "/storage/key");
 
-    expect(error).toMatchObject({ status: 503, path: "/storage/key", message: "Upload falhou: 503" });
+    expect(error).toMatchObject({
+      status: 503,
+      path: "/storage/key",
+      message: "Upload falhou: 503",
+    });
   });
 });
