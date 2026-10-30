@@ -15,6 +15,7 @@ import {
 import { useToast } from "@rede-enois/design-system/ui";
 
 import { companiesApi, searchApi } from "@/lib/api";
+import { resolveCdnUrl } from "@/lib/api/media";
 import { companyQueries } from "@/lib/query-options/companies";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
@@ -122,7 +123,13 @@ function TeamSection({ companyId }: { companyId: string }) {
 
   return (
     <CompanyTeamSectionView
-      members={members ?? []}
+      members={(members ?? []).map((member) => ({
+        userId: member.userId,
+        role: member.role,
+        name: member.person?.name ?? null,
+        username: member.person?.username ?? null,
+        avatar: member.person?.avatar ? (resolveCdnUrl(member.person.avatar) ?? null) : null,
+      }))}
       search={busca}
       onSearchChange={setBusca}
       results={(resultados.data?.items ?? []).map((item) => ({
