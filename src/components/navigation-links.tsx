@@ -6,19 +6,26 @@ import type { NavigationLinksProps } from "@/types/components/navigation/navigat
 import { NavigationLinks as NavigationLinksView } from "@rede-enois/design-system/domain";
 
 import { communitiesApi } from "@/lib/api";
+import { useInterfaceContext } from "@/lib/interface-context";
 import { communityQueries } from "@/lib/query-options/communities";
 import { hasSessionFlag } from "@/lib/session";
 import { useDisabledModules } from "@/lib/use-personalization";
 
-import { navigationItems } from "./navigation-items";
+import { ContextSwitcher } from "./context-switcher";
+import { navigationItemsFor } from "./navigation-items";
 
-/** Resolves the menu entries, the active route and the account's communities for the view. */
+/**
+ * Resolves the menu of the active interface (Social or Profissional), the active route and, in the
+ * social one, the account's communities for the view.
+ */
 export function NavigationLinks({
   collapsed = false,
   onNavigate,
   className,
 }: NavigationLinksProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const context = useInterfaceContext();
+  const social = context === "SOCIAL";
   // Módulos desativados nas preferências: a entrada some do menu (fonte única no backend).
   const disabledModules = useDisabledModules();
 
@@ -26,7 +33,7 @@ export function NavigationLinks({
   // e procurando na lista.
   const { data: mine } = useQuery({
     ...communityQueries.mine(8),
-    enabled: hasSessionFlag(),
+    enabled: hasSessionFlag() && social,
     staleTime: 30_000,
   });
   const myCommunities = mine?.items ?? [];
@@ -34,7 +41,7 @@ export function NavigationLinks({
   const { data: favorites } = useQuery({
     queryKey: COMMUNITY_FAVORITES_KEY,
     queryFn: () => communitiesApi.favorites(),
-    enabled: hasSessionFlag(),
+    enabled: hasSessionFlag() && social,
     staleTime: 30_000,
   });
   const favoriteCommunities = favorites?.items ?? [];
@@ -47,7 +54,10 @@ export function NavigationLinks({
 
   return (
     <NavigationLinksView
-      items={navigationItems
+      // Rendered on the server too: this menu only exists inside the authenticated shell, and the
+      // switcher reads the device choice through useSyncExternalStore (no hydration mismatch).
+      header={<ContextSwitcher collapsed={collapsed} onNavigate={onNavigate} />}
+      items={navigationItemsFor(context)
         .filter((item) => !item.module || !disabledModules.has(item.module))
         .map((item) => ({
           href: item.to,
@@ -55,8 +65,8 @@ export function NavigationLinks({
           icon: item.icon,
           active: pathname === item.to || pathname.startsWith(`${item.to}/`),
         }))}
-      myCommunities={myCommunities.map(toLink)}
-      favoriteCommunities={favoriteCommunities.map(toLink)}
+      myCommunities={social ? myCommunities.map(toLink) : []}
+      favoriteCommunities={social ? favoriteCommunities.map(toLink) : []}
       collapsed={collapsed}
       onNavigate={onNavigate}
       className={className}

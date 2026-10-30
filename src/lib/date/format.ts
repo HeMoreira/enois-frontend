@@ -193,3 +193,19 @@ export function dataDeEvento(valor: string | null | undefined): string {
     .replace(/\./g, "")
     .replace(/ de /g, " ");
 }
+
+/** "jan. de 2023" → "jan. 2023" (how career timelines show it, without the "de"). */
+export function shortMonthYear(iso: string): string {
+  return mesAno(iso).replace(" de ", " ");
+}
+
+/**
+ * Inclusive months between start and end (the starting month counts), read in the app time zone so
+ * server and browser agree at the turn of a month. No end means "until now".
+ */
+export function monthsBetween(start: string, end: string | null): number {
+  const from = partesDaData(start);
+  const to = partesDaData(end ?? new Date());
+  if (!from || !to) return 1;
+  return Math.max(1, (to.ano - from.ano) * 12 + (to.mes - from.mes) + 1);
+}
