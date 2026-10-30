@@ -28,6 +28,7 @@ const PROTECTED_ROUTES = [
   "/suporte",
   "/bloqueados",
   "/seguranca",
+  "/notificacoes",
 ];
 
 export function hasSession(): boolean {

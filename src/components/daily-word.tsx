@@ -2,16 +2,15 @@ import { useCallback, useRef, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { WordMark } from "@/types/application/daily-games/word-mark";
 import {
   DailyWord as DailyWordView,
   type UserWordStats,
   WORD_LENGTH,
-  WORD_MAX_GUESSES,
 } from "@rede-enois/design-system/domain";
 
 import { randomUUID } from "@/lib/api-client";
 import { dailyWordsApi, previousChallengeDate } from "@/lib/api/daily-games";
+import { dailyDateLabel, useDailyShare } from "@/lib/daily-share";
 
 // ─── Estatísticas e Persistência Local ─────────────────────────────────────────
 
@@ -175,28 +174,16 @@ export function DailyWord() {
 
   const confirmedGuesses = state?.guesses ?? [];
 
-  // Resultado para compartilhar
-  function buildShareText(): string {
-    const emojiMap: Record<WordMark, string> = {
-      CORRECT: "🟩",
-      PRESENT: "🟨",
-      ABSENT: "⬛",
-    };
-    const lines = confirmedGuesses
-      .map(({ marks }) => marks.map((m) => emojiMap[m]).join(""))
-      .join("\n");
-    return `Palavras Énois · ${confirmedGuesses.length}/${WORD_MAX_GUESSES}\n\n${lines}`;
-  }
-
-  async function share() {
-    const text = buildShareText();
-    if (navigator.share) {
-      await navigator.share({ text });
-    } else {
-      await navigator.clipboard.writeText(text);
-      showError("Resultado copiado!");
-    }
-  }
+  const dailyShare = useDailyShare();
+  const share = () => {
+    if (!state || (state.status !== "WON" && state.status !== "LOST")) return;
+    void dailyShare.share({
+      game: "word",
+      dateLabel: dailyDateLabel(state.date),
+      won: state.status === "WON",
+      marks: confirmedGuesses.map(({ marks }) => marks),
+    });
+  };
 
   return (
     <DailyWordView
@@ -224,7 +211,8 @@ export function DailyWord() {
       stats={stats}
       statsOpen={statsOpen}
       onStatsOpenChange={setStatsOpen}
-      onShare={() => void share()}
+      onShare={share}
+      shareStatus={dailyShare.status}
       ranking={{
         loading: ranking.isPending,
         error: ranking.isError,

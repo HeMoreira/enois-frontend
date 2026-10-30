@@ -6,6 +6,14 @@ export type Profile = {
   email: string;
   company: string | null;
   location: string | null;
+  /**
+   * Cidade e UF estruturadas, separadas do `location` livre. `/me` sempre devolve; o perfil
+   * público só devolve quando `showCity` é verdadeiro.
+   */
+  city?: string | null;
+  state?: string | null;
+  /** Mostrar a cidade no perfil público (padrão false). Só vem em `/me`. */
+  showCity?: boolean;
   avatar: string | null;
   banner: string | null;
   /** Emblema (PNG pequeno) exibido ao lado do nome; URL de mídia, como avatar e banner. */

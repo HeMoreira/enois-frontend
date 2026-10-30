@@ -37,6 +37,7 @@ const ACCOUNT_MENU_HREFS = {
   guardian: "/responsavel",
   moderator: "/moderador",
   apoie: "/apoiar",
+  notificationPreferences: "/notificacoes/preferencias",
 };
 
 /** Account menu: identity, logout and the account dialogs around the design system menu. */

@@ -1144,6 +1144,7 @@ export const texts = {
       placeholder: "Comente com contexto, dúvida ou referência...",
       pinError: "Não foi possível fixar o comentário.",
       editError: "Não foi possível salvar a edição. Tente de novo.",
+      acceptError: "Não foi possível atualizar a resposta da dúvida. Tente de novo.",
     },
     notes: {
       sent: "Nota enviada para moderação.",
@@ -1167,6 +1168,14 @@ export const texts = {
     loadError: "Não foi possível carregar este perfil.",
     editProfile: "Editar perfil",
     message: "Mensagem",
+    city: {
+      add: "Informar cidade",
+      edit: (place: string) => `Editar cidade: ${place}`,
+      title: "Sua cidade",
+      description:
+        "Usamos sua cidade para sugerir comunidades e encontros por perto. Ela é separada do campo de localização livre.",
+      saved: "Cidade atualizada.",
+    },
     resume: {
       removed: "Currículo removido.",
       saved: "Currículo atualizado.",
@@ -1582,6 +1591,7 @@ export const texts = {
     actionError: "Não foi possível concluir. Tente novamente.",
     mineTitle: "Minhas comunidades",
     favoritesTitle: "Favoritas",
+    emptyFiltered: "Nenhuma comunidade neste local.",
     topics: {
       all: "Todas",
       TECNOLOGIA: "Tecnologia",
@@ -2960,6 +2970,13 @@ export const texts = {
     seoDescription: "Veja esta publicação no Énóis — rede humana gratuita, sem anúncios.",
     back: "Voltar",
     notFound: "Publicação não encontrada.",
+  },
+
+  notificationPreferences: {
+    seoTitle: "Preferências de notificação · Énóis",
+    title: "Preferências de notificação",
+    description:
+      "Escolha o que chega até você fora do app: o resumo semanal e os avisos no navegador.",
   },
 
   saved: {
