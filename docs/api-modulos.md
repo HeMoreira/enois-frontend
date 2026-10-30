@@ -58,6 +58,18 @@ Cliente central para comunicação com o backend em `https://rede.fly.dev/api`.
 
 ---
 
+## Módulo Onboarding (`src/lib/api/onboarding.ts`)
+
+| Método | Endpoint                                            | Descrição                                      |
+| ------ | --------------------------------------------------- | ---------------------------------------------- |
+| GET    | `/me/onboarding/starter-pack?topics=A,B&skills=x,y` | Comunidades, grupos e pessoas sugeridos        |
+| POST   | `/me/onboarding/complete`                           | Salva escolhas, entra e pede conexões; conclui |
+| POST   | `/me/onboarding/skip`                               | Conclui sem escolher nada                      |
+
+`/auth/me` traz `onboardingCompleted`; `false` leva a pessoa a `/boas-vindas` (ver `docs/rotas.md`).
+
+---
+
 ## Módulo Profile (`src/lib/api/profile.ts`)
 
 **Endpoints:**
@@ -171,8 +183,18 @@ mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` e
 
 ## Módulo Events (`src/lib/api/events.ts`)
 
-| Método | Endpoint | Descrição |
-| ## Módulo Study pairs (`src/lib/api/study-pairs.ts`)
+| Método | Endpoint                  | Descrição                                                                      |
+| ------ | ------------------------- | ------------------------------------------------------------------------------ |
+| GET    | `/events`                 | Listar eventos (`attending` do viewer com sessão; `recurring=true` só rituais) |
+| GET    | `/events/{id}`            | Detalhar evento (`attending` do viewer com sessão)                             |
+| POST   | `/events`                 | Criar evento (`recurrence` opcional; recorrente exige horário)                 |
+| PATCH  | `/events/{id}/recurrence` | Mudar ou encerrar a recorrência (só quem criou)                                |
+| POST   | `/events/{id}/attendees`  | Confirmar presença                                                             |
+| DELETE | `/events/{id}/attendees`  | Cancelar presença                                                              |
+
+---
+
+## Módulo Study pairs (`src/lib/api/study-pairs.ts`)
 
 | Método | Endpoint                         | Descrição                                              |
 | ------ | -------------------------------- | ------------------------------------------------------ |
@@ -182,13 +204,6 @@ mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` e
 | POST   | `/study-pairs/{pairId}/checkins` | Check-in da semana (`{note}`)                          |
 | POST   | `/study-pairs/{pairId}/end`      | Encerrar o par                                         |
 | GET    | `/study-pairs/goals/popular`     | Objetivos com pedidos abertos                          |
-
------- | ------------------------ | -------------------------------------------------- |
-| GET | `/events` | Listar eventos (`attending` do viewer com sessão) |
-| GET | `/events/{id}` | Detalhar evento (`attending` do viewer com sessão) |
-| POST | `/events` | Criar evento |
-| POST | `/events/{id}/attendees` | Confirmar presença |
-| DELETE | `/events/{id}/attendees` | Cancelar presença |
 
 ---
 

@@ -47,6 +47,7 @@ import { Route as DenunciasRouteImport } from './routes/denuncias'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as ComunidadesRouteImport } from './routes/comunidades'
 import { Route as CarteiraRouteImport } from './routes/carteira'
+import { Route as BoasVindasRouteImport } from './routes/boas-vindas'
 import { Route as BloqueadosRouteImport } from './routes/bloqueados'
 import { Route as BlogsRouteImport } from './routes/blogs'
 import { Route as ApoiarRouteImport } from './routes/apoiar'
@@ -269,6 +270,11 @@ const CarteiraRoute = CarteiraRouteImport.update({
   path: '/carteira',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BoasVindasRoute = BoasVindasRouteImport.update({
+  id: '/boas-vindas',
+  path: '/boas-vindas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BloqueadosRoute = BloqueadosRouteImport.update({
   id: '/bloqueados',
   path: '/bloqueados',
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/apoiar': typeof ApoiarRoute
   '/blogs': typeof BlogsRoute
   '/bloqueados': typeof BloqueadosRoute
+  '/boas-vindas': typeof BoasVindasRoute
   '/carteira': typeof CarteiraRoute
   '/comunidades': typeof ComunidadesRouteWithChildren
   '/contato': typeof ContatoRoute
@@ -504,6 +511,7 @@ export interface FileRoutesByTo {
   '/apoiar': typeof ApoiarRoute
   '/blogs': typeof BlogsRoute
   '/bloqueados': typeof BloqueadosRoute
+  '/boas-vindas': typeof BoasVindasRoute
   '/carteira': typeof CarteiraRoute
   '/comunidades': typeof ComunidadesRouteWithChildren
   '/contato': typeof ContatoRoute
@@ -576,6 +584,7 @@ export interface FileRoutesById {
   '/apoiar': typeof ApoiarRoute
   '/blogs': typeof BlogsRoute
   '/bloqueados': typeof BloqueadosRoute
+  '/boas-vindas': typeof BoasVindasRoute
   '/carteira': typeof CarteiraRoute
   '/comunidades': typeof ComunidadesRouteWithChildren
   '/contato': typeof ContatoRoute
@@ -649,6 +658,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blogs'
     | '/bloqueados'
+    | '/boas-vindas'
     | '/carteira'
     | '/comunidades'
     | '/contato'
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blogs'
     | '/bloqueados'
+    | '/boas-vindas'
     | '/carteira'
     | '/comunidades'
     | '/contato'
@@ -791,6 +802,7 @@ export interface FileRouteTypes {
     | '/apoiar'
     | '/blogs'
     | '/bloqueados'
+    | '/boas-vindas'
     | '/carteira'
     | '/comunidades'
     | '/contato'
@@ -863,6 +875,7 @@ export interface RootRouteChildren {
   ApoiarRoute: typeof ApoiarRoute
   BlogsRoute: typeof BlogsRoute
   BloqueadosRoute: typeof BloqueadosRoute
+  BoasVindasRoute: typeof BoasVindasRoute
   CarteiraRoute: typeof CarteiraRoute
   ComunidadesRoute: typeof ComunidadesRouteWithChildren
   ContatoRoute: typeof ContatoRoute
@@ -1185,6 +1198,13 @@ declare module '@tanstack/react-router' {
       path: '/carteira'
       fullPath: '/carteira'
       preLoaderRoute: typeof CarteiraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boas-vindas': {
+      id: '/boas-vindas'
+      path: '/boas-vindas'
+      fullPath: '/boas-vindas'
+      preLoaderRoute: typeof BoasVindasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bloqueados': {
@@ -1521,6 +1541,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApoiarRoute: ApoiarRoute,
   BlogsRoute: BlogsRoute,
   BloqueadosRoute: BloqueadosRoute,
+  BoasVindasRoute: BoasVindasRoute,
   CarteiraRoute: CarteiraRoute,
   ComunidadesRoute: ComunidadesRouteWithChildren,
   ContatoRoute: ContatoRoute,

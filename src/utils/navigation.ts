@@ -53,7 +53,12 @@ const routeDefinitions = [
 const routes = [...routeDefinitions].sort((a, b) => b.source.length - a.source.length);
 
 export function navigateToHref(href: string, navigate: Navigate) {
-  const path = href.replace(/^\/api\//, "").replace(/^\/+|\/+$/g, "");
+  // The query string travels along (e.g. `/eventos?evento={id}` opens and highlights the event);
+  // only the path picks the route. The base is a placeholder: hrefs are app-relative.
+  const url = new URL(href, "https://app.invalid");
+  const path = url.pathname.replace(/^\/api\//, "").replace(/^\/+|\/+$/g, "");
+  const search = Object.fromEntries(url.searchParams);
+  const hasSearch = Object.keys(search).length > 0;
 
   // Notificação de mensagem traz o id da conversa: abre ela direto, não só a lista.
   const conversation = path.match(/^conversations\/([^/]+)$/);
@@ -81,5 +86,6 @@ export function navigateToHref(href: string, navigate: Navigate) {
   navigate({
     to: route.to,
     ...(paramNames.length > 0 ? { params } : {}),
+    ...(hasSearch ? { search } : {}),
   });
 }
