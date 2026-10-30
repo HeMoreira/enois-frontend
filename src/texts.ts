@@ -2232,10 +2232,12 @@ export const texts = {
       "Restrições ativas na sua conta e o andamento dos seus recursos. A decisão final é sempre de uma pessoa do time.",
     empty: "Nenhuma penalidade na sua conta.",
     emptyHint: "Isto não é um histórico de elogios — é só o que de fato restringiu a conta.",
-    type: { RESTRICTION: "Restrição", SUSPENDED: "Suspensão", BAN: "Banimento" } as Record<
-      string,
-      string
-    >,
+    type: {
+      RESTRICTION: "Restrição",
+      SUSPENDED: "Suspensão",
+      BAN: "Banimento",
+      PERMABAN: "Banimento permanente",
+    } as Record<string, string>,
     statusLabel: {
       ACTIVE: "Ativa",
       REMOVED: "Removida",
@@ -2535,6 +2537,43 @@ export const texts = {
       done: (username: string, type: "RESTRICTION" | "BAN") =>
         `@${username} punido com ${type === "BAN" ? "banimento" : "restrição"}.`,
       error: "Não foi possível aplicar a punição.",
+    },
+    penalties: {
+      title: "Penalidades aplicadas",
+      description:
+        "Quem está penalizado agora. Remova uma penalidade aplicada por engano ou corrija o tipo e o motivo sem apagar o registro — a decisão fica registrada na conta de quem levou.",
+      filterActive: "Ativas",
+      filterRemoved: "Removidas",
+      emptyActive: "Nenhuma conta penalizada agora.",
+      emptyRemoved: "Nenhuma penalidade removida.",
+      loadError: "Não foi possível carregar as penalidades.",
+      removedAt: (date: string) => `Removida em ${date}`,
+      createdAt: (date: string) => `Aplicada em ${date}`,
+      typeRestriction: "Restrição",
+      typeSuspended: "Suspensão",
+      typeBan: "Banimento",
+      typePermaban: "Banimento permanente",
+      revoke: "Remover penalidade",
+      edit: "Corrigir",
+      revokeTitle: "Remover a penalidade",
+      revokeBody: (username: string) =>
+        `A conta de @${username} volta ao normal e a denúncia de origem é descartada. Se a penalidade era um banimento, o conteúdo que já saiu não volta.`,
+      revokeReason: "Por que esta penalidade foi aplicada por engano?",
+      revokeReasonPlaceholder: "Explique a correção (pelo menos 10 caracteres).",
+      revoked: (username: string) => `Penalidade de @${username} removida.`,
+      revokeError: "Não foi possível remover a penalidade.",
+      editTitle: "Corrigir a penalidade",
+      editBody: (username: string) =>
+        `Ajustar a penalidade de @${username}. O registro é o mesmo: só o tipo e o motivo mudam.`,
+      editType: "Tipo correto",
+      editReason: "Motivo registrado",
+      editReasonPlaceholder: "Descreva o motivo correto (pelo menos 10 caracteres).",
+      save: "Salvar correção",
+      edited: (username: string) => `Penalidade de @${username} corrigida.`,
+      editError: "Não foi possível corrigir a penalidade.",
+      reasonRequired: "Explique em pelo menos 10 caracteres.",
+      cancel: "Cancelar",
+      pending: "Salvando…",
     },
   },
 
