@@ -646,6 +646,34 @@ export const apiSections: ApiSection[] = [
         description: "Abre pedido de suporte (vai por e-mail ao time + fila /admin/support).",
       },
       {
+        method: "GET",
+        path: "/me/onboarding/starter-pack?topics=TECNOLOGIA&skills=react",
+        access: "auth",
+        description:
+          "Pacote inicial do onboarding: até 6 comunidades, 6 grupos abertos e 8 pessoas que combinam com os assuntos e habilidades informados.",
+        response: `200 OK
+{"communities":[{"id":"com_…","name":"Café com Código","description":null,"topic":"TECNOLOGIA","avatar":null,"memberCount":42}],"groups":[],"people":[{"id":"user_…","username":"ada","name":"Ada","headline":null,"avatar":null}]}`,
+      },
+      {
+        method: "POST",
+        path: "/me/onboarding/complete",
+        access: "auth",
+        description:
+          "Conclui o onboarding: soma os assuntos e habilidades, entra nas comunidades e grupos e pede as conexões escolhidas. Devolve o que ficou valendo.",
+        request: `curl -X POST ${P}/me/onboarding/complete \
+  -H "Content-Type: application/json" \
+  -H "X-Session-Token: $TOKEN" \
+  -d '{"topics":["TECNOLOGIA"],"skills":["React"],"communityIds":[],"groupIds":[],"connectUserIds":[]}'`,
+        response: `200 OK
+{"onboardingCompleted":true,"joinedCommunityIds":[],"joinedGroupIds":[],"requestedUserIds":[]}`,
+      },
+      {
+        method: "POST",
+        path: "/me/onboarding/skip",
+        access: "auth",
+        description: "Marca o onboarding como visto sem escolher nada.",
+      },
+      {
         method: "PUT",
         path: "/me/theme",
         access: "auth",
