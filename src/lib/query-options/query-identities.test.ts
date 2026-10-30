@@ -6,7 +6,6 @@ import {
   communitiesApi,
   communityProjectsApi,
   companiesApi,
-  jobsApi,
   networkApi,
   profileApi,
   projectsApi,
@@ -23,8 +22,7 @@ import { walletQueries } from "./wallet";
 vi.mock("@/lib/api", () => ({
   communitiesApi: { mine: vi.fn() },
   communityProjectsApi: { mine: vi.fn() },
-  companiesApi: { mine: vi.fn(), bySlug: vi.fn() },
-  jobsApi: { companies: vi.fn() },
+  companiesApi: { mine: vi.fn(), bySlug: vi.fn(), directory: vi.fn() },
   networkApi: { requests: vi.fn() },
   profileApi: { getById: vi.fn() },
   projectsApi: { mine: vi.fn() },
@@ -107,23 +105,24 @@ describe("identidade e invalidação das consultas", () => {
   });
 
   it("invalida diretórios filtrados e empresas próprias após edição", async () => {
-    vi.mocked(jobsApi.companies).mockResolvedValue([]);
+    vi.mocked(companiesApi.directory).mockResolvedValue([]);
     vi.mocked(companiesApi.mine).mockResolvedValue([]);
     const client = createClient();
-    await client.fetchQuery(companyQueries.directory("primeiro"));
-    await client.fetchQuery(companyQueries.directory("segundo"));
+    await client.fetchQuery(companyQueries.directory("primeiro", null));
+    await client.fetchQuery(companyQueries.directory("segundo", "Tecnologia"));
     await client.fetchQuery(companyQueries.mine());
     await client.invalidateQueries({ queryKey: companyQueries.directoryKey, refetchType: "none" });
     await client.invalidateQueries({
       queryKey: companyQueries.mine().queryKey,
       refetchType: "none",
     });
-    expect(client.getQueryState(companyQueries.directory("primeiro").queryKey)?.isInvalidated).toBe(
-      true,
-    );
-    expect(client.getQueryState(companyQueries.directory("segundo").queryKey)?.isInvalidated).toBe(
-      true,
-    );
+    expect(
+      client.getQueryState(companyQueries.directory("primeiro", null).queryKey)?.isInvalidated,
+    ).toBe(true);
+    expect(
+      client.getQueryState(companyQueries.directory("segundo", "Tecnologia").queryKey)
+        ?.isInvalidated,
+    ).toBe(true);
     expect(client.getQueryState(companyQueries.mine().queryKey)?.isInvalidated).toBe(true);
   });
 

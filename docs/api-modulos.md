@@ -231,6 +231,26 @@ mostram os códigos `CITY_STATE_INCOMPLETE`, `INVALID_STATE` e `CITY_TOO_LONG` e
 
 ---
 
+## Módulo Companies (`src/lib/api/companies.ts`)
+
+| Método | Endpoint                                            | Descrição                                                                         |
+| ------ | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| GET    | `/empresas/diretorio`                               | Diretório: páginas primeiro, depois nomes que só existem em vagas (query, sector) |
+| GET    | `/empresas/setores`                                 | Setores das páginas ativas (filtro do diretório)                                  |
+| GET    | `/empresa/{slug}`                                   | Página da empresa com papel, seguir, vagas, microprojetos e avaliações            |
+| POST   | `/empresas`                                         | Criar página                                                                      |
+| PATCH  | `/empresas/{id}`                                    | Editar página                                                                     |
+| GET    | `/empresas/mine`                                    | Páginas de que a pessoa faz parte                                                 |
+| POST   | `/empresas/{id}/follow`                             | Seguir (DELETE deixa de seguir)                                                   |
+| GET    | `/empresas/{id}/members`                            | Equipe (POST adiciona)                                                            |
+| POST   | `/empresas/{id}/microprojetos`                      | Publicar microprojeto                                                             |
+| GET    | `/microprojetos/{id}`                               | Microprojeto com propostas (só a equipe vê as propostas)                          |
+| POST   | `/microprojetos/{id}/proposals`                     | Enviar proposta pela identidade profissional; devolve a conversa                  |
+| POST   | `/microprojetos/{id}/proposals/{proposalId}/select` | Escolher a proposta                                                               |
+| POST   | `/microprojetos/{id}/complete`                      | Concluir com avaliação opcional (nota e texto)                                    |
+
+---
+
 ## Módulo Mentors (`src/lib/api/mentors.ts`)
 
 | Método | Endpoint                 | Descrição             |
