@@ -461,7 +461,8 @@ export const apiSections: ApiSection[] = [
         method: "POST",
         path: "/network/connections/{targetUserId}",
         access: "auth",
-        description: "Pedir conexão (PUT …/accept aceita; GET …/status consulta; DELETE desfaz).",
+        description:
+          "Pedir conexão (PUT …/accept aceita; DELETE desfaz). GET …/status consulta: `status` é igual para os dois lados e `requestedByMe` diz se o pedido pendente foi enviado por você.",
       },
       {
         method: "POST",
