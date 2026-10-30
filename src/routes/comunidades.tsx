@@ -32,6 +32,7 @@ import { Loader2, Plus, Search, Star, Users } from "lucide-react";
 import { communitiesApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { litePageSize } from "@/lib/lite-mode";
+import { communityQueries } from "@/lib/query-options/communities";
 import { useAuth, useIsAuthenticated } from "@/lib/use-auth";
 import { useLiteMode } from "@/lib/use-lite-mode";
 
@@ -104,8 +105,7 @@ function Comunidades() {
   // As comunidades em que a pessoa já está vêm ANTES de tudo (pedido de quem usa: as primeiras
   // exibidas são as nossas). Mesmo padrão das favoritas: seção fixa e fora do fluxo comum.
   const { data: mineData } = useQuery({
-    queryKey: ["my-communities"],
-    queryFn: () => communitiesApi.mine(50),
+    ...communityQueries.mine(50),
     enabled: isCommunityIndex && isAuthenticated,
   });
 
@@ -149,8 +149,7 @@ function Comunidades() {
     mutationFn: (id: string) => communitiesApi.join(id),
     onSuccess: () => {
       toast(texts.communities.joined);
-      queryClient.invalidateQueries({ queryKey: ["communities"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.all });
     },
     onError: () => toast(texts.communities.actionError, "error"),
   });
@@ -160,8 +159,7 @@ function Comunidades() {
     onSuccess: () => {
       setLeaveTarget(null);
       toast(texts.communities.left);
-      queryClient.invalidateQueries({ queryKey: ["communities"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.all });
     },
     onError: () => {
       // Dono não sai sem transferir: orientamos a abrir a comunidade para transferir.
@@ -348,8 +346,7 @@ function CreateCommunityDialog({ children, open, onOpenChange }: CreateCommunity
       communitiesApi.create({ name, description: description.trim() || null, topic }),
     onSuccess: () => {
       toast(texts.communities.created);
-      queryClient.invalidateQueries({ queryKey: ["communities"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.all });
       onOpenChange(false);
       setName("");
       setDescription("");

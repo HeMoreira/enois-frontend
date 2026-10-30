@@ -31,6 +31,7 @@ import {
 import { walletApi } from "@/lib/api";
 import { dataHora } from "@/lib/date/format";
 import { faiscaToBrlMicros, formatBrlMicros, formatFaisca, parseFaiscaInput } from "@/lib/faisca";
+import { walletQueries } from "@/lib/query-options/wallet";
 import { requireAuth } from "@/lib/require-auth";
 
 import { AppContainer } from "@/components/app-container";
@@ -75,8 +76,7 @@ function Carteira() {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["carteira"],
-    queryFn: () => walletApi.wallet(),
+    ...walletQueries.wallet(),
   });
   const { data: cotacao } = useQuery({
     queryKey: ["cotacao"],
@@ -94,7 +94,7 @@ function Carteira() {
       setPayOpen(false);
       setForm({ toUsername: "", amount: "", message: "" });
       toast(texts.wallet.sent, "success");
-      void queryClient.invalidateQueries({ queryKey: ["carteira"] });
+      void queryClient.invalidateQueries({ queryKey: walletQueries.wallet().queryKey });
     },
     onError: (error: unknown) => {
       const apiError = error as { code?: string; message?: string };
@@ -125,7 +125,7 @@ function Carteira() {
     onSuccess: () => {
       setContestar(null);
       toast("Contestação enviada: a moderação vai analisar os dois lados.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["carteira"] });
+      void queryClient.invalidateQueries({ queryKey: walletQueries.wallet().queryKey });
     },
     onError: (error: unknown) => {
       const code = (error as { code?: string }).code;

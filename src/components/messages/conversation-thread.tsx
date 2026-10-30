@@ -17,12 +17,13 @@ import {
 } from "@rede-enois/design-system/domain";
 import { useToast } from "@rede-enois/design-system/ui";
 
-import { messagesApi, profileApi, reportsApi, servicesApi } from "@/lib/api";
+import { messagesApi, reportsApi, servicesApi } from "@/lib/api";
 import { encryptForSend } from "@/lib/e2e/conversation";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { useDecryptedMessages } from "@/lib/e2e/use-decrypted-messages";
 import { liteInterval, litePageSize } from "@/lib/lite-mode";
 import { authorNameStyle } from "@/lib/profile-name-style";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
@@ -190,8 +191,7 @@ export function ConversationThread({
 
   const otherParticipantId = conversation.participantIds.find((id) => id !== currentUserId);
   const { data: otherUser } = useQuery({
-    queryKey: ["profile", "by-id", otherParticipantId],
-    queryFn: () => profileApi.getById(otherParticipantId ?? ""),
+    ...profileQueries.byId(otherParticipantId ?? ""),
     enabled: !!otherParticipantId,
   });
 

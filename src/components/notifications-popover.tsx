@@ -8,10 +8,12 @@ import { navigateToHref } from "@/utils/navigation";
 import { formatNotificationTime } from "@/utils/notification-time";
 import { NotificationsPopover as NotificationsPopoverView } from "@rede-enois/design-system/domain";
 
-import { networkApi, notificationsApi, profileApi } from "@/lib/api";
+import { networkApi, notificationsApi } from "@/lib/api";
 import { getCurrentUserId } from "@/lib/current-user";
 import { formatarData } from "@/lib/date/format";
 import { isNotificationHidden } from "@/lib/notification-module";
+import { networkQueries } from "@/lib/query-options/network";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { useIsAuthenticated } from "@/lib/use-auth";
 import { useDisabledModules } from "@/lib/use-personalization";
 
@@ -60,16 +62,15 @@ export function NotificationsPopover() {
   const acceptConnection = useMutation({
     mutationFn: (actorId: string) => networkApi.accept(actorId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["network"] });
+      queryClient.invalidateQueries({ queryKey: networkQueries.all });
     },
   });
 
   // Quem AINDA tem pedido pendente. A notificação não guarda o estado do pedido: sem esta lista,
   // o botão "Aceitar" continuava ativo no Histórico depois de aceito (e clicar de novo não tinha
-  // mais o que fazer). A chave é a mesma da página /rede, então as duas telas compartilham o cache.
+  // mais o que fazer). O limite faz parte da chave para não misturar listas diferentes.
   const pendingRequests = useQuery({
-    queryKey: ["network", "requests"],
-    queryFn: () => networkApi.requests(null, 50),
+    ...networkQueries.requests(50),
     enabled: open,
   });
   const pendingActorIds = pendingRequests.data
@@ -98,17 +99,16 @@ export function NotificationsPopover() {
   );
 
   // Busca perfis em batch — so depois de carregar filtramos os removidos/inexistentes.
-  const profileQueries = useQueries({
+  const incomingProfiles = useQueries({
     queries: rawIncoming.map((r) => ({
-      queryKey: ["profile", "by-id", r.fromUserId],
-      queryFn: () => profileApi.getById(r.fromUserId),
+      ...profileQueries.byId(r.fromUserId),
       retry: 1,
       staleTime: 60_000,
     })),
   });
-  const profilesLoading = rawIncoming.length > 0 && profileQueries.some((q) => q.isLoading);
+  const profilesLoading = rawIncoming.length > 0 && incomingProfiles.some((q) => q.isLoading);
   const profilesByUserId = new Map(
-    profileQueries.filter((q) => q.data).map((q) => [q.data!.id, q.data!]),
+    incomingProfiles.filter((q) => q.data).map((q) => [q.data!.id, q.data!]),
   );
 
   // Filtra removidos/banidos/inexistentes ANTES de contar — badge e lista ja nascem corretos.
@@ -125,7 +125,7 @@ export function NotificationsPopover() {
   const rejectConnection = useMutation({
     mutationFn: (targetUserId: string) => networkApi.remove(targetUserId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["network"] });
+      queryClient.invalidateQueries({ queryKey: networkQueries.all });
     },
   });
 
