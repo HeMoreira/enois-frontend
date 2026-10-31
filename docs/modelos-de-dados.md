@@ -327,10 +327,24 @@ interface ConnectionRequest {
   toUserId: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED";
   createdAt: string;
+  direction: "INCOMING" | "OUTGOING";
+  peer: NetworkUser; // a pessoa do outro lado
 }
 
 type ConnectionStatusResultStatus = "NONE" | "PENDING" | "ACCEPTED" | "REMOVED" | "BLOCKED";
+
+interface ConnectionStatusResult {
+  targetUserId: string;
+  status: ConnectionStatusResultStatus;
+  requestedByMe: boolean; // pedido pendente enviado por mim; false se recebi e nos demais status
+  blocked: boolean;
+  muted: boolean;
+}
 ```
+
+O `status` é igual para os dois lados da conexão. O perfil usa `requestedByMe` para oferecer
+"Cancelar solicitação" a quem pediu e "Aceitar"/"Rejeitar" a quem recebeu
+(`src/lib/network/connection-action.ts`).
 
 ## Mídia
 

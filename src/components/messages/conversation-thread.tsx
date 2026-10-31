@@ -17,12 +17,13 @@ import {
 } from "@rede-enois/design-system/domain";
 import { useToast } from "@rede-enois/design-system/ui";
 
-import { messagesApi, profileApi, reportsApi, servicesApi } from "@/lib/api";
+import { messagesApi, reportsApi, servicesApi } from "@/lib/api";
+import { conversationPeer } from "@/lib/conversation-peer";
 import { encryptForSend } from "@/lib/e2e/conversation";
 import { hasLocalKeys } from "@/lib/e2e/key-manager";
 import { useDecryptedMessages } from "@/lib/e2e/use-decrypted-messages";
 import { liteInterval, litePageSize } from "@/lib/lite-mode";
-import { authorNameStyle } from "@/lib/profile-name-style";
+import { profileQueries } from "@/lib/query-options/profiles";
 import { useLiteMode } from "@/lib/use-lite-mode";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
@@ -190,10 +191,11 @@ export function ConversationThread({
 
   const otherParticipantId = conversation.participantIds.find((id) => id !== currentUserId);
   const { data: otherUser } = useQuery({
-    queryKey: ["profile", "by-id", otherParticipantId],
-    queryFn: () => profileApi.getById(otherParticipantId ?? ""),
+    ...profileQueries.byId(otherParticipantId ?? ""),
     enabled: !!otherParticipantId,
   });
+
+  const { peer, profileHref } = conversationPeer(conversation, otherParticipantId, otherUser);
 
   /** O clique só marca no filão de verdade: no placeholder os ids são de outra conversa. */
   const toggleMessage = (messageId: string) =>
@@ -207,8 +209,8 @@ export function ConversationThread({
   return (
     <ConversationThreadView
       conversationTitle={conversation.title}
-      peer={otherUser && { ...otherUser, nameStyle: authorNameStyle(otherUser) }}
-      profileHref={`/perfil/${otherUser?.username ?? otherParticipantId ?? ""}`}
+      peer={peer}
+      profileHref={profileHref}
       onBack={onBack}
       loading={isLoadingMessages || decrypting}
       empty={messages.length === 0}
@@ -239,7 +241,7 @@ export function ConversationThread({
         replyingTo
           ? {
               id: replyingTo.id,
-              from: replyingTo.from === currentUserId ? "Você" : (otherUser?.name ?? "..."),
+              from: replyingTo.from === currentUserId ? "Você" : (peer?.name ?? "..."),
               text: replyingTo.text,
             }
           : null
@@ -256,8 +258,8 @@ export function ConversationThread({
             m.from === currentUserId &&
             new Date(m.time).getTime() <= peerLastReadAt
           }
-          otherUser={otherUser}
-          otherId={otherParticipantId}
+          peer={peer}
+          profileHref={profileHref}
           selecting={selectingMessages}
           selected={selectedMessages.has(m.id)}
           onToggleSelect={

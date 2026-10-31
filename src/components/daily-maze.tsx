@@ -7,6 +7,7 @@ import { DailyMaze as DailyMazeView } from "@rede-enois/design-system/domain";
 
 import { randomUUID } from "@/lib/api-client";
 import { dailyMazeApi, previousChallengeDate } from "@/lib/api/daily-games";
+import { dailyDateLabel, useDailyShare } from "@/lib/daily-share";
 
 export function DailyMaze() {
   const client = useQueryClient();
@@ -64,6 +65,21 @@ export function DailyMaze() {
     move.mutate(pending.current);
   }
 
+  const dailyShare = useDailyShare();
+  const share = () => {
+    if (state?.status !== "WON") return;
+    const elapsed =
+      state.startedAt && state.completedAt
+        ? Date.parse(state.completedAt) - Date.parse(state.startedAt)
+        : 0;
+    void dailyShare.share({
+      game: "maze",
+      dateLabel: dailyDateLabel(state.date),
+      moves: state.moves,
+      elapsedMillis: Math.max(0, elapsed),
+    });
+  };
+
   return (
     <DailyMazeView
       loading={today.isPending}
@@ -83,6 +99,8 @@ export function DailyMaze() {
       moveFailed={move.isError}
       moveErrorMessage={move.error instanceof Error ? move.error.message : null}
       onMove={attempt}
+      onShare={share}
+      shareStatus={dailyShare.status}
       ranking={{
         loading: ranking.isPending,
         error: ranking.isError,

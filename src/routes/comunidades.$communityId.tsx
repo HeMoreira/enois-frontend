@@ -23,7 +23,7 @@ import type { CommunityCropPurpose } from "@/types/routes/communities/community-
 import type { EditCommunityFormProps } from "@/types/routes/communities/edit-community-form-props";
 import type { MediaItem } from "@/types/routes/feed/media-item";
 import { SpoilerPreview, StyledName, UserAvatar } from "@rede-enois/design-system/domain";
-import { ImageCropDialog } from "@rede-enois/design-system/patterns";
+import { CityStateField, ImageCropDialog, LocationLine } from "@rede-enois/design-system/patterns";
 import {
   Badge,
   Button,
@@ -53,10 +53,13 @@ import {
   X,
 } from "lucide-react";
 
-import { communitiesApi, feedApi } from "@/lib/api";
+import { ApiError, communitiesApi, feedApi } from "@/lib/api";
 import { resolveCdnUrl } from "@/lib/api/media";
 import { buildShareTags } from "@/lib/open-graph";
+import { communityQueries } from "@/lib/query-options/communities";
+import { uploadComposerMedia } from "@/lib/upload-composer-media";
 import { useAuth } from "@/lib/use-auth";
+import { cityStateErrorCode, useCityState } from "@/lib/use-city-state";
 import { useMediaUpload } from "@/lib/use-media-upload";
 
 import { AppContainer } from "@/components/app-container";
@@ -118,6 +121,10 @@ function CommunityDetail() {
   // comunidade só dava erro).
   const [postType, setPostType] = useState<PostView["type"]>("INSIGHT");
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const mediaReady = media.every(
+    (item) =>
+      item.type !== "image" || (item.moderationStatus === "allowed" && Boolean(item.mediaId)),
+  );
   const [mediaSpoiler, setMediaSpoiler] = useState(false);
   const [pageHtml, setPageHtml] = useState("");
   const [articleBody, setArticleBody] = useState("");
@@ -183,7 +190,7 @@ function CommunityDetail() {
       toast(texts.communities.joined);
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["community", community.id, "members"] });
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => toast(texts.communities.actionError, "error"),
   });
@@ -194,7 +201,7 @@ function CommunityDetail() {
       setLeaveOpen(false);
       toast(texts.communities.left);
       invalidate();
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
     },
     onError: () => {
       // O dono não sai sem transferir: em vez de um erro seco, oferecemos a transferência.
@@ -216,7 +223,7 @@ function CommunityDetail() {
     mutationFn: () => communitiesApi.remove(community.id),
     onSuccess: () => {
       setDeleteOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["my-communities"] });
+      queryClient.invalidateQueries({ queryKey: communityQueries.mineKey });
       navigate({ to: "/comunidades" });
     },
   });
@@ -241,6 +248,7 @@ function CommunityDetail() {
 
   const publish = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!mediaReady) return;
     const content = draft.trim();
     // Pagina e uma coisa OU outra (o HTML e o conteudo); artigo precisa do texto de cima E do corpo
     // — as mesmas regras do composer do feed.
@@ -251,8 +259,7 @@ function CommunityDetail() {
     try {
       let mediaIds: string[] = [];
       if (!pageMode && media.length > 0) {
-        const results = await upload.uploadAll(media.map((item) => ({ file: item.file })));
-        mediaIds = results.map((result) => result.mediaId);
+        mediaIds = await uploadComposerMedia(media, upload.uploadAll);
       }
       await createPost.mutateAsync({
         type: postType,
@@ -285,7 +292,42 @@ function CommunityDetail() {
       if (isImage && media.length >= 4) break;
 
       const preview = URL.createObjectURL(file);
-      setMedia((current) => [...current, { type: isVideo ? "video" : "image", file, preview }]);
+      const item: MediaItem = {
+        type: isVideo ? "video" : "image",
+        file,
+        preview,
+        ...(isImage ? { moderationStatus: "checking" } : {}),
+      };
+      setMedia((current) => [...current, item]);
+      if (isImage) {
+        void upload
+          .upload(file, "POST_IMAGE")
+          .then((result) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? { ...entry, mediaId: result.mediaId, moderationStatus: "allowed" }
+                  : entry,
+              ),
+            ),
+          )
+          .catch((error: unknown) =>
+            setMedia((current) =>
+              current.map((entry) =>
+                entry.preview === preview
+                  ? {
+                      ...entry,
+                      moderationStatus: "blocked",
+                      moderationError:
+                        error instanceof Error
+                          ? error.message
+                          : texts.feed.composer.imageCheckError,
+                    }
+                  : entry,
+              ),
+            ),
+          );
+      }
     }
     event.target.value = "";
   };
@@ -366,12 +408,14 @@ function CommunityDetail() {
                     />
                   )}
 
-                  <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-4 w-4" />
 
                       <>{texts.communities.memberCount(live.members)}</>
                     </span>
+
+                    <LocationLine city={live.city} state={live.state} />
                     {admins.length > 0 && (
                       <span>
                         <>{texts.communities.detail.createdBy}</>
@@ -697,7 +741,8 @@ function CommunityDetail() {
                   (pageMode ? !pageHtml.trim() : !draft.trim()) ||
                   (articleMode && !articleBody.trim()) ||
                   createPost.isPending ||
-                  upload.status === "uploading"
+                  upload.status === "uploading" ||
+                  !mediaReady
                 }
               >
                 <Send className="h-4 w-4" />
@@ -726,6 +771,18 @@ function CommunityDetail() {
                     >
                       <img src={item.preview} alt="" className="h-full w-full object-cover" />
                     </SpoilerPreview>
+                    {item.moderationStatus === "checking" && (
+                      <div className="absolute inset-0 grid place-items-center bg-surface-card/70 backdrop-blur-sm">
+                        <span className="rounded-full bg-surface-card px-2 py-1 text-[10px] text-text-strong">
+                          {texts.feed.composer.imageChecking}
+                        </span>
+                      </div>
+                    )}
+                    {item.moderationStatus === "blocked" && (
+                      <div className="absolute inset-x-1 bottom-1 rounded bg-destructive/90 px-1 py-0.5 text-[9px] leading-tight text-white">
+                        {item.moderationError ?? texts.feed.composer.imageCheckError}
+                      </div>
+                    )}
 
                     <button
                       type="button"
@@ -873,8 +930,9 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
   };
 
   const update = useMutation({
-    mutationFn: () =>
+    mutationFn: (place: { city: string; state: string }) =>
       communitiesApi.update(community.id, {
+        ...place,
         name: name !== community.name ? name : undefined,
         description: description !== community.description ? description : undefined,
         topic: topic !== community.topic ? topic : undefined,
@@ -888,6 +946,14 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
       onClose();
     },
   });
+  const place = useCityState(community, update.error);
+  // Cidade/UF aparece embaixo do campo; qualquer outra recusa aparece acima do salvar.
+  const generalError =
+    update.error && !cityStateErrorCode(update.error)
+      ? update.error instanceof ApiError
+        ? update.error.message
+        : texts.errors.unexpected
+      : null;
 
   return (
     <div className="space-y-4 pt-2">
@@ -1062,10 +1128,18 @@ function EditCommunityForm({ community, onClose }: EditCommunityFormProps) {
         />
       </div>
 
+      <CityStateField idPrefix="community-edit" disabled={update.isPending} {...place.field} />
+
+      <p role="alert" aria-live="polite" className="text-sm text-destructive empty:hidden">
+        {generalError}
+      </p>
+
       <Button
         className="w-full rounded-full"
         disabled={!name.trim() || update.isPending}
-        onClick={() => update.mutate()}
+        onClick={() => {
+          if (place.validate()) update.mutate(place.payload);
+        }}
       >
         {update.isPending ? texts.common.saving : texts.common.save}
       </Button>

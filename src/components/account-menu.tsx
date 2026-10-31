@@ -1,21 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
 import { texts } from "@/texts";
 import type { AccountMenuProps } from "@/types/components/account/account-menu-props";
-import type { ActiveIdentity } from "@/types/lib/active-identity";
+import type { InterfaceContext } from "@rede-enois/design-system/domain";
 import { AccountMenu as AccountMenuView } from "@rede-enois/design-system/domain";
 import { useToast } from "@rede-enois/design-system/ui";
+import { Briefcase, UsersRound } from "lucide-react";
 
-import {
-  effectiveIdentity,
-  readActiveIdentity,
-  subscribeActiveIdentity,
-  writeActiveIdentity,
-} from "@/lib/active-identity";
 import { corporateApi } from "@/lib/api";
+import {
+  destinationAfterSwitch,
+  professionalReady,
+  useInterfaceContext,
+  writeStoredContext,
+} from "@/lib/interface-context";
 import { logout } from "@/lib/logout";
+import { hasSessionFlag } from "@/lib/session";
 
 import { ChangeEmailDialog } from "./change-email-dialog";
 import { ChangePasswordDialog } from "./change-password-dialog";
@@ -27,7 +29,6 @@ import { PushToggle } from "./push-toggle";
 const ACCOUNT_MENU_HREFS = {
   corporateProfile: "/profissional",
   wallet: "/carteira",
-  // O marketplace é uma aba da Carteira; /marketplace só redireciona para cá.
   marketplace: "/carteira?tab=marketplace",
   support: "/suporte",
   security: "/seguranca",
@@ -37,9 +38,10 @@ const ACCOUNT_MENU_HREFS = {
   guardian: "/responsavel",
   moderator: "/moderador",
   apoie: "/apoiar",
+  notificationPreferences: "/notificacoes/preferencias",
 };
 
-/** Account menu: identity, logout and the account dialogs around the design system menu. */
+/** Account menu: identity switcher, logout and the account dialogs. */
 export function AccountMenu({ profile }: AccountMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showChangeEmail, setShowChangeEmail] = useState(false);
@@ -49,29 +51,21 @@ export function AccountMenu({ profile }: AccountMenuProps) {
   const [showHealthyUsage, setShowHealthyUsage] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { toast } = useToast();
-  const [chosenIdentity, setChosenIdentity] = useState<ActiveIdentity>(() => readActiveIdentity());
 
-  useEffect(() => subscribeActiveIdentity(() => setChosenIdentity(readActiveIdentity())), []);
-
-  // O perfil profissional define se a troca de identidade existe e vale.
+  const context = useInterfaceContext();
   const { data: corporate } = useQuery({
     queryKey: ["business-profile"],
     queryFn: () => corporateApi.me(),
-    enabled: menuOpen,
+    enabled: hasSessionFlag() && menuOpen,
+    staleTime: 120_000,
   });
-  const identity = effectiveIdentity(chosenIdentity, corporate);
-  const chooseIdentity = (next: ActiveIdentity) => {
-    writeActiveIdentity(next);
-    setChosenIdentity(next);
-    // A troca é silenciosa fora do feed: fecha o menu e confirma, senão parece que o clique
-    // não fez nada.
+  const showSwitch = professionalReady(corporate);
+
+  const choose = (next: InterfaceContext) => {
+    writeStoredContext(next);
     setMenuOpen(false);
-    toast(
-      next === "CORPORATE"
-        ? texts.account.menu.identityCorporate
-        : texts.account.menu.identitySocial,
-      "success",
-    );
+    const destination = destinationAfterSwitch(window.location.pathname, next);
+    if (destination) window.location.assign(destination);
   };
 
   const openDialog = (show: (open: boolean) => void) => () => {
@@ -96,12 +90,6 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         hrefs={{ ...ACCOUNT_MENU_HREFS, profile: `/perfil/${profile.username}` }}
         open={menuOpen}
         onOpenChange={setMenuOpen}
-        // Só com perfil ATIVO a escolha vale; em rascunho/desativado o controle ficaria
-        // desabilitado sem explicar nada (issue #376).
-        showIdentitySwitch={corporate?.exists === true && corporate.status === "ACTIVE"}
-        corporateIdentityEnabled={corporate?.status === "ACTIVE"}
-        identity={identity}
-        onChooseIdentity={chooseIdentity}
         onChangeEmail={openDialog(setShowChangeEmail)}
         onChangePassword={openDialog(setShowChangePassword)}
         onOpenLinkedAccounts={openDialog(setShowLinkedAccounts)}
@@ -110,6 +98,32 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         onLogout={() => void handleLogout()}
         loggingOut={loggingOut}
         pushToggle={<PushToggle onClose={() => setMenuOpen(false)} />}
+        identitySlot={
+          showSwitch ? (
+            <div className="flex rounded-full border border-border-soft p-0.5">
+              {(["SOCIAL", "PROFESSIONAL"] as const).map((option) => {
+                const selected = context === option;
+                const Icon = option === "SOCIAL" ? UsersRound : Briefcase;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => choose(option)}
+                    className={`flex flex-1 items-center justify-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium transition ${
+                      selected
+                        ? "bg-primary text-primary-foreground"
+                        : "text-text-subtle hover:text-text-strong"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+
+                    <>{option === "SOCIAL" ? "Social" : "Profissional"}</>
+                  </button>
+                );
+              })}
+            </div>
+          ) : undefined
+        }
       />
       <ChangeEmailDialog
         open={showChangeEmail}

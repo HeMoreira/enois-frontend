@@ -5,6 +5,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { texts } from "@/texts";
 import type { WalletTab } from "@/types/routes/wallet/wallet-tab";
+import { StreakCard } from "@rede-enois/design-system/domain";
 import {
   Button,
   Input,
@@ -29,8 +30,9 @@ import {
 } from "lucide-react";
 
 import { walletApi } from "@/lib/api";
-import { dataHora } from "@/lib/date/format";
+import { dataHora, hojeNoApp } from "@/lib/date/format";
 import { faiscaToBrlMicros, formatBrlMicros, formatFaisca, parseFaiscaInput } from "@/lib/faisca";
+import { walletQueries } from "@/lib/query-options/wallet";
 import { requireAuth } from "@/lib/require-auth";
 
 import { AppContainer } from "@/components/app-container";
@@ -75,8 +77,7 @@ function Carteira() {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["carteira"],
-    queryFn: () => walletApi.wallet(),
+    ...walletQueries.wallet(),
   });
   const { data: cotacao } = useQuery({
     queryKey: ["cotacao"],
@@ -94,7 +95,7 @@ function Carteira() {
       setPayOpen(false);
       setForm({ toUsername: "", amount: "", message: "" });
       toast(texts.wallet.sent, "success");
-      void queryClient.invalidateQueries({ queryKey: ["carteira"] });
+      void queryClient.invalidateQueries({ queryKey: walletQueries.wallet().queryKey });
     },
     onError: (error: unknown) => {
       const apiError = error as { code?: string; message?: string };
@@ -125,7 +126,7 @@ function Carteira() {
     onSuccess: () => {
       setContestar(null);
       toast("Contestação enviada: a moderação vai analisar os dois lados.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["carteira"] });
+      void queryClient.invalidateQueries({ queryKey: walletQueries.wallet().queryKey });
     },
     onError: (error: unknown) => {
       const code = (error as { code?: string }).code;
@@ -246,6 +247,9 @@ function Carteira() {
             </div>
 
             <CotacaoCard mf={wallet?.balance ?? 0} />
+
+            {/* Vem junto com a carteira (sem pedido extra); backend sem o campo não desenha nada. */}
+            {wallet?.streak && <StreakCard streak={wallet.streak} today={hojeNoApp()} />}
 
             <section className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-widest text-text-subtle">

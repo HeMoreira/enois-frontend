@@ -6,4 +6,9 @@ export type RegisterMentorFormProps = {
   initialExpertise?: string;
   initialPrice?: string;
   initialBanner?: string;
+  initialMeetingUrl?: string;
+  /** Preço em faíscas já publicado, em milésimos — `undefined` quando não aceita faíscas. */
+  initialSparksPrice?: number;
+  /** Presente ao editar: mostra a disponibilidade semanal dentro do card de edição. */
+  mentorId?: string;
 };

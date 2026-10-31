@@ -166,6 +166,32 @@ describe("Carteira e ordenação das molduras", () => {
     expect(host.querySelector(".frame-shop-grid")).toBeNull();
   });
 
+  it("mostra a sequência que vem com a carteira antes do histórico", async () => {
+    await act(async () =>
+      client.setQueryData(["carteira"], {
+        balance: 0,
+        chave: "demonstracao",
+        entries: [],
+        streak: {
+          currentDays: 3,
+          longestDays: 8,
+          todayDone: false,
+          freezesAvailable: 1,
+          lastFrozenDay: null,
+        },
+      }),
+    );
+    // O react-query avisa os observadores no próximo tique.
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    const text = host.textContent ?? "";
+    expect(text).toContain("Sua sequência");
+    expect(text.indexOf("Sua sequência")).toBeLessThan(text.indexOf(texts.wallet.history));
+  });
+
+  it("sem a sequência na resposta, a carteira fica como era", () => {
+    expect(host.textContent).not.toMatch(/sequência/i);
+  });
+
   it("abre a loja de cosméticos na aba Loja", async () => {
     await openTab(texts.frameShop.storeTab);
     expect(host.querySelector(".frame-shop-grid")).toBeNull();

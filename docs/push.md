@@ -15,7 +15,9 @@ Notificações push no navegador, sem app nativo.
 ## Estados
 
 - Permissão negada no navegador → o toggle mostra como reativar nas configurações do site.
-- O toggle vive no menu da conta, não numa página separada.
+- O toggle vive no menu da conta. As categorias (social, mensagens, grupos, vagas, sistema) e o
+  resumo semanal ficam em `/notificacoes/preferencias`, que também oferece ligar o push neste
+  aparelho quando ele está desligado.
 - Inscrição expirada (410 do navegador) → o backend descarta e o push para de sair até religar.
 - Sem chave VAPID configurada no ambiente → o toggle não aparece (o recurso fica desligado).
 

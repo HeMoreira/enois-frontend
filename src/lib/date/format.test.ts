@@ -9,10 +9,13 @@ import {
   dataMedia,
   dataSemAno,
   formatarData,
+  hojeNoApp,
   hora,
   mesAno,
+  monthsBetween,
   paraData,
   partesDaData,
+  shortMonthYear,
 } from "./format";
 
 /**
@@ -26,6 +29,11 @@ import {
  */
 describe("data do app", () => {
   const instante = "2026-10-21T01:35:16Z";
+
+  it("hoje é o dia no fuso do app, não no UTC", () => {
+    // 01:35 UTC ainda é dia 20 em São Paulo: a sequência conta o dia de lá.
+    expect(hojeNoApp(new Date(instante))).toBe("2026-10-20");
+  });
 
   it("formata a data curta no fuso do app", () => {
     expect(dataCurta(instante)).toBe("20/10/2026");
@@ -106,5 +114,13 @@ describe("data do app", () => {
     } finally {
       process.env.TZ = fusoOriginal;
     }
+  });
+});
+
+describe("career timeline helpers", () => {
+  it("writes the month without the 'de' and counts months inclusively", () => {
+    expect(shortMonthYear("2023-01-15")).not.toContain(" de ");
+    expect(monthsBetween("2024-01-10", "2024-03-01")).toBe(3);
+    expect(monthsBetween("2024-03-10", "2024-03-20")).toBe(1);
   });
 });
